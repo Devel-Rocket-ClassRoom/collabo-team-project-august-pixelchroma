@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public enum GamePhase
 {
@@ -36,6 +38,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float cameraAngle = 60f;
     [SerializeField] private float cameraFOV = 50f;
 
+    [Header("UI")]
+    [SerializeField] private GameObject gameStartUI;
+    [SerializeField] private GameObject gamePlayUI;
+    [SerializeField] private TMP_Text gameInfoText;
+    [SerializeField] private Button gameStartButton;
+    [SerializeField] private Button undoButton;
+    [SerializeField] private Button playButton;
+
+    [Header("Text Data")]
+    [SerializeField] private GameTextData gameTextData;
+
     private GamePhase currentPhase;
     private BattleState battleState;
 
@@ -50,8 +63,6 @@ public class GameManager : MonoBehaviour
     private int turnCount;
     private Vector2Int undoPosition;
 
-    private Texture2D bgTex;
-
     private static readonly Color DeployHighlight = new Color(0.2f, 0.85f, 0.3f, 1f);
     private static readonly Color MoveHighlight = new Color(0.3f, 0.75f, 1f, 1f);
     private static readonly Color AttackHighlight = new Color(1f, 0.25f, 0.25f, 1f);
@@ -64,14 +75,12 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
-
-        bgTex = new Texture2D(1, 1);
-        bgTex.SetPixel(0, 0, new Color(0, 0, 0, 0.75f));
-        bgTex.Apply();
     }
 
     private void Start()
     {
+        if (gameStartUI != null) gameStartUI.SetActive(false);
+        if (gamePlayUI != null) gamePlayUI.SetActive(false);
         Invoke(nameof(InitGame), 0.1f);
     }
 
@@ -91,6 +100,7 @@ public class GameManager : MonoBehaviour
         deployedCount = 0;
         turnCount = 0;
         ShowDeployZone();
+        SetupUI();
     }
 
     // ─────────────────── Camera ───────────────────
@@ -548,9 +558,17 @@ public class GameManager : MonoBehaviour
         enemyUnits.RemoveAll(u => u == null || u.IsDead);
 
         if (enemyUnits.Count == 0)
-        { currentPhase = GamePhase.BattleResult; resultMessage = "VICTORY!"; return true; }
+        {
+            currentPhase = GamePhase.BattleResult;
+            resultMessage = gameTextData != null ? gameTextData.victory : "VICTORY!";
+            return true;
+        }
         if (playerUnits.Count == 0)
-        { currentPhase = GamePhase.BattleResult; resultMessage = "DEFEAT..."; return true; }
+        {
+            currentPhase = GamePhase.BattleResult;
+            resultMessage = gameTextData != null ? gameTextData.defeat : "DEFEAT...";
+            return true;
+        }
         return false;
     }
 
@@ -569,123 +587,97 @@ public class GameManager : MonoBehaviour
 
     // ─────────────────── UI ───────────────────
 
-    private void OnGUI()
+    private void SetupUI()
     {
-        float sw = Screen.width;
-        float sh = Screen.height;
+        if (gameStartButton != null)
+            gameStartButton.onClick.AddListener(OnGameStartClicked);
+        if (undoButton != null)
+            undoButton.onClick.AddListener(UndoMove);
+        if (playButton != null)
+            playButton.onClick.AddListener(OnPlayClicked);
 
-        int fontSize = Mathf.Max(20, Mathf.RoundToInt(sh * 0.03f));
-        int btnFontSize = Mathf.Max(24, Mathf.RoundToInt(sh * 0.035f));
-        float btnW = sw * 0.6f;
-        float btnH = Mathf.Max(50, sh * 0.08f);
-        float btnX = (sw - btnW) * 0.5f;
-        float pad = 12f;
+        RefreshUI();
+    }
 
-        GUIStyle bg = new GUIStyle();
-        bg.normal.background = bgTex;
+    private void LateUpdate()
+    {
+        RefreshUI();
+    }
 
-        GUIStyle label = new GUIStyle(GUI.skin.label);
-        label.fontSize = fontSize;
-        label.fontStyle = FontStyle.Bold;
-        label.normal.textColor = Color.white;
-        label.padding = new RectOffset(8, 8, 4, 4);
+    private void RefreshUI()
+    {
+        bool showStart = currentPhase == GamePhase.ReadyToStart ||
+                         currentPhase == GamePhase.BattleResult;
+        bool showPlay = currentPhase == GamePhase.PlayerTurn;
 
-        GUIStyle bigLabel = new GUIStyle(label);
-        bigLabel.fontSize = Mathf.Max(36, Mathf.RoundToInt(sh * 0.06f));
-        bigLabel.alignment = TextAnchor.MiddleCenter;
+        if (gameStartUI != null)
+            gameStartUI.SetActive(showStart);
 
-        GUIStyle btn = new GUIStyle(GUI.skin.button);
-        btn.fontSize = btnFontSize;
-        btn.fontStyle = FontStyle.Bold;
+        if (gamePlayUI != null)
+            gamePlayUI.SetActive(showPlay);
 
-        // ── Top Panel ──
-        float topH = fontSize * 3 + pad * 2;
-        GUI.Box(new Rect(0, 0, sw, topH), "", bg);
+        if (showPlay)
+        {
+            bool moved = battleState == BattleState.UnitMoved;
+            bool idle = battleState == BattleState.Idle;
 
-        float ty = pad;
+            if (undoButton != null)
+                undoButton.gameObject.SetActive(moved);
+
+            if (playButton != null)
+                playButton.gameObject.SetActive(moved || idle);
+        }
+
+        if (gameInfoText != null)
+            gameInfoText.text = GetInfoText();
+    }
+
+    private string GetInfoText()
+    {
+        if (gameTextData == null) return "";
 
         switch (currentPhase)
         {
             case GamePhase.Deployment:
-                GUI.Label(new Rect(pad, ty, sw, fontSize + 8),
-                    $"DEPLOY: {deployedCount} / {maxPlayerUnits}", label);
-                ty += fontSize + 4;
-                GUI.Label(new Rect(pad, ty, sw, fontSize + 8),
-                    "Tap green tiles to place units", label);
-                break;
-
+                return string.Format(gameTextData.deployFormat, deployedCount, maxPlayerUnits);
             case GamePhase.ReadyToStart:
-                GUI.Label(new Rect(pad, ty, sw, fontSize + 8),
-                    "All units ready!", label);
-                ty += fontSize + 4;
-                GUI.Label(new Rect(pad, ty, sw, fontSize + 8),
-                    "Press GAME START below", label);
-                break;
-
+                return gameTextData.readyToStart;
             case GamePhase.PlayerTurn:
-                GUI.Label(new Rect(pad, ty, sw, fontSize + 8),
-                    $"YOUR TURN  -  Turn {turnCount}", label);
-                ty += fontSize + 4;
-
-                string info = "";
+                string header = string.Format(gameTextData.playerTurnHeader, turnCount) + "\n";
                 if (battleState == BattleState.Idle)
-                    info = "Tap your unit to select";
+                    header += gameTextData.idle;
                 else if (battleState == BattleState.UnitSelected)
-                    info = "Blue=Move  Red=Attack  Other=Cancel";
+                    header += gameTextData.unitSelected;
                 else if (battleState == BattleState.UnitMoved)
-                    info = "Red=Attack  UNDO/SKIP below";
-                GUI.Label(new Rect(pad, ty, sw, fontSize + 8), info, label);
-
+                    header += gameTextData.unitMoved;
                 if (selectedUnit != null)
-                {
-                    ty += fontSize + 4;
-                    GUI.Label(new Rect(pad, ty, sw, fontSize + 8),
-                        $"HP:{selectedUnit.HP}  ATK:{selectedUnit.AttackPower}  MOV:{selectedUnit.MoveRange}",
-                        label);
-                }
-                break;
-
+                    header += string.Format(gameTextData.unitStatsFormat,
+                        selectedUnit.HP, selectedUnit.AttackPower, selectedUnit.MoveRange);
+                return header;
             case GamePhase.EnemyTurn:
-                GUI.Label(new Rect(pad, ty, sw, fontSize + 8),
-                    "ENEMY TURN...", label);
-                break;
+                return gameTextData.enemyTurn;
+            case GamePhase.BattleResult:
+                return resultMessage;
+            default:
+                return "";
         }
+    }
 
-        // ── Bottom Buttons ──
-        float bottomY = sh - btnH - pad * 2;
-
+    private void OnGameStartClicked()
+    {
         if (currentPhase == GamePhase.ReadyToStart)
-        {
-            if (GUI.Button(new Rect(btnX, bottomY, btnW, btnH), "GAME START", btn))
-                StartBattle();
-        }
+            StartBattle();
+        else if (currentPhase == GamePhase.BattleResult)
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
 
-        if (currentPhase == GamePhase.PlayerTurn)
-        {
-            if (battleState == BattleState.UnitMoved)
-            {
-                float halfW = btnW * 0.48f;
-                float gap = btnW * 0.04f;
+    private void OnPlayClicked()
+    {
+        if (currentPhase != GamePhase.PlayerTurn) return;
 
-                if (GUI.Button(new Rect(btnX, bottomY, halfW, btnH), "UNDO", btn))
-                    UndoMove();
-                if (GUI.Button(new Rect(btnX + halfW + gap, bottomY, halfW, btnH), "SKIP", btn))
-                    SkipAttack();
-            }
-            else if (battleState == BattleState.Idle)
-            {
-                if (GUI.Button(new Rect(btnX, bottomY, btnW, btnH), "END TURN", btn))
-                    EndPlayerTurn();
-            }
-        }
-
-        if (currentPhase == GamePhase.BattleResult)
-        {
-            GUI.Box(new Rect(0, sh * 0.3f, sw, sh * 0.15f), "", bg);
-            GUI.Label(new Rect(0, sh * 0.32f, sw, sh * 0.1f), resultMessage, bigLabel);
-
-            if (GUI.Button(new Rect(btnX, bottomY, btnW, btnH), "RESTART", btn))
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
+        if (battleState == BattleState.UnitMoved)
+            SkipAttack();
+        else if (battleState == BattleState.Idle)
+            EndPlayerTurn();
     }
 }
