@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class CameraController : MonoBehaviour
@@ -47,6 +48,9 @@ public class CameraController : MonoBehaviour
 
         if (pointer.press.wasPressedThisFrame)
         {
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                return;
+
             pressStartPos = pointer.position.ReadValue();
             lastPointerPos = pressStartPos;
             isPressed = true;
