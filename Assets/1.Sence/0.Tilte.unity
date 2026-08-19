@@ -1079,6 +1079,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1164730971}
   m_CullTransparentMesh: 1
+--- !u!114 &1213730983 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8398572081434281004, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+  m_PrefabInstance: {fileID: 7874623365276909080}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02c893f8b6a14d34f89fc244b82212e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneChanger
 --- !u!224 &1220274957 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3457089757889150682, guid: 0ddbd5eabfc41434d9e88e867a7b0185, type: 3}
@@ -1804,7 +1815,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1831092442}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1213730983}
+        m_TargetAssemblyTypeName: SceneChanger, Assembly-CSharp
+        m_MethodName: Change
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1831092442
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3294,6 +3317,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbd3f9989d1b1ef4085619cecbbd1103, type: 3}
+--- !u!1001 &7874623365276909080
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2340316235959571040, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_Name
+      value: SceneChanger
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 560.9831
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1080.736
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4455627436956961488, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -3301,3 +3381,4 @@ SceneRoots:
   - {fileID: 1127415226}
   - {fileID: 1633472257}
   - {fileID: 1229596624}
+  - {fileID: 7874623365276909080}
