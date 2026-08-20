@@ -176,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: TOUCH TO START
+  m_text: Touch to Screen
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88630710c7b8f8b4cad73e02a9ec81af, type: 2}
   m_sharedMaterial: {fileID: 171207028712572826, guid: 88630710c7b8f8b4cad73e02a9ec81af, type: 2}
@@ -220,7 +220,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
