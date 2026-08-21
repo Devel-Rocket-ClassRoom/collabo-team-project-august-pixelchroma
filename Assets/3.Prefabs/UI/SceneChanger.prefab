@@ -44,4 +44,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c893f8b6a14d34f89fc244b82212e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneChanger
-  sceneName: 1.MainMenu
+  sceneName: 3.Stage List
