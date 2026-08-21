@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/1.Sence/0.Tilte.unity
+    guid: bc9d5f59a20a47744a85278ee13cff2b
+  - enabled: 1
+    path: Assets/1.Sence/1.MainMenu.unity
+    guid: 87d78092eaa9345478df15761881bc86
+  - enabled: 1
+    path: Assets/1.Sence/2.Chapter Select.unity
+    guid: f1c539c31c0270f458fd38692a978b2f
+  - enabled: 1
+    path: Assets/1.Sence/3.Stage List.unity
+    guid: 36dded21ce44f3a408debc86f3b5f52a
+  - enabled: 1
+    path: Assets/1.Sence/4.MainGame.unity
+    guid: 444ac00c1ef7cc248a160f6d8a19f386
+  m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0
