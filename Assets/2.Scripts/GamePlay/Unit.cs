@@ -12,8 +12,10 @@ public class Unit : MonoBehaviour
     public int HP { get; private set; }
     public int AttackPower { get; private set; }
     public int MoveRange { get; private set; }
+    public int AttackRange { get; private set; }
     public Vector2Int GridPosition { get; set; }
     public bool HasActed { get; set; }
+    public CharacterData CharacterData { get; private set; }
 
     private Renderer unitRenderer;
     private Material unitMaterial;
@@ -27,7 +29,19 @@ public class Unit : MonoBehaviour
 
     public static Unit Create(Team team, Vector2Int gridPos, GameObject prefab)
     {
+        return Create(team, gridPos, prefab, null);
+    }
+
+    public static Unit Create(
+        Team team,
+        Vector2Int gridPos,
+        GameObject fallbackPrefab,
+        CharacterData characterData)
+    {
         GridManager grid = GridManager.Instance;
+        GameObject prefab = characterData != null && characterData.BattlePrefab != null
+            ? characterData.BattlePrefab
+            : fallbackPrefab;
 
         GameObject obj;
         if (prefab != null)
@@ -56,9 +70,11 @@ public class Unit : MonoBehaviour
             unit = obj.AddComponent<Unit>();
 
         unit.UnitTeam = team;
-        unit.HP = 3;
-        unit.AttackPower = 1;
-        unit.MoveRange = 3;
+        unit.CharacterData = characterData;
+        unit.HP = characterData != null ? characterData.MaxHP : 3;
+        unit.AttackPower = characterData != null ? characterData.AttackPower : 1;
+        unit.MoveRange = characterData != null ? characterData.MoveRange : 3;
+        unit.AttackRange = characterData != null ? characterData.AttackRange : 1;
         unit.GridPosition = gridPos;
         unit.HasActed = false;
 
@@ -130,8 +146,21 @@ public class Unit : MonoBehaviour
 
     private void SetTeamColor()
     {
-        Color color = (UnitTeam == Team.Player) ? PlayerColor : EnemyColor;
+        Color color = UnitTeam == Team.Player && CharacterData != null
+            ? CharacterData.TeamColor
+            : (UnitTeam == Team.Player ? PlayerColor : EnemyColor);
         ApplyColor(color);
+    }
+
+    public void RemoveFromBoard()
+    {
+        Tile tile = GridManager.Instance != null
+            ? GridManager.Instance.GetTile(GridPosition)
+            : null;
+        if (tile != null && tile.OccupyingUnit == gameObject)
+            tile.RemoveUnit();
+
+        Destroy(gameObject);
     }
 
     private void ApplyColor(Color color)

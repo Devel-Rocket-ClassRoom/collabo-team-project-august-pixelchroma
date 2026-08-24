@@ -33,7 +33,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int maxPlayerUnits = 4;
     [SerializeField] private int maxEnemyUnits = 4;
 
-    [Header("Camera (Fallback - MapData overrides these)")]
+    [Header("Deployment Roster")]
+    [Tooltip("Characters that can be selected before battle. Empty uses a prototype roster.")]
+    [SerializeField] private List<CharacterData> availableCharacters = new List<CharacterData>();
+
+    [Header("Camera")]
     [SerializeField] private float cameraZoom = 0.7f;
     [SerializeField] private float cameraAngle = 60f;
     [SerializeField] private float cameraFOV = 50f;
@@ -62,6 +66,15 @@ public class GameManager : MonoBehaviour
     private string resultMessage = "";
     private int turnCount;
     private Vector2Int undoPosition;
+    private CharacterData selectedDeployCharacter;
+    private GameObject deploymentPanel;
+    private readonly List<Button> characterButtons = new List<Button>();
+    private Unit attackPreviewTarget;
+    private RectTransform attackPreviewPanel;
+    private TextMeshProUGUI attackPreviewText;
+    private Canvas attackPreviewCanvas;
+    private Button attackConfirmButton;
+    private Button attackCancelButton;
 
     private static readonly Color DeployHighlight = new Color(0.2f, 0.85f, 0.3f, 1f);
     private static readonly Color MoveHighlight = new Color(0.3f, 0.75f, 1f, 1f);
@@ -92,7 +105,6 @@ public class GameManager : MonoBehaviour
 
     private void InitGame()
     {
-        ApplyMapData();
         SetupCamera();
         SpawnEnemies();
         HideOriginalPrefabs();
@@ -102,15 +114,7 @@ public class GameManager : MonoBehaviour
         turnCount = 0;
         ShowDeployZone();
         SetupUI();
-    }
-
-    private void ApplyMapData()
-    {
-        if (MapLoader.Instance == null || MapLoader.Instance.CurrentMap == null) return;
-        MapData map = MapLoader.Instance.CurrentMap;
-        cameraAngle = map.cameraAngle;
-        cameraZoom = map.cameraZoom;
-        cameraFOV = map.cameraFOV;
+        SetupDeploymentRoster();
     }
 
     // ─────────────────── Camera ───────────────────
@@ -215,19 +219,190 @@ public class GameManager : MonoBehaviour
 
     private void HandleDeployClick(Tile tile)
     {
-        if (deployedCount >= maxPlayerUnits) return;
         if (tile.Zone != TileZone.PlayerDeploy) return;
-        if (tile.State != TileState.Empty) return;
 
-        Unit unit = Unit.Create(Team.Player, tile.GridPosition, playerPrefab);
+        if (tile.OccupyingUnit != null)
+        {
+            Unit placedUnit = tile.OccupyingUnit.GetComponent<Unit>();
+            if (placedUnit != null && placedUnit.UnitTeam == Team.Player)
+            {
+                playerUnits.Remove(placedUnit);
+                placedUnit.RemoveFromBoard();
+                deployedCount = Mathf.Max(0, deployedCount - 1);
+                selectedDeployCharacter = placedUnit.CharacterData;
+                RefreshDeploymentUI();
+                tile.SetHighlight(DeployHighlight);
+            }
+            return;
+        }
+
+        if (deployedCount >= maxPlayerUnits) return;
+        if (tile.State != TileState.Empty) return;
+        if (selectedDeployCharacter == null) return;
+        if (IsCharacterDeployed(selectedDeployCharacter)) return;
+
+        Unit unit = Unit.Create(
+            Team.Player,
+            tile.GridPosition,
+            playerPrefab,
+            selectedDeployCharacter);
         playerUnits.Add(unit);
         deployedCount++;
         tile.ClearHighlight();
+        selectedDeployCharacter = FindFirstUndeployedCharacter();
+        RefreshDeploymentUI();
+    }
 
-        if (deployedCount >= maxPlayerUnits)
+    private bool IsCharacterDeployed(CharacterData character)
+    {
+        return playerUnits.Exists(unit => unit != null && unit.CharacterData == character);
+    }
+
+    private CharacterData FindFirstUndeployedCharacter()
+    {
+        return availableCharacters.Find(character =>
+            character != null && !IsCharacterDeployed(character));
+    }
+
+    private void SetupDeploymentRoster()
+    {
+        availableCharacters.RemoveAll(character => character == null);
+        if (availableCharacters.Count == 0)
+            CreatePrototypeRoster();
+
+        selectedDeployCharacter = FindFirstUndeployedCharacter();
+        CreateDeploymentPanel();
+        RefreshDeploymentUI();
+    }
+
+    private void CreatePrototypeRoster()
+    {
+        availableCharacters.Add(CreateRuntimeCharacter(
+            "swordsman", "SWORD", 5, 2, 3, 1, new Color(0.2f, 0.55f, 1f)));
+        availableCharacters.Add(CreateRuntimeCharacter(
+            "lancer", "LANCE", 4, 2, 3, 2, new Color(0.25f, 0.85f, 0.55f)));
+        availableCharacters.Add(CreateRuntimeCharacter(
+            "archer", "ARCHER", 3, 2, 2, 3, new Color(1f, 0.65f, 0.2f)));
+        availableCharacters.Add(CreateRuntimeCharacter(
+            "healer", "MEDIC", 3, 1, 3, 1, new Color(0.95f, 0.35f, 0.75f)));
+    }
+
+    private CharacterData CreateRuntimeCharacter(
+        string id, string name, int hp, int attack, int movement, int range, Color color)
+    {
+        CharacterData data = ScriptableObject.CreateInstance<CharacterData>();
+        data.name = $"Runtime_{id}";
+        data.ConfigureRuntime(id, name, playerPrefab, hp, attack, movement, range, color);
+        return data;
+    }
+
+    private void CreateDeploymentPanel()
+    {
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas == null) return;
+
+        deploymentPanel = new GameObject(
+            "DeploymentRosterPanel",
+            typeof(RectTransform),
+            typeof(Image),
+            typeof(HorizontalLayoutGroup));
+        deploymentPanel.transform.SetParent(canvas.transform, false);
+
+        RectTransform rect = deploymentPanel.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.04f, 0.03f);
+        rect.anchorMax = new Vector2(0.96f, 0.15f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image background = deploymentPanel.GetComponent<Image>();
+        background.color = new Color(0.04f, 0.06f, 0.1f, 0.92f);
+
+        HorizontalLayoutGroup layout = deploymentPanel.GetComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(12, 12, 10, 10);
+        layout.spacing = 10f;
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = true;
+
+        foreach (CharacterData character in availableCharacters)
         {
-            GridManager.Instance.ClearAllHighlights();
-            currentPhase = GamePhase.ReadyToStart;
+            CharacterData capturedCharacter = character;
+            Button button = CreateCharacterButton(deploymentPanel.transform, character);
+            button.onClick.AddListener(() => SelectDeployCharacter(capturedCharacter));
+            characterButtons.Add(button);
+        }
+    }
+
+    private Button CreateCharacterButton(Transform parent, CharacterData character)
+    {
+        GameObject buttonObject = new GameObject(
+            $"Character_{character.CharacterId}",
+            typeof(RectTransform),
+            typeof(Image),
+            typeof(Button),
+            typeof(LayoutElement));
+        buttonObject.transform.SetParent(parent, false);
+
+        Image image = buttonObject.GetComponent<Image>();
+        image.color = character.TeamColor;
+
+        Button button = buttonObject.GetComponent<Button>();
+        ColorBlock colors = button.colors;
+        colors.highlightedColor = Color.Lerp(character.TeamColor, Color.white, 0.25f);
+        colors.pressedColor = Color.Lerp(character.TeamColor, Color.black, 0.2f);
+        colors.selectedColor = colors.highlightedColor;
+        button.colors = colors;
+
+        GameObject labelObject = new GameObject(
+            "Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelObject.transform.SetParent(buttonObject.transform, false);
+        RectTransform labelRect = labelObject.GetComponent<RectTransform>();
+        labelRect.anchorMin = Vector2.zero;
+        labelRect.anchorMax = Vector2.one;
+        labelRect.offsetMin = new Vector2(4f, 4f);
+        labelRect.offsetMax = new Vector2(-4f, -4f);
+
+        TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
+        label.text = $"{character.DisplayName}\nMOV {character.MoveRange}  RNG {character.AttackRange}";
+        label.alignment = TextAlignmentOptions.Center;
+        label.fontSize = 24f;
+        label.color = Color.white;
+        if (gameInfoText != null && gameInfoText.font != null)
+            label.font = gameInfoText.font;
+
+        return button;
+    }
+
+    private void SelectDeployCharacter(CharacterData character)
+    {
+        if (currentPhase != GamePhase.Deployment) return;
+        if (character == null || IsCharacterDeployed(character)) return;
+
+        selectedDeployCharacter = character;
+        RefreshDeploymentUI();
+    }
+
+    private void RefreshDeploymentUI()
+    {
+        if (deploymentPanel != null)
+            deploymentPanel.SetActive(currentPhase == GamePhase.Deployment);
+
+        for (int i = 0; i < characterButtons.Count && i < availableCharacters.Count; i++)
+        {
+            CharacterData character = availableCharacters[i];
+            Button button = characterButtons[i];
+            bool deployed = IsCharacterDeployed(character);
+            button.interactable = !deployed;
+
+            Image image = button.GetComponent<Image>();
+            if (image != null)
+                image.color = deployed
+                    ? new Color(0.2f, 0.2f, 0.2f, 0.7f)
+                    : character == selectedDeployCharacter
+                        ? Color.Lerp(character.TeamColor, Color.white, 0.35f)
+                        : character.TeamColor;
         }
     }
 
@@ -301,7 +476,7 @@ public class GameManager : MonoBehaviour
                 Unit target = GetUnitAt(tile.GridPosition, Team.Enemy);
                 if (target != null)
                 {
-                    AttackTarget(target);
+                    ConfirmOrPreviewAttack(target);
                     return;
                 }
             }
@@ -323,10 +498,12 @@ public class GameManager : MonoBehaviour
                 Unit target = GetUnitAt(tile.GridPosition, Team.Enemy);
                 if (target != null)
                 {
-                    AttackTarget(target);
+                    ConfirmOrPreviewAttack(target);
                     return;
                 }
             }
+
+            HideAttackPreview();
         }
     }
 
@@ -347,20 +524,7 @@ public class GameManager : MonoBehaviour
             if (t != null) t.SetHighlight(MoveHighlight);
         }
 
-        attackTiles.Clear();
-        Tile[] neighbors = grid.GetNeighbors(unit.GridPosition);
-        foreach (var neighbor in neighbors)
-        {
-            if (neighbor.State == TileState.Occupied && neighbor.OccupyingUnit != null)
-            {
-                Unit target = neighbor.OccupyingUnit.GetComponent<Unit>();
-                if (target != null && target.UnitTeam == Team.Enemy && !target.IsDead)
-                {
-                    neighbor.SetHighlight(AttackHighlight);
-                    attackTiles.Add(neighbor.GridPosition);
-                }
-            }
-        }
+        ShowAttackRange(unit.GridPosition, unit.AttackRange);
     }
 
     private void DeselectUnit()
@@ -390,20 +554,19 @@ public class GameManager : MonoBehaviour
 
     private void ShowAttackRangeAfterMove()
     {
-        attackTiles.Clear();
-        Tile[] neighbors = GridManager.Instance.GetNeighbors(selectedUnit.GridPosition);
+        ShowAttackRange(selectedUnit.GridPosition, selectedUnit.AttackRange);
+    }
 
-        foreach (var neighbor in neighbors)
+    private void ShowAttackRange(Vector2Int origin, int range)
+    {
+        attackTiles.Clear();
+        foreach (Vector2Int position in Pathfinding.GetTilesInRange(origin, range))
         {
-            if (neighbor.State == TileState.Occupied && neighbor.OccupyingUnit != null)
-            {
-                Unit target = neighbor.OccupyingUnit.GetComponent<Unit>();
-                if (target != null && target.UnitTeam == Team.Enemy && !target.IsDead)
-                {
-                    neighbor.SetHighlight(AttackHighlight);
-                    attackTiles.Add(neighbor.GridPosition);
-                }
-            }
+            Tile tile = GridManager.Instance.GetTile(position);
+            if (tile == null) continue;
+
+            tile.SetHighlight(AttackHighlight);
+            attackTiles.Add(position);
         }
     }
 
@@ -416,6 +579,221 @@ public class GameManager : MonoBehaviour
             enemyUnits.Remove(target);
 
         FinishUnitAction();
+    }
+
+    private void ConfirmOrPreviewAttack(Unit target)
+    {
+        ShowAttackPreview(target);
+    }
+
+    private void ShowAttackPreview(Unit target)
+    {
+        if (target == null || selectedUnit == null) return;
+
+        EnsureAttackPreviewUI();
+        if (attackPreviewPanel == null || attackPreviewText == null) return;
+
+        attackPreviewTarget = target;
+        int predictedDamage = Mathf.Min(selectedUnit.AttackPower, target.HP);
+        int remainingHP = Mathf.Max(0, target.HP - selectedUnit.AttackPower);
+        attackPreviewText.text =
+            $"DAMAGE  {predictedDamage}    HP  {target.HP} > {remainingHP}\n" +
+            $"MOVE {selectedUnit.MoveRange}    RANGE {selectedUnit.AttackRange}";
+        attackPreviewPanel.gameObject.SetActive(true);
+        UpdateAttackPreviewPosition();
+    }
+
+    private void EnsureAttackPreviewUI()
+    {
+        if (attackPreviewPanel != null) return;
+
+        GameObject canvasObject = new GameObject(
+            "AttackPreviewCanvas",
+            typeof(RectTransform),
+            typeof(Canvas),
+            typeof(CanvasScaler),
+            typeof(GraphicRaycaster));
+        attackPreviewCanvas = canvasObject.GetComponent<Canvas>();
+        attackPreviewCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        attackPreviewCanvas.sortingOrder = 100;
+
+        CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1080f, 1920f);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
+
+        GameObject panelObject = new GameObject(
+            "AttackPreview",
+            typeof(RectTransform),
+            typeof(Image),
+            typeof(Outline),
+            typeof(CanvasGroup));
+        panelObject.transform.SetParent(attackPreviewCanvas.transform, false);
+        attackPreviewPanel = panelObject.GetComponent<RectTransform>();
+        attackPreviewPanel.anchorMin = new Vector2(0.5f, 0.5f);
+        attackPreviewPanel.anchorMax = new Vector2(0.5f, 0.5f);
+        attackPreviewPanel.pivot = new Vector2(0.5f, 0f);
+        attackPreviewPanel.sizeDelta = new Vector2(520f, 280f);
+
+        Image background = panelObject.GetComponent<Image>();
+        background.color = new Color(0.035f, 0.025f, 0.025f, 0.98f);
+        background.raycastTarget = false;
+
+        Outline outline = panelObject.GetComponent<Outline>();
+        outline.effectColor = new Color(1f, 0.35f, 0.12f, 1f);
+        outline.effectDistance = new Vector2(7f, -7f);
+
+        CanvasGroup canvasGroup = panelObject.GetComponent<CanvasGroup>();
+        canvasGroup.interactable = true;
+        canvasGroup.blocksRaycasts = true;
+
+        GameObject textObject = new GameObject(
+            "Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObject.transform.SetParent(panelObject.transform, false);
+        RectTransform textRect = textObject.GetComponent<RectTransform>();
+        textRect.anchorMin = new Vector2(0f, 0.34f);
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = new Vector2(12f, 8f);
+        textRect.offsetMax = new Vector2(-12f, -8f);
+
+        attackPreviewText = textObject.GetComponent<TextMeshProUGUI>();
+        attackPreviewText.alignment = TextAlignmentOptions.Center;
+        attackPreviewText.fontSize = 36f;
+        attackPreviewText.fontStyle = FontStyles.Bold;
+        attackPreviewText.color = Color.white;
+        attackPreviewText.raycastTarget = false;
+        if (gameInfoText != null && gameInfoText.font != null)
+            attackPreviewText.font = gameInfoText.font;
+
+        attackCancelButton = CreateAttackPreviewButton(
+            panelObject.transform,
+            "CancelButton",
+            "CANCEL",
+            new Vector2(0.04f, 0.06f),
+            new Vector2(0.48f, 0.31f),
+            new Color(0.24f, 0.27f, 0.32f, 1f));
+        attackCancelButton.onClick.AddListener(HideAttackPreview);
+
+        attackConfirmButton = CreateAttackPreviewButton(
+            panelObject.transform,
+            "AttackButton",
+            "ATTACK",
+            new Vector2(0.52f, 0.06f),
+            new Vector2(0.96f, 0.31f),
+            new Color(0.85f, 0.16f, 0.08f, 1f));
+        attackConfirmButton.onClick.AddListener(ConfirmPreviewedAttack);
+
+        panelObject.SetActive(false);
+    }
+
+    private Button CreateAttackPreviewButton(
+        Transform parent,
+        string objectName,
+        string labelText,
+        Vector2 anchorMin,
+        Vector2 anchorMax,
+        Color color)
+    {
+        GameObject buttonObject = new GameObject(
+            objectName, typeof(RectTransform), typeof(Image), typeof(Button));
+        buttonObject.transform.SetParent(parent, false);
+
+        RectTransform rect = buttonObject.GetComponent<RectTransform>();
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image image = buttonObject.GetComponent<Image>();
+        image.color = color;
+
+        Button button = buttonObject.GetComponent<Button>();
+        ColorBlock colors = button.colors;
+        colors.normalColor = color;
+        colors.highlightedColor = Color.Lerp(color, Color.white, 0.2f);
+        colors.pressedColor = Color.Lerp(color, Color.black, 0.2f);
+        button.colors = colors;
+
+        GameObject labelObject = new GameObject(
+            "Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelObject.transform.SetParent(buttonObject.transform, false);
+        RectTransform labelRect = labelObject.GetComponent<RectTransform>();
+        labelRect.anchorMin = Vector2.zero;
+        labelRect.anchorMax = Vector2.one;
+        labelRect.offsetMin = Vector2.zero;
+        labelRect.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
+        label.text = labelText;
+        label.alignment = TextAlignmentOptions.Center;
+        label.fontSize = 30f;
+        label.fontStyle = FontStyles.Bold;
+        label.color = Color.white;
+        label.raycastTarget = false;
+        if (gameInfoText != null && gameInfoText.font != null)
+            label.font = gameInfoText.font;
+
+        return button;
+    }
+
+    private void ConfirmPreviewedAttack()
+    {
+        Unit target = attackPreviewTarget;
+        if (target == null || target.IsDead || selectedUnit == null)
+        {
+            HideAttackPreview();
+            return;
+        }
+
+        AttackTarget(target);
+    }
+
+    private void UpdateAttackPreviewPosition()
+    {
+        if (attackPreviewTarget == null ||
+            attackPreviewPanel == null ||
+            !attackPreviewPanel.gameObject.activeSelf)
+            return;
+
+        Camera worldCamera = Camera.main;
+        if (worldCamera == null) return;
+
+        Vector3 worldPosition = attackPreviewTarget.transform.position + Vector3.up * 1.1f;
+        Vector2 screenPosition = worldCamera.WorldToScreenPoint(worldPosition);
+        if (screenPosition.y < 0f) return;
+
+        RectTransform canvasRect = attackPreviewCanvas.transform as RectTransform;
+
+        if (canvasRect != null && RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect, screenPosition, null, out Vector2 localPoint))
+        {
+            localPoint.y += 55f;
+
+            Vector2 halfCanvas = canvasRect.rect.size * 0.5f;
+            float halfPanelWidth = attackPreviewPanel.rect.width * 0.5f;
+            float panelHeight = attackPreviewPanel.rect.height;
+            const float margin = 24f;
+
+            localPoint.x = Mathf.Clamp(
+                localPoint.x,
+                -halfCanvas.x + halfPanelWidth + margin,
+                halfCanvas.x - halfPanelWidth - margin);
+            localPoint.y = Mathf.Clamp(
+                localPoint.y,
+                -halfCanvas.y + margin,
+                halfCanvas.y - panelHeight - margin);
+
+            attackPreviewPanel.anchoredPosition = localPoint;
+            attackPreviewPanel.SetAsLastSibling();
+        }
+    }
+
+    private void HideAttackPreview()
+    {
+        attackPreviewTarget = null;
+        if (attackPreviewPanel != null)
+            attackPreviewPanel.gameObject.SetActive(false);
     }
 
     private void SkipAttack()
@@ -586,6 +964,7 @@ public class GameManager : MonoBehaviour
 
     private void ClearAllMarkers()
     {
+        HideAttackPreview();
         GridManager grid = GridManager.Instance;
         foreach (var pos in moveTiles)
         { Tile t = grid.GetTile(pos); if (t != null) t.ClearHighlight(); }
@@ -611,12 +990,16 @@ public class GameManager : MonoBehaviour
 
     private void LateUpdate()
     {
+        UpdateAttackPreviewPosition();
         RefreshUI();
     }
 
     private void RefreshUI()
     {
-        bool showStart = currentPhase == GamePhase.ReadyToStart ||
+        bool canStartFromDeployment = currentPhase == GamePhase.Deployment &&
+                                      deployedCount == maxPlayerUnits;
+        bool showStart = canStartFromDeployment ||
+                         currentPhase == GamePhase.ReadyToStart ||
                          currentPhase == GamePhase.BattleResult;
         bool showPlay = currentPhase == GamePhase.PlayerTurn;
 
@@ -675,7 +1058,13 @@ public class GameManager : MonoBehaviour
 
     private void OnGameStartClicked()
     {
-        if (currentPhase == GamePhase.ReadyToStart)
+        if (currentPhase == GamePhase.Deployment && deployedCount == maxPlayerUnits)
+        {
+            GridManager.Instance.ClearAllHighlights();
+            if (deploymentPanel != null) deploymentPanel.SetActive(false);
+            StartBattle();
+        }
+        else if (currentPhase == GamePhase.ReadyToStart)
             StartBattle();
         else if (currentPhase == GamePhase.BattleResult)
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
