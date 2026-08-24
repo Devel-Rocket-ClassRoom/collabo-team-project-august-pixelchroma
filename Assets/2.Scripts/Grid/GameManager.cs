@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int maxPlayerUnits = 4;
     [SerializeField] private int maxEnemyUnits = 4;
 
-    [Header("Camera")]
+    [Header("Camera (Fallback - MapData overrides these)")]
     [SerializeField] private float cameraZoom = 0.7f;
     [SerializeField] private float cameraAngle = 60f;
     [SerializeField] private float cameraFOV = 50f;
@@ -92,6 +92,7 @@ public class GameManager : MonoBehaviour
 
     private void InitGame()
     {
+        ApplyMapData();
         SetupCamera();
         SpawnEnemies();
         HideOriginalPrefabs();
@@ -101,6 +102,15 @@ public class GameManager : MonoBehaviour
         turnCount = 0;
         ShowDeployZone();
         SetupUI();
+    }
+
+    private void ApplyMapData()
+    {
+        if (MapLoader.Instance == null || MapLoader.Instance.CurrentMap == null) return;
+        MapData map = MapLoader.Instance.CurrentMap;
+        cameraAngle = map.cameraAngle;
+        cameraZoom = map.cameraZoom;
+        cameraFOV = map.cameraFOV;
     }
 
     // ─────────────────── Camera ───────────────────
