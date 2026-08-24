@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6df9ca60755d4a9fb5f8a1e36e47e3b4, type: 3}
+  m_Name: Vanguard
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterData
+  characterId: vanguard
+  displayName: VANGUARD
+  description: Sweeps a forward cone and is strongest when surrounded by several enemies.
+  battlePrefab: {fileID: 0}
+  maxHP: 6
+  attackPower: 2
+  moveRange: 3
+  attackRange: 2
+  attackPattern: 4
+  damageType: 0
+  areaRadius: 2
+  maxTargets: 5
+  specialPower: 3
+  cooldownTurns: 2
+  ignoresCover: 0
+  canFriendlyFire: 0
+  teamColor: {r: 0.2, g: 0.85, b: 0.45, a: 1}
