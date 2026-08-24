@@ -12,6 +12,7 @@ public class Unit : MonoBehaviour
     public int HP { get; private set; }
     public int AttackPower { get; private set; }
     public int MoveRange { get; private set; }
+    public int AttackRange { get; private set; }
     public Vector2Int GridPosition { get; set; }
     public bool HasActed { get; set; }
     public CharacterData CharacterData { get; private set; }
@@ -73,6 +74,7 @@ public class Unit : MonoBehaviour
         unit.HP = characterData != null ? characterData.MaxHP : 3;
         unit.AttackPower = characterData != null ? characterData.AttackPower : 1;
         unit.MoveRange = characterData != null ? characterData.MoveRange : 3;
+        unit.AttackRange = characterData != null ? characterData.AttackRange : 1;
         unit.GridPosition = gridPos;
         unit.HasActed = false;
 

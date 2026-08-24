@@ -73,6 +73,8 @@ public class GameManager : MonoBehaviour
     private RectTransform attackPreviewPanel;
     private TextMeshProUGUI attackPreviewText;
     private Canvas attackPreviewCanvas;
+    private Button attackConfirmButton;
+    private Button attackCancelButton;
 
     private static readonly Color DeployHighlight = new Color(0.2f, 0.85f, 0.3f, 1f);
     private static readonly Color MoveHighlight = new Color(0.3f, 0.75f, 1f, 1f);
@@ -276,21 +278,21 @@ public class GameManager : MonoBehaviour
     private void CreatePrototypeRoster()
     {
         availableCharacters.Add(CreateRuntimeCharacter(
-            "swordsman", "SWORD", 5, 2, 3, new Color(0.2f, 0.55f, 1f)));
+            "swordsman", "SWORD", 5, 2, 3, 1, new Color(0.2f, 0.55f, 1f)));
         availableCharacters.Add(CreateRuntimeCharacter(
-            "lancer", "LANCE", 4, 2, 3, new Color(0.25f, 0.85f, 0.55f)));
+            "lancer", "LANCE", 4, 2, 3, 2, new Color(0.25f, 0.85f, 0.55f)));
         availableCharacters.Add(CreateRuntimeCharacter(
-            "archer", "ARCHER", 3, 2, 2, new Color(1f, 0.65f, 0.2f)));
+            "archer", "ARCHER", 3, 2, 2, 3, new Color(1f, 0.65f, 0.2f)));
         availableCharacters.Add(CreateRuntimeCharacter(
-            "healer", "MEDIC", 3, 1, 3, new Color(0.95f, 0.35f, 0.75f)));
+            "healer", "MEDIC", 3, 1, 3, 1, new Color(0.95f, 0.35f, 0.75f)));
     }
 
     private CharacterData CreateRuntimeCharacter(
-        string id, string name, int hp, int attack, int movement, Color color)
+        string id, string name, int hp, int attack, int movement, int range, Color color)
     {
         CharacterData data = ScriptableObject.CreateInstance<CharacterData>();
         data.name = $"Runtime_{id}";
-        data.ConfigureRuntime(id, name, playerPrefab, hp, attack, movement, color);
+        data.ConfigureRuntime(id, name, playerPrefab, hp, attack, movement, range, color);
         return data;
     }
 
@@ -363,7 +365,7 @@ public class GameManager : MonoBehaviour
         labelRect.offsetMax = new Vector2(-4f, -4f);
 
         TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
-        label.text = character.DisplayName;
+        label.text = $"{character.DisplayName}\nMOV {character.MoveRange}  RNG {character.AttackRange}";
         label.alignment = TextAlignmentOptions.Center;
         label.fontSize = 24f;
         label.color = Color.white;
@@ -522,20 +524,7 @@ public class GameManager : MonoBehaviour
             if (t != null) t.SetHighlight(MoveHighlight);
         }
 
-        attackTiles.Clear();
-        Tile[] neighbors = grid.GetNeighbors(unit.GridPosition);
-        foreach (var neighbor in neighbors)
-        {
-            if (neighbor.State == TileState.Occupied && neighbor.OccupyingUnit != null)
-            {
-                Unit target = neighbor.OccupyingUnit.GetComponent<Unit>();
-                if (target != null && target.UnitTeam == Team.Enemy && !target.IsDead)
-                {
-                    neighbor.SetHighlight(AttackHighlight);
-                    attackTiles.Add(neighbor.GridPosition);
-                }
-            }
-        }
+        ShowAttackRange(unit.GridPosition, unit.AttackRange);
     }
 
     private void DeselectUnit()
@@ -565,20 +554,19 @@ public class GameManager : MonoBehaviour
 
     private void ShowAttackRangeAfterMove()
     {
-        attackTiles.Clear();
-        Tile[] neighbors = GridManager.Instance.GetNeighbors(selectedUnit.GridPosition);
+        ShowAttackRange(selectedUnit.GridPosition, selectedUnit.AttackRange);
+    }
 
-        foreach (var neighbor in neighbors)
+    private void ShowAttackRange(Vector2Int origin, int range)
+    {
+        attackTiles.Clear();
+        foreach (Vector2Int position in Pathfinding.GetTilesInRange(origin, range))
         {
-            if (neighbor.State == TileState.Occupied && neighbor.OccupyingUnit != null)
-            {
-                Unit target = neighbor.OccupyingUnit.GetComponent<Unit>();
-                if (target != null && target.UnitTeam == Team.Enemy && !target.IsDead)
-                {
-                    neighbor.SetHighlight(AttackHighlight);
-                    attackTiles.Add(neighbor.GridPosition);
-                }
-            }
+            Tile tile = GridManager.Instance.GetTile(position);
+            if (tile == null) continue;
+
+            tile.SetHighlight(AttackHighlight);
+            attackTiles.Add(position);
         }
     }
 
@@ -595,12 +583,6 @@ public class GameManager : MonoBehaviour
 
     private void ConfirmOrPreviewAttack(Unit target)
     {
-        if (attackPreviewTarget == target)
-        {
-            AttackTarget(target);
-            return;
-        }
-
         ShowAttackPreview(target);
     }
 
@@ -615,7 +597,8 @@ public class GameManager : MonoBehaviour
         int predictedDamage = Mathf.Min(selectedUnit.AttackPower, target.HP);
         int remainingHP = Mathf.Max(0, target.HP - selectedUnit.AttackPower);
         attackPreviewText.text =
-            $"DAMAGE  {predictedDamage}\nHP  {target.HP}  >  {remainingHP}\nTAP AGAIN TO ATTACK";
+            $"DAMAGE  {predictedDamage}    HP  {target.HP} > {remainingHP}\n" +
+            $"MOVE {selectedUnit.MoveRange}    RANGE {selectedUnit.AttackRange}";
         attackPreviewPanel.gameObject.SetActive(true);
         UpdateAttackPreviewPosition();
     }
@@ -628,7 +611,8 @@ public class GameManager : MonoBehaviour
             "AttackPreviewCanvas",
             typeof(RectTransform),
             typeof(Canvas),
-            typeof(CanvasScaler));
+            typeof(CanvasScaler),
+            typeof(GraphicRaycaster));
         attackPreviewCanvas = canvasObject.GetComponent<Canvas>();
         attackPreviewCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
         attackPreviewCanvas.sortingOrder = 100;
@@ -650,7 +634,7 @@ public class GameManager : MonoBehaviour
         attackPreviewPanel.anchorMin = new Vector2(0.5f, 0.5f);
         attackPreviewPanel.anchorMax = new Vector2(0.5f, 0.5f);
         attackPreviewPanel.pivot = new Vector2(0.5f, 0f);
-        attackPreviewPanel.sizeDelta = new Vector2(430f, 190f);
+        attackPreviewPanel.sizeDelta = new Vector2(520f, 280f);
 
         Image background = panelObject.GetComponent<Image>();
         background.color = new Color(0.035f, 0.025f, 0.025f, 0.98f);
@@ -661,17 +645,17 @@ public class GameManager : MonoBehaviour
         outline.effectDistance = new Vector2(7f, -7f);
 
         CanvasGroup canvasGroup = panelObject.GetComponent<CanvasGroup>();
-        canvasGroup.interactable = false;
-        canvasGroup.blocksRaycasts = false;
+        canvasGroup.interactable = true;
+        canvasGroup.blocksRaycasts = true;
 
         GameObject textObject = new GameObject(
             "Text", typeof(RectTransform), typeof(TextMeshProUGUI));
         textObject.transform.SetParent(panelObject.transform, false);
         RectTransform textRect = textObject.GetComponent<RectTransform>();
-        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMin = new Vector2(0f, 0.34f);
         textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = new Vector2(10f, 7f);
-        textRect.offsetMax = new Vector2(-10f, -7f);
+        textRect.offsetMin = new Vector2(12f, 8f);
+        textRect.offsetMax = new Vector2(-12f, -8f);
 
         attackPreviewText = textObject.GetComponent<TextMeshProUGUI>();
         attackPreviewText.alignment = TextAlignmentOptions.Center;
@@ -682,7 +666,87 @@ public class GameManager : MonoBehaviour
         if (gameInfoText != null && gameInfoText.font != null)
             attackPreviewText.font = gameInfoText.font;
 
+        attackCancelButton = CreateAttackPreviewButton(
+            panelObject.transform,
+            "CancelButton",
+            "CANCEL",
+            new Vector2(0.04f, 0.06f),
+            new Vector2(0.48f, 0.31f),
+            new Color(0.24f, 0.27f, 0.32f, 1f));
+        attackCancelButton.onClick.AddListener(HideAttackPreview);
+
+        attackConfirmButton = CreateAttackPreviewButton(
+            panelObject.transform,
+            "AttackButton",
+            "ATTACK",
+            new Vector2(0.52f, 0.06f),
+            new Vector2(0.96f, 0.31f),
+            new Color(0.85f, 0.16f, 0.08f, 1f));
+        attackConfirmButton.onClick.AddListener(ConfirmPreviewedAttack);
+
         panelObject.SetActive(false);
+    }
+
+    private Button CreateAttackPreviewButton(
+        Transform parent,
+        string objectName,
+        string labelText,
+        Vector2 anchorMin,
+        Vector2 anchorMax,
+        Color color)
+    {
+        GameObject buttonObject = new GameObject(
+            objectName, typeof(RectTransform), typeof(Image), typeof(Button));
+        buttonObject.transform.SetParent(parent, false);
+
+        RectTransform rect = buttonObject.GetComponent<RectTransform>();
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image image = buttonObject.GetComponent<Image>();
+        image.color = color;
+
+        Button button = buttonObject.GetComponent<Button>();
+        ColorBlock colors = button.colors;
+        colors.normalColor = color;
+        colors.highlightedColor = Color.Lerp(color, Color.white, 0.2f);
+        colors.pressedColor = Color.Lerp(color, Color.black, 0.2f);
+        button.colors = colors;
+
+        GameObject labelObject = new GameObject(
+            "Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelObject.transform.SetParent(buttonObject.transform, false);
+        RectTransform labelRect = labelObject.GetComponent<RectTransform>();
+        labelRect.anchorMin = Vector2.zero;
+        labelRect.anchorMax = Vector2.one;
+        labelRect.offsetMin = Vector2.zero;
+        labelRect.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
+        label.text = labelText;
+        label.alignment = TextAlignmentOptions.Center;
+        label.fontSize = 30f;
+        label.fontStyle = FontStyles.Bold;
+        label.color = Color.white;
+        label.raycastTarget = false;
+        if (gameInfoText != null && gameInfoText.font != null)
+            label.font = gameInfoText.font;
+
+        return button;
+    }
+
+    private void ConfirmPreviewedAttack()
+    {
+        Unit target = attackPreviewTarget;
+        if (target == null || target.IsDead || selectedUnit == null)
+        {
+            HideAttackPreview();
+            return;
+        }
+
+        AttackTarget(target);
     }
 
     private void UpdateAttackPreviewPosition()

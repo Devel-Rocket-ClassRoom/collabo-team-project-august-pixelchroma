@@ -9,6 +9,7 @@ public class CharacterData : ScriptableObject
     [SerializeField, Min(1)] private int maxHP = 3;
     [SerializeField, Min(0)] private int attackPower = 1;
     [SerializeField, Min(1)] private int moveRange = 3;
+    [SerializeField, Min(1)] private int attackRange = 1;
     [SerializeField] private Color teamColor = new Color(0.15f, 0.4f, 1f, 1f);
 
     public string CharacterId => characterId;
@@ -17,6 +18,7 @@ public class CharacterData : ScriptableObject
     public int MaxHP => maxHP;
     public int AttackPower => attackPower;
     public int MoveRange => moveRange;
+    public int AttackRange => attackRange;
     public Color TeamColor => teamColor;
 
     public void ConfigureRuntime(
@@ -26,6 +28,7 @@ public class CharacterData : ScriptableObject
         int hp,
         int attack,
         int movement,
+        int range,
         Color color)
     {
         characterId = id;
@@ -34,6 +37,7 @@ public class CharacterData : ScriptableObject
         maxHP = hp;
         attackPower = attack;
         moveRange = movement;
+        attackRange = range;
         teamColor = color;
     }
 }
