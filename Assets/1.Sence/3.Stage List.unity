@@ -2784,7 +2784,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8398572081434281004, guid: 784f79d98fb1baf4a8b5a60d9bbf49c2, type: 3}
       propertyPath: sceneName
-      value: 4.MainGame
+      value: 3.5.Squad Select
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

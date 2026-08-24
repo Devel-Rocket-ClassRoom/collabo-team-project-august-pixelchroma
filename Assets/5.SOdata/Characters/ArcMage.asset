@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: ArcMage
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterId: arc_mage
-  displayName: ARC MAGE
-  description: Blasts a diamond-shaped area with magic and ignores cover bonuses.
+  displayName: 비전술사
+  description: 마법으로 다이아몬드 범위를 공격하며 대상의 엄폐 효과를 무시합니다.
   battlePrefab: {fileID: 0}
   maxHP: 3
   attackPower: 2

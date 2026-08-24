@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Vanguard
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterId: vanguard
-  displayName: VANGUARD
-  description: Sweeps a forward cone and is strongest when surrounded by several enemies.
+  displayName: 선봉대
+  description: 전방 부채꼴 범위를 휩쓸며 여러 적에게 둘러싸였을 때 강한 위력을 발휘합니다.
   battlePrefab: {fileID: 0}
   maxHP: 6
   attackPower: 2

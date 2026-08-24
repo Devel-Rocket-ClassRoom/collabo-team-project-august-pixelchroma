@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: TeslaOperator
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterId: tesla_operator
-  displayName: TESLA
-  description: Chains electricity from the selected enemy to nearby enemies with reduced damage.
+  displayName: 전격술사
+  description: 선택한 적에게 전류를 흘려 주변 적에게 감소된 피해로 연쇄 전이시킵니다.
   battlePrefab: {fileID: 0}
   maxHP: 4
   attackPower: 2

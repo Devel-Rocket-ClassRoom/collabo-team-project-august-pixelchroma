@@ -49,6 +49,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button gameStartButton;
     [SerializeField] private Button undoButton;
     [SerializeField] private Button playButton;
+    [SerializeField] private TMP_FontAsset uiFont;
 
     [Header("Text Data")]
     [SerializeField] private GameTextData gameTextData;
@@ -69,6 +70,8 @@ public class GameManager : MonoBehaviour
     private CharacterData selectedDeployCharacter;
     private GameObject deploymentPanel;
     private readonly List<Button> characterButtons = new List<Button>();
+    private TMP_Text deploymentInfoText;
+    private Button deploymentStartButton;
     private Unit attackPreviewTarget;
     private RectTransform attackPreviewPanel;
     private TextMeshProUGUI attackPreviewText;
@@ -249,7 +252,7 @@ public class GameManager : MonoBehaviour
         playerUnits.Add(unit);
         deployedCount++;
         tile.ClearHighlight();
-        selectedDeployCharacter = FindFirstUndeployedCharacter();
+        selectedDeployCharacter = null;
         RefreshDeploymentUI();
     }
 
@@ -267,10 +270,15 @@ public class GameManager : MonoBehaviour
     private void SetupDeploymentRoster()
     {
         availableCharacters.RemoveAll(character => character == null);
+        if (SquadSelectionState.SelectedCharacters.Count > 0)
+        {
+            availableCharacters.Clear();
+            availableCharacters.AddRange(SquadSelectionState.SelectedCharacters);
+        }
         if (availableCharacters.Count == 0)
             CreatePrototypeRoster();
 
-        selectedDeployCharacter = FindFirstUndeployedCharacter();
+        selectedDeployCharacter = null;
         CreateDeploymentPanel();
         RefreshDeploymentUI();
     }
@@ -278,13 +286,13 @@ public class GameManager : MonoBehaviour
     private void CreatePrototypeRoster()
     {
         availableCharacters.Add(CreateRuntimeCharacter(
-            "swordsman", "SWORD", 5, 2, 3, 1, new Color(0.2f, 0.55f, 1f)));
+            "swordsman", "검사", 5, 2, 3, 1, new Color(0.2f, 0.55f, 1f)));
         availableCharacters.Add(CreateRuntimeCharacter(
-            "lancer", "LANCE", 4, 2, 3, 2, new Color(0.25f, 0.85f, 0.55f)));
+            "lancer", "창병", 4, 2, 3, 2, new Color(0.25f, 0.85f, 0.55f)));
         availableCharacters.Add(CreateRuntimeCharacter(
-            "archer", "ARCHER", 3, 2, 2, 3, new Color(1f, 0.65f, 0.2f)));
+            "archer", "궁수", 3, 2, 2, 3, new Color(1f, 0.65f, 0.2f)));
         availableCharacters.Add(CreateRuntimeCharacter(
-            "healer", "MEDIC", 3, 1, 3, 1, new Color(0.95f, 0.35f, 0.75f)));
+            "healer", "의무병", 3, 1, 3, 1, new Color(0.95f, 0.35f, 0.75f)));
     }
 
     private CharacterData CreateRuntimeCharacter(
@@ -298,28 +306,102 @@ public class GameManager : MonoBehaviour
 
     private void CreateDeploymentPanel()
     {
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null) return;
+        GameObject canvasObject = new GameObject(
+            "DeploymentCanvas",
+            typeof(RectTransform),
+            typeof(Canvas),
+            typeof(CanvasScaler),
+            typeof(GraphicRaycaster));
+        Canvas canvas = canvasObject.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 40;
+
+        CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1080f, 1920f);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
 
         deploymentPanel = new GameObject(
             "DeploymentRosterPanel",
             typeof(RectTransform),
-            typeof(Image),
-            typeof(HorizontalLayoutGroup));
+            typeof(Image));
         deploymentPanel.transform.SetParent(canvas.transform, false);
 
         RectTransform rect = deploymentPanel.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.04f, 0.03f);
-        rect.anchorMax = new Vector2(0.96f, 0.15f);
+        rect.anchorMin = new Vector2(0.025f, 0.08f);
+        rect.anchorMax = new Vector2(0.975f, 0.28f);
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
 
         Image background = deploymentPanel.GetComponent<Image>();
-        background.color = new Color(0.04f, 0.06f, 0.1f, 0.92f);
+        background.color = new Color(0.025f, 0.04f, 0.065f, 0.97f);
 
-        HorizontalLayoutGroup layout = deploymentPanel.GetComponent<HorizontalLayoutGroup>();
-        layout.padding = new RectOffset(12, 12, 10, 10);
-        layout.spacing = 10f;
+        GameObject startObject = new GameObject(
+            "DeploymentStartButton",
+            typeof(RectTransform),
+            typeof(Image),
+            typeof(Button));
+        startObject.transform.SetParent(canvas.transform, false);
+        RectTransform startRect = startObject.GetComponent<RectTransform>();
+        startRect.anchorMin = new Vector2(0.24f, 0.295f);
+        startRect.anchorMax = new Vector2(0.76f, 0.36f);
+        startRect.offsetMin = Vector2.zero;
+        startRect.offsetMax = Vector2.zero;
+
+        Image startImage = startObject.GetComponent<Image>();
+        startImage.color = new Color(1f, 0.72f, 0.08f, 1f);
+
+        deploymentStartButton = startObject.GetComponent<Button>();
+        deploymentStartButton.onClick.AddListener(OnGameStartClicked);
+
+        GameObject startLabelObject = new GameObject(
+            "Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        startLabelObject.transform.SetParent(startObject.transform, false);
+        RectTransform startLabelRect = startLabelObject.GetComponent<RectTransform>();
+        startLabelRect.anchorMin = Vector2.zero;
+        startLabelRect.anchorMax = Vector2.one;
+        startLabelRect.offsetMin = Vector2.zero;
+        startLabelRect.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI startLabel = startLabelObject.GetComponent<TextMeshProUGUI>();
+        startLabel.text = "게임 시작";
+        startLabel.alignment = TextAlignmentOptions.Center;
+        startLabel.fontSize = 34f;
+        startLabel.fontStyle = FontStyles.Bold;
+        startLabel.color = new Color(0.08f, 0.06f, 0.02f, 1f);
+        startLabel.raycastTarget = false;
+        if (uiFont != null) startLabel.font = uiFont;
+
+        GameObject infoObject = new GameObject(
+            "SelectionInfo", typeof(RectTransform), typeof(TextMeshProUGUI));
+        infoObject.transform.SetParent(deploymentPanel.transform, false);
+        RectTransform infoRect = infoObject.GetComponent<RectTransform>();
+        infoRect.anchorMin = new Vector2(0.025f, 0.68f);
+        infoRect.anchorMax = new Vector2(0.975f, 0.96f);
+        infoRect.offsetMin = Vector2.zero;
+        infoRect.offsetMax = Vector2.zero;
+
+        deploymentInfoText = infoObject.GetComponent<TextMeshProUGUI>();
+        deploymentInfoText.alignment = TextAlignmentOptions.Center;
+        deploymentInfoText.fontSize = 24f;
+        deploymentInfoText.fontStyle = FontStyles.Bold;
+        deploymentInfoText.color = Color.white;
+        deploymentInfoText.raycastTarget = false;
+        if (uiFont != null) deploymentInfoText.font = uiFont;
+
+        GameObject rowObject = new GameObject(
+            "CharacterRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        rowObject.transform.SetParent(deploymentPanel.transform, false);
+        RectTransform rowRect = rowObject.GetComponent<RectTransform>();
+        rowRect.anchorMin = new Vector2(0.025f, 0.06f);
+        rowRect.anchorMax = new Vector2(0.975f, 0.66f);
+        rowRect.offsetMin = Vector2.zero;
+        rowRect.offsetMax = Vector2.zero;
+
+        HorizontalLayoutGroup layout = rowObject.GetComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(4, 4, 4, 4);
+        layout.spacing = 12f;
         layout.childAlignment = TextAnchor.MiddleCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = true;
@@ -329,7 +411,7 @@ public class GameManager : MonoBehaviour
         foreach (CharacterData character in availableCharacters)
         {
             CharacterData capturedCharacter = character;
-            Button button = CreateCharacterButton(deploymentPanel.transform, character);
+            Button button = CreateCharacterButton(rowObject.transform, character);
             button.onClick.AddListener(() => SelectDeployCharacter(capturedCharacter));
             characterButtons.Add(button);
         }
@@ -365,14 +447,34 @@ public class GameManager : MonoBehaviour
         labelRect.offsetMax = new Vector2(-4f, -4f);
 
         TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
-        label.text = $"{character.DisplayName}\nMOV {character.MoveRange}  RNG {character.AttackRange}";
+        label.text =
+            $"{character.DisplayName}\n" +
+            $"체력 {character.MaxHP}  공격 {character.AttackPower}\n" +
+            $"이동 {character.MoveRange}  사거리 {character.AttackRange}\n" +
+            GetAttackPatternLabel(character.AttackPattern);
         label.alignment = TextAlignmentOptions.Center;
-        label.fontSize = 24f;
+        label.fontSize = 21f;
+        label.fontStyle = FontStyles.Bold;
+        label.enableAutoSizing = true;
+        label.fontSizeMin = 14f;
+        label.fontSizeMax = 21f;
         label.color = Color.white;
-        if (gameInfoText != null && gameInfoText.font != null)
-            label.font = gameInfoText.font;
+        if (uiFont != null) label.font = uiFont;
 
         return button;
+    }
+
+    private string GetAttackPatternLabel(CharacterAttackPattern pattern)
+    {
+        switch (pattern)
+        {
+            case CharacterAttackPattern.CrossArea: return "십자 범위";
+            case CharacterAttackPattern.DiamondArea: return "광역 폭발";
+            case CharacterAttackPattern.PiercingLine: return "직선 관통";
+            case CharacterAttackPattern.Cone: return "부채꼴 공격";
+            case CharacterAttackPattern.Chain: return "연쇄 공격";
+            default: return "단일 공격";
+        }
     }
 
     private void SelectDeployCharacter(CharacterData character)
@@ -388,6 +490,23 @@ public class GameManager : MonoBehaviour
     {
         if (deploymentPanel != null)
             deploymentPanel.SetActive(currentPhase == GamePhase.Deployment);
+
+        if (deploymentStartButton != null)
+        {
+            bool canStart = currentPhase == GamePhase.Deployment &&
+                            deployedCount == maxPlayerUnits;
+            deploymentStartButton.gameObject.SetActive(canStart);
+        }
+
+        if (deploymentInfoText != null)
+        {
+            deploymentInfoText.text = selectedDeployCharacter == null
+                ? $"배치할 유닛을 선택하세요  /  {deployedCount}명 배치 완료"
+                : $"{selectedDeployCharacter.DisplayName} 선택  -  파란 칸을 누르세요";
+            deploymentInfoText.color = selectedDeployCharacter == null
+                ? Color.white
+                : selectedDeployCharacter.TeamColor;
+        }
 
         for (int i = 0; i < characterButtons.Count && i < availableCharacters.Count; i++)
         {
@@ -547,6 +666,11 @@ public class GameManager : MonoBehaviour
 
     private void UndoMove()
     {
+        if (currentPhase != GamePhase.PlayerTurn ||
+            battleState != BattleState.UnitMoved ||
+            selectedUnit == null)
+            return;
+
         ClearAllMarkers();
         selectedUnit.MoveTo(undoPosition);
         SelectUnit(selectedUnit);
@@ -597,8 +721,8 @@ public class GameManager : MonoBehaviour
         int predictedDamage = Mathf.Min(selectedUnit.AttackPower, target.HP);
         int remainingHP = Mathf.Max(0, target.HP - selectedUnit.AttackPower);
         attackPreviewText.text =
-            $"DAMAGE  {predictedDamage}    HP  {target.HP} > {remainingHP}\n" +
-            $"MOVE {selectedUnit.MoveRange}    RANGE {selectedUnit.AttackRange}";
+            $"예상 피해 {predictedDamage}    체력 {target.HP} > {remainingHP}\n" +
+            $"이동 {selectedUnit.MoveRange}    사거리 {selectedUnit.AttackRange}";
         attackPreviewPanel.gameObject.SetActive(true);
         UpdateAttackPreviewPosition();
     }
@@ -663,13 +787,12 @@ public class GameManager : MonoBehaviour
         attackPreviewText.fontStyle = FontStyles.Bold;
         attackPreviewText.color = Color.white;
         attackPreviewText.raycastTarget = false;
-        if (gameInfoText != null && gameInfoText.font != null)
-            attackPreviewText.font = gameInfoText.font;
+        if (uiFont != null) attackPreviewText.font = uiFont;
 
         attackCancelButton = CreateAttackPreviewButton(
             panelObject.transform,
             "CancelButton",
-            "CANCEL",
+            "취소",
             new Vector2(0.04f, 0.06f),
             new Vector2(0.48f, 0.31f),
             new Color(0.24f, 0.27f, 0.32f, 1f));
@@ -678,7 +801,7 @@ public class GameManager : MonoBehaviour
         attackConfirmButton = CreateAttackPreviewButton(
             panelObject.transform,
             "AttackButton",
-            "ATTACK",
+            "공격",
             new Vector2(0.52f, 0.06f),
             new Vector2(0.96f, 0.31f),
             new Color(0.85f, 0.16f, 0.08f, 1f));
@@ -731,8 +854,7 @@ public class GameManager : MonoBehaviour
         label.fontStyle = FontStyles.Bold;
         label.color = Color.white;
         label.raycastTarget = false;
-        if (gameInfoText != null && gameInfoText.font != null)
-            label.font = gameInfoText.font;
+        if (uiFont != null) label.font = uiFont;
 
         return button;
     }
@@ -996,10 +1118,7 @@ public class GameManager : MonoBehaviour
 
     private void RefreshUI()
     {
-        bool canStartFromDeployment = currentPhase == GamePhase.Deployment &&
-                                      deployedCount == maxPlayerUnits;
-        bool showStart = canStartFromDeployment ||
-                         currentPhase == GamePhase.ReadyToStart ||
+        bool showStart = currentPhase == GamePhase.ReadyToStart ||
                          currentPhase == GamePhase.BattleResult;
         bool showPlay = currentPhase == GamePhase.PlayerTurn;
 
@@ -1009,17 +1128,14 @@ public class GameManager : MonoBehaviour
         if (gamePlayUI != null)
             gamePlayUI.SetActive(showPlay);
 
-        if (showPlay)
-        {
-            bool moved = battleState == BattleState.UnitMoved;
-            bool idle = battleState == BattleState.Idle;
+        bool moved = showPlay && battleState == BattleState.UnitMoved;
+        bool idle = showPlay && battleState == BattleState.Idle;
 
-            if (undoButton != null)
-                undoButton.gameObject.SetActive(moved);
+        if (undoButton != null)
+            undoButton.gameObject.SetActive(moved);
 
-            if (playButton != null)
-                playButton.gameObject.SetActive(moved || idle);
-        }
+        if (playButton != null)
+            playButton.gameObject.SetActive(moved || idle);
 
         if (gameInfoText != null)
             gameInfoText.text = GetInfoText();
@@ -1062,6 +1178,8 @@ public class GameManager : MonoBehaviour
         {
             GridManager.Instance.ClearAllHighlights();
             if (deploymentPanel != null) deploymentPanel.SetActive(false);
+            if (deploymentStartButton != null)
+                deploymentStartButton.gameObject.SetActive(false);
             StartBattle();
         }
         else if (currentPhase == GamePhase.ReadyToStart)

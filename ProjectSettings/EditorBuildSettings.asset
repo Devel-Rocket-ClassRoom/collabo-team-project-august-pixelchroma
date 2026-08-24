@@ -18,6 +18,9 @@ EditorBuildSettings:
     path: Assets/1.Sence/3.Stage List.unity
     guid: 36dded21ce44f3a408debc86f3b5f52a
   - enabled: 1
+    path: Assets/1.Sence/3.5.Squad Select.unity
+    guid: b1fa87ff370d47f89e7a7bef0790ce48
+  - enabled: 1
     path: Assets/1.Sence/4.MainGame.unity
     guid: 444ac00c1ef7cc248a160f6d8a19f386
   m_configObjects: {}

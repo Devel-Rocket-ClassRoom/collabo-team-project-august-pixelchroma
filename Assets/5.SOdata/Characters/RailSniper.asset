@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: RailSniper
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterId: rail_sniper
-  displayName: RAIL SNIPER
-  description: Fires through every unit in a straight line up to maximum range.
+  displayName: 관통저격수
+  description: 최대 사거리까지 직선상의 적을 모두 관통하는 강력한 사격을 가합니다.
   battlePrefab: {fileID: 0}
   maxHP: 3
   attackPower: 3

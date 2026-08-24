@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: FieldMedic
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterId: field_medic
-  displayName: FIELD MEDIC
-  description: Restores HP to allies in a cross-shaped area centered on the target tile.
+  displayName: 야전의무병
+  description: 목표 칸을 중심으로 십자 범위 안에 있는 아군의 체력을 회복합니다.
   battlePrefab: {fileID: 0}
   maxHP: 4
   attackPower: 1
