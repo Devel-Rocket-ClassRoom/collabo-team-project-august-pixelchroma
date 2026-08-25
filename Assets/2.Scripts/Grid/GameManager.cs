@@ -643,7 +643,7 @@ public class GameManager : MonoBehaviour
             if (t != null) t.SetHighlight(MoveHighlight);
         }
 
-        ShowAttackRange(unit.GridPosition, unit.AttackRange);
+        ShowAttackRange(unit.GridPosition, GetEffectiveAttackRange(unit));
     }
 
     private void DeselectUnit()
@@ -678,7 +678,7 @@ public class GameManager : MonoBehaviour
 
     private void ShowAttackRangeAfterMove()
     {
-        ShowAttackRange(selectedUnit.GridPosition, selectedUnit.AttackRange);
+        ShowAttackRange(selectedUnit.GridPosition, GetEffectiveAttackRange(selectedUnit));
     }
 
     private void ShowAttackRange(Vector2Int origin, int range)
@@ -696,7 +696,15 @@ public class GameManager : MonoBehaviour
 
     private void AttackTarget(Unit target)
     {
+        Tile blockingCover = FindBlockingCover(selectedUnit, target);
         ClearAllMarkers();
+
+        if (blockingCover != null && blockingCover.AbsorbRangedAttack())
+        {
+            FinishUnitAction();
+            return;
+        }
+
         target.TakeDamage(selectedUnit.AttackPower);
 
         if (target.IsDead)
@@ -718,11 +726,22 @@ public class GameManager : MonoBehaviour
         if (attackPreviewPanel == null || attackPreviewText == null) return;
 
         attackPreviewTarget = target;
-        int predictedDamage = Mathf.Min(selectedUnit.AttackPower, target.HP);
+        Tile blockingCover = FindBlockingCover(selectedUnit, target);
+        int predictedDamage = blockingCover == null
+            ? Mathf.Min(selectedUnit.AttackPower, target.HP)
+            : 0;
         int remainingHP = Mathf.Max(0, target.HP - selectedUnit.AttackPower);
+        if (blockingCover != null) remainingHP = target.HP;
+
+        string terrainNotice = blockingCover != null
+            ? "\n엄폐물이 원거리 공격을 1회 차단합니다"
+            : IsOnHighGround(selectedUnit)
+                ? "\n고지대 효과: 공격 사거리 +1"
+                : "";
         attackPreviewText.text =
             $"예상 피해 {predictedDamage}    체력 {target.HP} > {remainingHP}\n" +
-            $"이동 {selectedUnit.MoveRange}    사거리 {selectedUnit.AttackRange}";
+            $"이동 {selectedUnit.MoveRange}    사거리 {GetEffectiveAttackRange(selectedUnit)}" +
+            terrainNotice;
         attackPreviewPanel.gameObject.SetActive(true);
         UpdateAttackPreviewPosition();
     }
@@ -981,6 +1000,47 @@ public class GameManager : MonoBehaviour
         return null;
     }
 
+    private int GetEffectiveAttackRange(Unit unit)
+    {
+        return unit.AttackRange + (IsOnHighGround(unit) ? 1 : 0);
+    }
+
+    private bool IsOnHighGround(Unit unit)
+    {
+        if (unit == null || GridManager.Instance == null) return false;
+        Tile tile = GridManager.Instance.GetTile(unit.GridPosition);
+        return tile != null && tile.Terrain == TileTerrain.HighGround;
+    }
+
+    private Tile FindBlockingCover(Unit attacker, Unit target)
+    {
+        if (attacker == null || target == null) return null;
+
+        Vector2Int from = attacker.GridPosition;
+        Vector2Int to = target.GridPosition;
+        int distance = Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
+        if (distance <= 1) return null;
+
+        Vector2Int step;
+        if (from.x == to.x)
+            step = new Vector2Int(0, to.y > from.y ? 1 : -1);
+        else if (from.y == to.y)
+            step = new Vector2Int(to.x > from.x ? 1 : -1, 0);
+        else
+            return null;
+
+        Vector2Int position = from + step;
+        while (position != to)
+        {
+            Tile tile = GridManager.Instance.GetTile(position);
+            if (tile != null && tile.Terrain == TileTerrain.Cover && tile.CoverDurability > 0)
+                return tile;
+            position += step;
+        }
+
+        return null;
+    }
+
     // ─────────────────── Enemy AI ───────────────────
 
     private IEnumerator ProcessEnemyTurn()
@@ -1013,12 +1073,20 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            Unit adj = FindAdjacentUnit(enemy.GridPosition, Team.Player);
-            if (adj != null)
+            Unit attackTarget = FindUnitWithinRange(
+                enemy.GridPosition,
+                Team.Player,
+                GetEffectiveAttackRange(enemy));
+            if (attackTarget != null)
             {
-                adj.TakeDamage(enemy.AttackPower);
-                if (adj.IsDead)
-                    playerUnits.Remove(adj);
+                Tile blockingCover = FindBlockingCover(enemy, attackTarget);
+                if (blockingCover != null)
+                    blockingCover.AbsorbRangedAttack();
+                else
+                    attackTarget.TakeDamage(enemy.AttackPower);
+
+                if (attackTarget.IsDead)
+                    playerUnits.Remove(attackTarget);
             }
 
             if (CheckBattleEnd()) yield break;
@@ -1058,6 +1126,27 @@ public class GameManager : MonoBehaviour
             if (u != null && u.UnitTeam == team && !u.IsDead) return u;
         }
         return null;
+    }
+
+    private Unit FindUnitWithinRange(Vector2Int from, Team team, int range)
+    {
+        List<Unit> targets = team == Team.Player ? playerUnits : enemyUnits;
+        Unit nearest = null;
+        int nearestDistance = int.MaxValue;
+
+        foreach (Unit unit in targets)
+        {
+            if (unit == null || unit.IsDead) continue;
+            int distance = Mathf.Abs(from.x - unit.GridPosition.x) +
+                           Mathf.Abs(from.y - unit.GridPosition.y);
+            if (distance <= range && distance < nearestDistance)
+            {
+                nearest = unit;
+                nearestDistance = distance;
+            }
+        }
+
+        return nearest;
     }
 
     // ─────────────────── Result ───────────────────
