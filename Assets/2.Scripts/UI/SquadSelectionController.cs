@@ -74,8 +74,8 @@ public class SquadSelectionController : MonoBehaviour
 
         CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1080f, 1920f);
-        scaler.matchWidthOrHeight = 0.5f;
+        scaler.referenceResolution = new Vector2(1080f, 2220f);
+        scaler.matchWidthOrHeight = 0f;
 
         Image background = CreateImage(canvasObject.transform, "Background", Background);
         Stretch(background.rectTransform);

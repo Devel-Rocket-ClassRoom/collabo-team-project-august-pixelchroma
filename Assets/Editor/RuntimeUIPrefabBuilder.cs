@@ -296,8 +296,8 @@ public static class RuntimeUIPrefabBuilder
         canvas.sortingOrder = sortingOrder;
         CanvasScaler scaler = root.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1080f, 1920f);
-        scaler.matchWidthOrHeight = 0.5f;
+        scaler.referenceResolution = new Vector2(1080f, 2220f);
+        scaler.matchWidthOrHeight = 0f;
         return root;
     }
 
