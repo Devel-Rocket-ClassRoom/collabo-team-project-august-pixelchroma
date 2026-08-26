@@ -51,6 +51,24 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button playButton;
     [SerializeField] private TMP_FontAsset uiFont;
 
+    [Header("Runtime UI Prefabs")]
+    [Tooltip("디자인팀이 직접 편집하는 캐릭터 배치 UI Prefab")]
+    [SerializeField] private DeploymentUIView deploymentUIPrefab;
+    [Tooltip("디자인팀이 직접 편집하는 공격 미리보기 UI Prefab")]
+    [SerializeField] private AttackPreviewUIView attackPreviewUIPrefab;
+
+    [Header("Runtime UI Images")]
+    [Tooltip("공격 미리보기의 취소 버튼 이미지")]
+    [SerializeField] private Sprite attackCancelButtonSprite;
+    [Tooltip("공격 미리보기의 공격 확정 버튼 이미지")]
+    [SerializeField] private Sprite attackConfirmButtonSprite;
+    [Tooltip("배치 완료 후 표시되는 게임 시작 버튼 이미지")]
+    [SerializeField] private Sprite deploymentStartButtonSprite;
+    [Tooltip("게임 플레이의 되돌리기 버튼 이미지")]
+    [SerializeField] private Sprite undoButtonSprite;
+    [Tooltip("게임 플레이의 확정/대기 버튼 이미지")]
+    [SerializeField] private Sprite confirmButtonSprite;
+
     [Header("Text Data")]
     [SerializeField] private GameTextData gameTextData;
 
@@ -72,6 +90,8 @@ public class GameManager : MonoBehaviour
     private readonly List<Button> characterButtons = new List<Button>();
     private TMP_Text deploymentInfoText;
     private Button deploymentStartButton;
+    private GameObject deploymentCancelHint;
+    private bool hasShownDeploymentCancelHint;
     private Unit attackPreviewTarget;
     private RectTransform attackPreviewPanel;
     private TextMeshProUGUI attackPreviewText;
@@ -254,6 +274,7 @@ public class GameManager : MonoBehaviour
         tile.ClearHighlight();
         selectedDeployCharacter = null;
         RefreshDeploymentUI();
+        ShowDeploymentCancelHintOnce();
     }
 
     private bool IsCharacterDeployed(CharacterData character)
@@ -306,6 +327,12 @@ public class GameManager : MonoBehaviour
 
     private void CreateDeploymentPanel()
     {
+        if (deploymentUIPrefab != null)
+        {
+            CreateDeploymentPanelFromPrefab();
+            return;
+        }
+
         GameObject canvasObject = new GameObject(
             "DeploymentCanvas",
             typeof(RectTransform),
@@ -351,6 +378,7 @@ public class GameManager : MonoBehaviour
 
         Image startImage = startObject.GetComponent<Image>();
         startImage.color = new Color(1f, 0.72f, 0.08f, 1f);
+        ApplyButtonSprite(startImage, deploymentStartButtonSprite);
 
         deploymentStartButton = startObject.GetComponent<Button>();
         deploymentStartButton.onClick.AddListener(OnGameStartClicked);
@@ -372,6 +400,8 @@ public class GameManager : MonoBehaviour
         startLabel.color = new Color(0.08f, 0.06f, 0.02f, 1f);
         startLabel.raycastTarget = false;
         if (uiFont != null) startLabel.font = uiFont;
+
+        deploymentCancelHint = CreateDeploymentCancelHint(canvas.transform);
 
         GameObject infoObject = new GameObject(
             "SelectionInfo", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -412,6 +442,39 @@ public class GameManager : MonoBehaviour
         {
             CharacterData capturedCharacter = character;
             Button button = CreateCharacterButton(rowObject.transform, character);
+            button.onClick.AddListener(() => SelectDeployCharacter(capturedCharacter));
+            characterButtons.Add(button);
+        }
+    }
+
+    private void CreateDeploymentPanelFromPrefab()
+    {
+        DeploymentUIView view = Instantiate(deploymentUIPrefab);
+        view.name = "DeploymentUI";
+        deploymentPanel = view.Panel;
+        deploymentInfoText = view.InfoText;
+        deploymentStartButton = view.StartButton;
+        deploymentCancelHint = view.CancelHint;
+
+        if (deploymentStartButton != null)
+        {
+            ApplyButtonSprite(
+                deploymentStartButton.GetComponent<Image>(),
+                deploymentStartButtonSprite);
+            deploymentStartButton.onClick.AddListener(OnGameStartClicked);
+        }
+        if (deploymentCancelHint != null)
+            deploymentCancelHint.SetActive(false);
+
+        RectTransform container = view.CharacterContainer;
+        if (container == null) return;
+        for (int i = container.childCount - 1; i >= 0; i--)
+            Destroy(container.GetChild(i).gameObject);
+
+        foreach (CharacterData character in availableCharacters)
+        {
+            CharacterData capturedCharacter = character;
+            Button button = CreateCharacterButton(container, character);
             button.onClick.AddListener(() => SelectDeployCharacter(capturedCharacter));
             characterButtons.Add(button);
         }
@@ -464,6 +527,68 @@ public class GameManager : MonoBehaviour
         return button;
     }
 
+    private GameObject CreateDeploymentCancelHint(Transform parent)
+    {
+        GameObject hintObject = new GameObject(
+            "DeploymentCancelHint",
+            typeof(RectTransform),
+            typeof(Image),
+            typeof(CanvasGroup));
+        hintObject.transform.SetParent(parent, false);
+
+        RectTransform rect = hintObject.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.08f, 0.292f);
+        rect.anchorMax = new Vector2(0.92f, 0.347f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image background = hintObject.GetComponent<Image>();
+        background.color = new Color(0.02f, 0.035f, 0.06f, 0.96f);
+        background.raycastTarget = false;
+
+        CanvasGroup group = hintObject.GetComponent<CanvasGroup>();
+        group.interactable = false;
+        group.blocksRaycasts = false;
+
+        GameObject textObject = new GameObject(
+            "Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObject.transform.SetParent(hintObject.transform, false);
+        RectTransform textRect = textObject.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = new Vector2(16f, 6f);
+        textRect.offsetMax = new Vector2(-16f, -6f);
+
+        TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
+        text.text = "배치 취소하려면 배치된 캐릭터를 눌러주세요";
+        text.alignment = TextAlignmentOptions.Center;
+        text.fontSize = 27f;
+        text.fontStyle = FontStyles.Bold;
+        text.color = new Color(1f, 0.82f, 0.18f, 1f);
+        text.raycastTarget = false;
+        if (uiFont != null) text.font = uiFont;
+
+        hintObject.SetActive(false);
+        return hintObject;
+    }
+
+    private void ShowDeploymentCancelHintOnce()
+    {
+        if (hasShownDeploymentCancelHint || deploymentCancelHint == null)
+            return;
+
+        hasShownDeploymentCancelHint = true;
+        StartCoroutine(ShowDeploymentCancelHintRoutine());
+    }
+
+    private IEnumerator ShowDeploymentCancelHintRoutine()
+    {
+        deploymentCancelHint.SetActive(true);
+        yield return new WaitForSecondsRealtime(4f);
+        if (deploymentCancelHint != null)
+            deploymentCancelHint.SetActive(false);
+    }
+
     private string GetAttackPatternLabel(CharacterAttackPattern pattern)
     {
         switch (pattern)
@@ -496,6 +621,8 @@ public class GameManager : MonoBehaviour
             bool canStart = currentPhase == GamePhase.Deployment &&
                             deployedCount == maxPlayerUnits;
             deploymentStartButton.gameObject.SetActive(canStart);
+            if (canStart && deploymentCancelHint != null)
+                deploymentCancelHint.SetActive(false);
         }
 
         if (deploymentInfoText != null)
@@ -750,6 +877,12 @@ public class GameManager : MonoBehaviour
     {
         if (attackPreviewPanel != null) return;
 
+        if (attackPreviewUIPrefab != null)
+        {
+            CreateAttackPreviewFromPrefab();
+            return;
+        }
+
         GameObject canvasObject = new GameObject(
             "AttackPreviewCanvas",
             typeof(RectTransform),
@@ -777,7 +910,7 @@ public class GameManager : MonoBehaviour
         attackPreviewPanel.anchorMin = new Vector2(0.5f, 0.5f);
         attackPreviewPanel.anchorMax = new Vector2(0.5f, 0.5f);
         attackPreviewPanel.pivot = new Vector2(0.5f, 0f);
-        attackPreviewPanel.sizeDelta = new Vector2(520f, 280f);
+        attackPreviewPanel.sizeDelta = new Vector2(640f, 390f);
 
         Image background = panelObject.GetComponent<Image>();
         background.color = new Color(0.035f, 0.025f, 0.025f, 0.98f);
@@ -795,7 +928,7 @@ public class GameManager : MonoBehaviour
             "Text", typeof(RectTransform), typeof(TextMeshProUGUI));
         textObject.transform.SetParent(panelObject.transform, false);
         RectTransform textRect = textObject.GetComponent<RectTransform>();
-        textRect.anchorMin = new Vector2(0f, 0.34f);
+        textRect.anchorMin = new Vector2(0f, 0.43f);
         textRect.anchorMax = Vector2.one;
         textRect.offsetMin = new Vector2(12f, 8f);
         textRect.offsetMax = new Vector2(-12f, -8f);
@@ -812,21 +945,51 @@ public class GameManager : MonoBehaviour
             panelObject.transform,
             "CancelButton",
             "취소",
-            new Vector2(0.04f, 0.06f),
-            new Vector2(0.48f, 0.31f),
-            new Color(0.24f, 0.27f, 0.32f, 1f));
+            new Vector2(0.035f, 0.045f),
+            new Vector2(0.485f, 0.39f),
+            new Color(0.24f, 0.27f, 0.32f, 1f),
+            attackCancelButtonSprite);
         attackCancelButton.onClick.AddListener(HideAttackPreview);
 
         attackConfirmButton = CreateAttackPreviewButton(
             panelObject.transform,
             "AttackButton",
             "공격",
-            new Vector2(0.52f, 0.06f),
-            new Vector2(0.96f, 0.31f),
-            new Color(0.85f, 0.16f, 0.08f, 1f));
+            new Vector2(0.515f, 0.045f),
+            new Vector2(0.965f, 0.39f),
+            new Color(0.85f, 0.16f, 0.08f, 1f),
+            attackConfirmButtonSprite);
         attackConfirmButton.onClick.AddListener(ConfirmPreviewedAttack);
 
         panelObject.SetActive(false);
+    }
+
+    private void CreateAttackPreviewFromPrefab()
+    {
+        AttackPreviewUIView view = Instantiate(attackPreviewUIPrefab);
+        view.name = "AttackPreviewUI";
+        attackPreviewPanel = view.Panel;
+        attackPreviewText = view.PreviewText as TextMeshProUGUI;
+        attackCancelButton = view.CancelButton;
+        attackConfirmButton = view.ConfirmButton;
+        attackPreviewCanvas = view.GetComponent<Canvas>();
+
+        if (attackCancelButton != null)
+        {
+            ApplyButtonSprite(
+                attackCancelButton.GetComponent<Image>(),
+                attackCancelButtonSprite);
+            attackCancelButton.onClick.AddListener(HideAttackPreview);
+        }
+        if (attackConfirmButton != null)
+        {
+            ApplyButtonSprite(
+                attackConfirmButton.GetComponent<Image>(),
+                attackConfirmButtonSprite);
+            attackConfirmButton.onClick.AddListener(ConfirmPreviewedAttack);
+        }
+        if (attackPreviewPanel != null)
+            attackPreviewPanel.gameObject.SetActive(false);
     }
 
     private Button CreateAttackPreviewButton(
@@ -835,7 +998,8 @@ public class GameManager : MonoBehaviour
         string labelText,
         Vector2 anchorMin,
         Vector2 anchorMax,
-        Color color)
+        Color color,
+        Sprite sprite)
     {
         GameObject buttonObject = new GameObject(
             objectName, typeof(RectTransform), typeof(Image), typeof(Button));
@@ -849,6 +1013,7 @@ public class GameManager : MonoBehaviour
 
         Image image = buttonObject.GetComponent<Image>();
         image.color = color;
+        ApplyButtonSprite(image, sprite);
 
         Button button = buttonObject.GetComponent<Button>();
         ColorBlock colors = button.colors;
@@ -869,7 +1034,7 @@ public class GameManager : MonoBehaviour
         TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
         label.text = labelText;
         label.alignment = TextAlignmentOptions.Center;
-        label.fontSize = 30f;
+        label.fontSize = 42f;
         label.fontStyle = FontStyles.Bold;
         label.color = Color.white;
         label.raycastTarget = false;
@@ -1189,6 +1354,11 @@ public class GameManager : MonoBehaviour
 
     private void SetupUI()
     {
+        if (undoButton != null)
+            ApplyButtonSprite(undoButton.GetComponent<Image>(), undoButtonSprite);
+        if (playButton != null)
+            ApplyButtonSprite(playButton.GetComponent<Image>(), confirmButtonSprite);
+
         if (gameStartButton != null)
             gameStartButton.onClick.AddListener(OnGameStartClicked);
         if (undoButton != null)
@@ -1203,6 +1373,14 @@ public class GameManager : MonoBehaviour
     {
         UpdateAttackPreviewPosition();
         RefreshUI();
+    }
+
+    private static void ApplyButtonSprite(Image image, Sprite sprite)
+    {
+        if (image == null || sprite == null) return;
+        image.sprite = sprite;
+        image.type = Image.Type.Sliced;
+        image.preserveAspect = false;
     }
 
     private void RefreshUI()

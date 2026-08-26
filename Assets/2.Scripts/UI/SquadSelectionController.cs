@@ -17,6 +17,7 @@ public class SquadSelectionController : MonoBehaviour
     [SerializeField] private string battleSceneName = "4.MainGame";
     [SerializeField] private string previousSceneName = "3.Stage List";
     [SerializeField] private TMP_FontAsset uiFont;
+    [SerializeField] private SquadFormationUIView squadUIPrefab;
 
     private readonly List<CharacterData> selected = new List<CharacterData>();
     private readonly List<Button> rosterButtons = new List<Button>();
@@ -60,6 +61,12 @@ public class SquadSelectionController : MonoBehaviour
 
     private void BuildScreen()
     {
+        if (squadUIPrefab != null)
+        {
+            BuildScreenFromPrefab();
+            return;
+        }
+
         GameObject canvasObject = new GameObject(
             "SquadCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         Canvas canvas = canvasObject.GetComponent<Canvas>();
@@ -80,6 +87,49 @@ public class SquadSelectionController : MonoBehaviour
         BuildSquadSlots();
         BuildRoster();
         BuildFooter();
+    }
+
+    private void BuildScreenFromPrefab()
+    {
+        SquadFormationUIView view = Instantiate(squadUIPrefab);
+        view.name = "SquadFormationUI";
+        safeAreaRoot = view.SafeAreaRoot;
+        countText = view.CountText;
+        powerText = view.PowerText;
+        startButton = view.StartButton;
+
+        if (view.BackButton != null)
+            view.BackButton.onClick.AddListener(() => SceneManager.LoadScene(previousSceneName));
+        if (startButton != null)
+            startButton.onClick.AddListener(StartBattle);
+
+        int slotCount = Mathf.Min(squadSize, view.SquadSlots.Count);
+        for (int i = 0; i < slotCount; i++)
+        {
+            int capturedIndex = i;
+            squadButtons.Add(view.SquadSlots[i]);
+            squadNameTexts.Add(view.SquadNames[i]);
+            squadDetailTexts.Add(view.SquadDetails[i]);
+            view.SquadSlots[i].onClick.AddListener(() => RemoveFromSquad(capturedIndex));
+        }
+
+        int rosterCount = Mathf.Min(roster.Count, view.RosterCards.Count);
+        for (int i = 0; i < rosterCount; i++)
+        {
+            CharacterData captured = roster[i];
+            Button card = view.RosterCards[i];
+            card.onClick.AddListener(() => ToggleCharacter(captured));
+            rosterButtons.Add(card);
+            rosterStatusTexts.Add(view.RosterStatuses[i]);
+
+            view.RosterNames[i].text = captured.DisplayName;
+            view.RosterStats[i].text =
+                $"체력 {captured.MaxHP}  공격 {captured.AttackPower}  " +
+                $"이동 {captured.MoveRange}  사거리 {captured.AttackRange}";
+            view.RosterMonograms[i].text = GetInitials(captured.DisplayName);
+        }
+
+        ApplySafeArea();
     }
 
     private void BuildHeader()

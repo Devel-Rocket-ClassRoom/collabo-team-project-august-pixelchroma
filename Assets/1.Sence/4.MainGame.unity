@@ -2241,6 +2241,8 @@ MonoBehaviour:
   undoButton: {fileID: 626237923}
   playButton: {fileID: 1954872121}
   uiFont: {fileID: 11400000, guid: 88630710c7b8f8b4cad73e02a9ec81af, type: 2}
+  deploymentUIPrefab: {fileID: 7116098781634933645, guid: bb1c4f4d89d2ed54a8ee03f6c7dc25a5, type: 3}
+  attackPreviewUIPrefab: {fileID: 8682897199882295331, guid: 8ca1e088bcc0a6e429bbed46de87524d, type: 3}
   gameTextData: {fileID: 0}
 --- !u!1 &2141458087
 GameObject:

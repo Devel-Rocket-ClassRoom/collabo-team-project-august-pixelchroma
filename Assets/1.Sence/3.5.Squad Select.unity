@@ -55,6 +55,7 @@ MonoBehaviour:
   battleSceneName: 4.MainGame
   previousSceneName: 3.Stage List
   uiFont: {fileID: 11400000, guid: 88630710c7b8f8b4cad73e02a9ec81af, type: 2}
+  squadUIPrefab: {fileID: 7345461434980233259, guid: 412c8c151161086469fe926c9d3e1783, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
