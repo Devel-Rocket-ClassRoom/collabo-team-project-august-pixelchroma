@@ -301,7 +301,7 @@ public class SquadSelectionController : MonoBehaviour
                 : "+";
             squadButtons[i].GetComponent<Image>().color = filled
                 ? character.TeamColor
-                : new Color(0.11f, 0.14f, 0.19f, 1f);
+                : new Color(0.8f, 0.8f, 0.8f, 1f);
         }
 
         for (int i = 0; i < roster.Count; i++)
