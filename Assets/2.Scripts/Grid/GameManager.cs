@@ -630,9 +630,7 @@ public class GameManager : MonoBehaviour
             deploymentInfoText.text = selectedDeployCharacter == null
                 ? $"배치할 유닛을 선택하세요  /  {deployedCount}명 배치 완료"
                 : $"{selectedDeployCharacter.DisplayName} 선택  -  파란 칸을 누르세요";
-            deploymentInfoText.color = selectedDeployCharacter == null
-                ? Color.white
-                : selectedDeployCharacter.TeamColor;
+            deploymentInfoText.color = Color.black;
         }
 
         for (int i = 0; i < characterButtons.Count && i < availableCharacters.Count; i++)
