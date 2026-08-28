@@ -110,6 +110,27 @@ public static class Pathfinding
         return null;
     }
 
+    public static List<Vector2Int> GetTilesInRange(Vector2Int origin, int range)
+    {
+        var tiles = new List<Vector2Int>();
+        GridManager grid = GridManager.Instance;
+
+        for (int x = origin.x - range; x <= origin.x + range; x++)
+        {
+            for (int y = origin.y - range; y <= origin.y + range; y++)
+            {
+                Vector2Int position = new Vector2Int(x, y);
+                if (!grid.IsValidPosition(position) || position == origin)
+                    continue;
+
+                if (ManhattanDistance(origin, position) <= range)
+                    tiles.Add(position);
+            }
+        }
+
+        return tiles;
+    }
+
     private static List<Vector2Int> ReconstructPath(Node endNode)
     {
         var path = new List<Vector2Int>();

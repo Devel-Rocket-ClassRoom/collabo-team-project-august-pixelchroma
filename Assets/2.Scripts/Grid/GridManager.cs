@@ -11,6 +11,18 @@ public class GridManager : MonoBehaviour
     [SerializeField] private GameObject tilePrefab;
     [SerializeField] private float tileRotationX = 60f;
 
+    [Header("Terrain Layout")]
+    [SerializeField] private Vector2Int[] highGroundPositions =
+    {
+        new Vector2Int(1, 2),
+        new Vector2Int(3, 3)
+    };
+    [SerializeField] private Vector2Int[] coverPositions =
+    {
+        new Vector2Int(2, 2),
+        new Vector2Int(2, 3)
+    };
+
     private Tile[,] grid;
 
     public int Width => width;
@@ -56,6 +68,32 @@ public class GridManager : MonoBehaviour
                 tile.Init(x, y);
                 grid[x, y] = tile;
             }
+        }
+
+        ApplyTerrainLayout();
+    }
+
+    private void ApplyTerrainLayout()
+    {
+        if (highGroundPositions == null || highGroundPositions.Length == 0)
+        {
+            highGroundPositions = new[] { new Vector2Int(1, 2), new Vector2Int(3, 3) };
+        }
+        if (coverPositions == null || coverPositions.Length == 0)
+        {
+            coverPositions = new[] { new Vector2Int(2, 2), new Vector2Int(2, 3) };
+        }
+
+        foreach (Vector2Int position in highGroundPositions)
+        {
+            Tile tile = GetTile(position);
+            if (tile != null) tile.SetTerrain(TileTerrain.HighGround);
+        }
+
+        foreach (Vector2Int position in coverPositions)
+        {
+            Tile tile = GetTile(position);
+            if (tile != null) tile.SetTerrain(TileTerrain.Cover);
         }
     }
 

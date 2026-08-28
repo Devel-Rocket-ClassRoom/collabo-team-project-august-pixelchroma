@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6df9ca60755d4a9fb5f8a1e36e47e3b4, type: 3}
+  m_Name: TeslaOperator
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterData
+  characterId: tesla_operator
+  displayName: 전격술사
+  description: 선택한 적에게 전류를 흘려 주변 적에게 감소된 피해로 연쇄 전이시킵니다.
+  battlePrefab: {fileID: 0}
+  maxHP: 4
+  attackPower: 2
+  moveRange: 3
+  attackRange: 3
+  attackPattern: 5
+  damageType: 1
+  areaRadius: 1
+  maxTargets: 4
+  specialPower: 3
+  cooldownTurns: 2
+  ignoresCover: 1
+  canFriendlyFire: 0
+  teamColor: {r: 0.15, g: 0.95, b: 0.9, a: 1}

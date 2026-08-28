@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1001}
+  - component: {fileID: 1002}
+  m_Layer: 0
+  m_Name: SquadSelectionController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ee417a4ad2940c88a14c5ce77ca50f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SquadSelectionController
+  roster:
+  - {fileID: 11400000, guid: 5b45e92d0b074eae8765e06a81f93b01, type: 2}
+  - {fileID: 11400000, guid: 11f745b83f3a4eb29a7249d72077b902, type: 2}
+  - {fileID: 11400000, guid: 249edbbf72574376a325e7f45ed2ad03, type: 2}
+  - {fileID: 11400000, guid: 0853689919ad4b92a684cba787899304, type: 2}
+  - {fileID: 11400000, guid: ee2cdde9449c4d29b73178908b216305, type: 2}
+  - {fileID: 11400000, guid: 02d05459439448a39b6bf5a3e8575b06, type: 2}
+  squadSize: 4
+  battleSceneName: 4.MainGame
+  previousSceneName: 3.Stage List
+  uiFont: {fileID: 11400000, guid: 88630710c7b8f8b4cad73e02a9ec81af, type: 2}
+  squadUIPrefab: {fileID: 7345461434980233259, guid: 412c8c151161086469fe926c9d3e1783, type: 3}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 1001}

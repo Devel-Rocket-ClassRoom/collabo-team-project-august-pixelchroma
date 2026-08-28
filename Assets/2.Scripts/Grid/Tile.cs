@@ -14,11 +14,20 @@ public enum TileZone
     EnemyDeploy
 }
 
+public enum TileTerrain
+{
+    Normal,
+    HighGround,
+    Cover
+}
+
 public class Tile : MonoBehaviour
 {
     public Vector2Int GridPosition { get; private set; }
     public TileState State { get; set; }
     public TileZone Zone { get; private set; }
+    public TileTerrain Terrain { get; private set; }
+    public int CoverDurability { get; private set; }
     public GameObject OccupyingUnit { get; set; }
 
     private Renderer tileRenderer;
@@ -36,6 +45,7 @@ public class Tile : MonoBehaviour
         GridPosition = new Vector2Int(x, y);
         State = TileState.Empty;
         Zone = DetermineZone(y);
+        Terrain = TileTerrain.Normal;
 
         tileRenderer = GetComponent<Renderer>();
         if (tileRenderer != null)
@@ -63,7 +73,32 @@ public class Tile : MonoBehaviour
 
     public bool IsWalkable()
     {
-        return State != TileState.Blocked && State != TileState.Occupied;
+        return Terrain != TileTerrain.Cover &&
+               State != TileState.Blocked &&
+               State != TileState.Occupied;
+    }
+
+    public void SetTerrain(TileTerrain terrain)
+    {
+        Terrain = terrain;
+        CoverDurability = terrain == TileTerrain.Cover ? 1 : 0;
+        State = terrain == TileTerrain.Cover ? TileState.Blocked : TileState.Empty;
+        ApplyColor();
+    }
+
+    public bool AbsorbRangedAttack()
+    {
+        if (Terrain != TileTerrain.Cover || CoverDurability <= 0)
+            return false;
+
+        CoverDurability--;
+        if (CoverDurability <= 0)
+        {
+            Terrain = TileTerrain.Normal;
+            State = TileState.Empty;
+            ApplyColor();
+        }
+        return true;
     }
 
     public void SetHighlight(Color color)
@@ -82,7 +117,12 @@ public class Tile : MonoBehaviour
     private void ApplyColor()
     {
         if (tileMaterial == null) return;
-        tileMaterial.color = isHighlighted ? currentHighlightColor : zoneColor;
+        Color baseColor = Terrain == TileTerrain.HighGround
+            ? new Color(1f, 0.78f, 0.05f, 1f)
+            : Terrain == TileTerrain.Cover
+                ? new Color(0.025f, 0.025f, 0.035f, 1f)
+                : zoneColor;
+        tileMaterial.color = isHighlighted ? currentHighlightColor : baseColor;
         if (tileMaterial.HasProperty("_BaseColor"))
             tileMaterial.SetColor("_BaseColor", tileMaterial.color);
     }
