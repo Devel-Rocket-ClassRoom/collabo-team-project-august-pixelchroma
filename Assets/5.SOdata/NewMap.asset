@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01182384bcec7c34b88c9db6204a2346, type: 3}
   m_Name: NewMap
   m_EditorClassIdentifier: Assembly-CSharp::MapData
-  mapName: test
-  backgroundPrefab: {fileID: 8043871245340280291, guid: 2c5436a4c84d0e244976a82408986d52, type: 3}
-  backgroundPosition: {x: 316.1, y: 67.16, z: 121.8}
+  mapName: City_All
+  backgroundPrefab: {fileID: 1304817836363114420, guid: 1d9d42d83d10b704093012536e777232, type: 3}
+  backgroundPosition: {x: 82.8, y: -4.3, z: 157.03}
   backgroundRotation: {x: -0, y: 0, z: 0}
-  backgroundScale: {x: 5, y: 5, z: 5}
+  backgroundScale: {x: 10, y: 10, z: 10}
   cameraAngle: 60
   cameraZoom: 0.7
   cameraFOV: 50
