@@ -1450,7 +1450,7 @@ public class GameManager : MonoBehaviour
         else if (currentPhase == GamePhase.ReadyToStart)
             StartBattle();
         else if (currentPhase == GamePhase.BattleResult)
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            SceneManager.LoadScene("3.Stage List");
     }
 
     private void OnPlayClicked()
