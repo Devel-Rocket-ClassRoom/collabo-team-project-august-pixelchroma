@@ -399,12 +399,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
   width: 5
   height: 10
-  cellSize: 2
+  cellSize: 1
   tilePrefab: {fileID: 156048120}
   tileRotationX: 90
   highGroundPositions:
   - {x: 1, y: 2}
   - {x: 3, y: 3}
+  highGroundHeight: 0.1
+  highGroundMaterial: {fileID: 0}
+  highGroundColor: {r: 0.120382205, g: 1, b: 0.05098039, a: 1}
   coverPositions:
   - {x: 2, y: 2}
   - {x: 2, y: 3}
@@ -2234,7 +2237,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3972520168753338546, guid: 31de278d3572e7a4f8a804151fb8dadc, type: 3}
       propertyPath: m_Intensity
-      value: 1.425
+      value: 0.7
       objectReference: {fileID: 0}
     - target: {fileID: 3972520168753338546, guid: 31de278d3572e7a4f8a804151fb8dadc, type: 3}
       propertyPath: m_Shadows.m_Bias
@@ -6774,7 +6777,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1488355720
 MonoBehaviour:
   m_ObjectHideFlags: 0

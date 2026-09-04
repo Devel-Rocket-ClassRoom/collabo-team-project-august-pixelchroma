@@ -117,7 +117,7 @@ Material:
     - EFFECT_EXTRA_TEX: 0
     - _AO: 2.4
     - _AddPrecomputedVelocity: 0
-    - _AdditionalLightIntensity: 1
+    - _AdditionalLightIntensity: 0.5
     - _AlphaClip: 0
     - _AlphaClipThreshold: 0.33
     - _AlphaToMask: 0
@@ -181,8 +181,8 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.31599697, g: 0.38679248, b: 0.12224101, a: 1}
-    - _Color: {r: 0.31599697, g: 0.38679248, b: 0.12224101, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HueVariation: {r: 1, g: 0.5, b: 0, a: 0.1}
     - _HueVariationColor: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 0.1}

@@ -11,12 +11,17 @@ public class GridManager : MonoBehaviour
     [SerializeField] private GameObject tilePrefab;
     [SerializeField] private float tileRotationX = 60f;
 
-    [Header("Terrain Layout")]
+    [Header("High Ground")]
     [SerializeField] private Vector2Int[] highGroundPositions =
     {
         new Vector2Int(1, 2),
         new Vector2Int(3, 3)
     };
+    [SerializeField, Range(0.1f, 2f)] private float highGroundHeight = 0.5f;
+    [SerializeField] private Material highGroundMaterial;
+    [SerializeField] private Color highGroundColor = new Color(1f, 0.78f, 0.05f, 1f);
+
+    [Header("Cover")]
     [SerializeField] private Vector2Int[] coverPositions =
     {
         new Vector2Int(2, 2),
@@ -87,7 +92,8 @@ public class GridManager : MonoBehaviour
         foreach (Vector2Int position in highGroundPositions)
         {
             Tile tile = GetTile(position);
-            if (tile != null) tile.SetTerrain(TileTerrain.HighGround);
+            if (tile != null)
+                tile.SetTerrain(TileTerrain.HighGround, highGroundHeight, highGroundColor, highGroundMaterial);
         }
 
         foreach (Vector2Int position in coverPositions)

@@ -87,7 +87,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AddPrecomputedVelocity: 0
-    - _AdditionalLightIntensity: 1
+    - _AdditionalLightIntensity: 0.5
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _AmbientFlatten: 0.6

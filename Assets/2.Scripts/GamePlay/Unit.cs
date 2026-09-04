@@ -69,10 +69,11 @@ public class Unit : MonoBehaviour
         float s = grid.CellSize * 0.45f;
         obj.transform.localScale = new Vector3(s, s, s);
 
-        Vector3 worldPos = grid.GridToWorldPosition(gridPos.x, gridPos.y);
-        obj.transform.position = worldPos + Vector3.up * 0.5f;
-
         Tile tile = grid.GetTile(gridPos);
+        Vector3 worldPos = grid.GridToWorldPosition(gridPos.x, gridPos.y);
+        float tileHeight = tile != null ? tile.HeightOffset : 0f;
+        obj.transform.position = worldPos + Vector3.up * (0.5f + tileHeight);
+
         obj.transform.rotation = tile.transform.rotation;
 
         Unit unit = obj.GetComponent<Unit>();
@@ -124,7 +125,8 @@ public class Unit : MonoBehaviour
         if (newTile != null) newTile.PlaceUnit(gameObject);
 
         Vector3 worldPos = GridManager.Instance.GridToWorldPosition(newPos.x, newPos.y);
-        transform.position = worldPos + Vector3.up * 0.5f;
+        float tileHeight = newTile != null ? newTile.HeightOffset : 0f;
+        transform.position = worldPos + Vector3.up * (0.5f + tileHeight);
     }
 
     public void TakeDamage(int damage)

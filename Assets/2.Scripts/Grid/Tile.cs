@@ -33,6 +33,7 @@ public class Tile : MonoBehaviour
     private Renderer tileRenderer;
     private Material tileMaterial;
     private Color zoneColor;
+    private Color highGroundColor = new Color(1f, 0.78f, 0.05f, 1f);
     private bool isHighlighted;
     private Color currentHighlightColor;
 
@@ -78,11 +79,34 @@ public class Tile : MonoBehaviour
                State != TileState.Occupied;
     }
 
+    public float HeightOffset { get; private set; }
+
     public void SetTerrain(TileTerrain terrain)
+    {
+        SetTerrain(terrain, 0.5f, new Color(1f, 0.78f, 0.05f, 1f), null);
+    }
+
+    public void SetTerrain(TileTerrain terrain, float height, Color color, Material overrideMaterial)
     {
         Terrain = terrain;
         CoverDurability = terrain == TileTerrain.Cover ? 1 : 0;
         State = terrain == TileTerrain.Cover ? TileState.Blocked : TileState.Empty;
+
+        HeightOffset = terrain == TileTerrain.HighGround ? height : 0f;
+        Vector3 pos = transform.localPosition;
+        pos.y = HeightOffset;
+        transform.localPosition = pos;
+
+        if (terrain == TileTerrain.HighGround)
+        {
+            highGroundColor = color;
+            if (overrideMaterial != null && tileRenderer != null)
+            {
+                tileMaterial = new Material(overrideMaterial);
+                tileRenderer.material = tileMaterial;
+            }
+        }
+
         ApplyColor();
     }
 
@@ -118,7 +142,7 @@ public class Tile : MonoBehaviour
     {
         if (tileMaterial == null) return;
         Color baseColor = Terrain == TileTerrain.HighGround
-            ? new Color(1f, 0.78f, 0.05f, 1f)
+            ? highGroundColor
             : Terrain == TileTerrain.Cover
                 ? new Color(0.025f, 0.025f, 0.035f, 1f)
                 : zoneColor;
