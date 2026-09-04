@@ -29,6 +29,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private GameObject enemyPrefab;
 
+    [Header("2D Character Images")]
+    [Tooltip("CharacterData에 이미지가 없을 때 아군에게 사용할 기본 2D 이미지")]
+    [SerializeField] private Sprite defaultPlayerSprite;
+    [Tooltip("적 캐릭터에게 사용할 기본 2D 이미지. 적 프리팹의 Unit 이미지가 있으면 프리팹 이미지가 우선합니다.")]
+    [SerializeField] private Sprite defaultEnemySprite;
+
     [Header("Settings")]
     [SerializeField] private int maxPlayerUnits = 4;
     [SerializeField] private int maxEnemyUnits = 4;
@@ -199,18 +205,42 @@ public class GameManager : MonoBehaviour
         if (currentPhase == GamePhase.ReadyToStart) return;
 
         Ray ray = Camera.main.ScreenPointToRay(screenPosition);
-        if (!Physics.Raycast(ray, out RaycastHit hit)) return;
+        RaycastHit[] hits = Physics.RaycastAll(ray);
+        if (hits.Length == 0) return;
 
-        Tile tile = hit.collider.GetComponent<Tile>();
-        Unit clickedUnit = hit.collider.GetComponent<Unit>();
+        // A character's 3D collider can visually overlap a neighbouring tile
+        // when a camera-facing 2D sprite is used. Resolve the actual board tile
+        // first instead of allowing the closest unit collider to steal the tap.
+        Tile tile = null;
+        Unit directlyHitUnit = null;
+        float closestTileDistance = float.MaxValue;
+        float closestUnitDistance = float.MaxValue;
 
-        if (clickedUnit != null)
-            tile = GridManager.Instance.GetTile(clickedUnit.GridPosition);
+        foreach (RaycastHit hit in hits)
+        {
+            Tile hitTile = hit.collider.GetComponent<Tile>();
+            if (hitTile != null && hit.distance < closestTileDistance)
+            {
+                tile = hitTile;
+                closestTileDistance = hit.distance;
+            }
 
-        if (tile != null && clickedUnit == null && tile.OccupyingUnit != null)
-            clickedUnit = tile.OccupyingUnit.GetComponent<Unit>();
+            Unit hitUnit = hit.collider.GetComponent<Unit>();
+            if (hitUnit != null && hit.distance < closestUnitDistance)
+            {
+                directlyHitUnit = hitUnit;
+                closestUnitDistance = hit.distance;
+            }
+        }
+
+        if (tile == null && directlyHitUnit != null)
+            tile = GridManager.Instance.GetTile(directlyHitUnit.GridPosition);
 
         if (tile == null) return;
+
+        Unit clickedUnit = tile.OccupyingUnit != null
+            ? tile.OccupyingUnit.GetComponent<Unit>()
+            : null;
 
         if (currentPhase == GamePhase.Deployment)
             HandleDeployClick(tile);
@@ -249,6 +279,12 @@ public class GameManager : MonoBehaviour
             Unit placedUnit = tile.OccupyingUnit.GetComponent<Unit>();
             if (placedUnit != null && placedUnit.UnitTeam == Team.Player)
             {
+                // While another character is armed for placement, an occupied
+                // tile is not a cancel command. This also protects against a
+                // sprite/collider overlapping the intended empty tile.
+                if (selectedDeployCharacter != null)
+                    return;
+
                 playerUnits.Remove(placedUnit);
                 placedUnit.RemoveFromBoard();
                 deployedCount = Mathf.Max(0, deployedCount - 1);
@@ -268,7 +304,8 @@ public class GameManager : MonoBehaviour
             Team.Player,
             tile.GridPosition,
             playerPrefab,
-            selectedDeployCharacter);
+            selectedDeployCharacter,
+            defaultPlayerSprite);
         playerUnits.Add(unit);
         deployedCount++;
         tile.ClearHighlight();
@@ -321,7 +358,7 @@ public class GameManager : MonoBehaviour
     {
         CharacterData data = ScriptableObject.CreateInstance<CharacterData>();
         data.name = $"Runtime_{id}";
-        data.ConfigureRuntime(id, name, playerPrefab, hp, attack, movement, range, color);
+        data.ConfigureRuntime(id, name, playerPrefab, hp, attack, movement, range, color, defaultPlayerSprite);
         return data;
     }
 
@@ -674,7 +711,7 @@ public class GameManager : MonoBehaviour
             Vector2Int pos = available[idx];
             available.RemoveAt(idx);
 
-            Unit enemy = Unit.Create(Team.Enemy, pos, enemyPrefab);
+            Unit enemy = Unit.Create(Team.Enemy, pos, enemyPrefab, null, defaultEnemySprite);
             enemyUnits.Add(enemy);
         }
     }

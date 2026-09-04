@@ -8,6 +8,14 @@ public enum Team
 
 public class Unit : MonoBehaviour
 {
+    [Header("2D Battle Visual")]
+    [Tooltip("이 유닛 프리팹 전용 2D 이미지입니다. CharacterData 이미지가 있으면 그 이미지가 우선합니다.")]
+    [SerializeField] private Sprite battleSprite;
+    [Tooltip("스프라이트 높이를 타일 크기에 맞춘 뒤 적용할 배율입니다.")]
+    [SerializeField, Min(0.1f)] private float spriteScale = 1.15f;
+    [Tooltip("캐릭터 발 위치를 타일 바닥에서 얼마나 올릴지 지정합니다.")]
+    [SerializeField] private float spriteGroundOffset;
+
     public Team UnitTeam { get; private set; }
     public int HP { get; private set; }
     public int AttackPower { get; private set; }
@@ -19,6 +27,7 @@ public class Unit : MonoBehaviour
 
     private Renderer unitRenderer;
     private Material unitMaterial;
+    private SpriteRenderer spriteRenderer;
 
     private static readonly Color PlayerColor = new Color(0.15f, 0.4f, 1f, 1f);
     private static readonly Color EnemyColor = new Color(1f, 0.2f, 0.15f, 1f);
@@ -36,7 +45,8 @@ public class Unit : MonoBehaviour
         Team team,
         Vector2Int gridPos,
         GameObject fallbackPrefab,
-        CharacterData characterData)
+        CharacterData characterData,
+        Sprite fallbackSprite = null)
     {
         GridManager grid = GridManager.Instance;
         GameObject prefab = characterData != null && characterData.BattlePrefab != null
@@ -78,8 +88,18 @@ public class Unit : MonoBehaviour
         unit.GridPosition = gridPos;
         unit.HasActed = false;
 
+        Sprite sprite = characterData != null && characterData.BattleSprite != null
+            ? characterData.BattleSprite
+            : (unit.battleSprite != null ? unit.battleSprite : fallbackSprite);
+
         unit.unitRenderer = obj.GetComponent<Renderer>();
-        if (unit.unitRenderer != null)
+        if (sprite != null)
+        {
+            unit.SetupSpriteVisual(sprite, grid.CellSize);
+            if (unit.unitRenderer != null)
+                unit.unitRenderer.enabled = false;
+        }
+        else if (unit.unitRenderer != null)
         {
             unit.unitMaterial = new Material(unit.unitRenderer.material);
             unit.unitRenderer.material = unit.unitMaterial;
@@ -120,7 +140,7 @@ public class Unit : MonoBehaviour
 
     public void SetSelected(bool selected)
     {
-        if (unitMaterial == null) return;
+        if (unitMaterial == null && spriteRenderer == null) return;
         Color color;
         if (selected)
             color = SelectedColor;
@@ -146,6 +166,12 @@ public class Unit : MonoBehaviour
 
     private void SetTeamColor()
     {
+        if (spriteRenderer != null)
+        {
+            ApplyColor(Color.white);
+            return;
+        }
+
         Color color = UnitTeam == Team.Player && CharacterData != null
             ? CharacterData.TeamColor
             : (UnitTeam == Team.Player ? PlayerColor : EnemyColor);
@@ -165,9 +191,52 @@ public class Unit : MonoBehaviour
 
     private void ApplyColor(Color color)
     {
-        if (unitMaterial == null) return;
-        unitMaterial.color = color;
-        if (unitMaterial.HasProperty("_BaseColor"))
-            unitMaterial.SetColor("_BaseColor", color);
+        if (spriteRenderer != null)
+            spriteRenderer.color = color;
+
+        if (unitMaterial != null)
+        {
+            unitMaterial.color = color;
+            if (unitMaterial.HasProperty("_BaseColor"))
+                unitMaterial.SetColor("_BaseColor", color);
+        }
+    }
+
+    private void SetupSpriteVisual(Sprite sprite, float cellSize)
+    {
+        Transform visualTransform = transform.Find("CharacterVisual2D");
+        GameObject visualObject;
+        if (visualTransform == null)
+        {
+            visualObject = new GameObject("CharacterVisual2D");
+            visualTransform = visualObject.transform;
+            visualTransform.SetParent(transform, false);
+        }
+        else
+        {
+            visualObject = visualTransform.gameObject;
+        }
+
+        spriteRenderer = visualObject.GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+            spriteRenderer = visualObject.AddComponent<SpriteRenderer>();
+
+        spriteRenderer.sprite = sprite;
+        spriteRenderer.color = Color.white;
+        spriteRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        spriteRenderer.receiveShadows = false;
+
+        SpriteBillboard billboard = visualObject.GetComponent<SpriteBillboard>();
+        if (billboard == null)
+            billboard = visualObject.AddComponent<SpriteBillboard>();
+
+        float spriteHeight = Mathf.Max(0.01f, sprite.bounds.size.y);
+        float targetHeight = cellSize * spriteScale;
+        float parentScaleY = Mathf.Max(0.0001f, Mathf.Abs(transform.lossyScale.y));
+        float targetLocalHeight = targetHeight / parentScaleY;
+        float scale = targetLocalHeight / spriteHeight;
+        visualTransform.localScale = Vector3.one * scale;
+        visualTransform.localPosition = Vector3.up *
+            ((spriteGroundOffset + targetHeight * 0.5f) / parentScaleY);
     }
 }

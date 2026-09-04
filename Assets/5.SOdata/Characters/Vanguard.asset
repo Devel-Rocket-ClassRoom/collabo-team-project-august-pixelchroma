@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: Vanguard
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterId: vanguard
-  displayName: 선봉대
-  description: 전방 부채꼴 범위를 휩쓸며 여러 적에게 둘러싸였을 때 강한 위력을 발휘합니다.
-  battlePrefab: {fileID: 0}
+  displayName: "\uC120\uBD09\uB300"
+  description: "\uC804\uBC29 \uBD80\uCC44\uAF34 \uBC94\uC704\uB97C \uD729\uC4F8\uBA70
+    \uC5EC\uB7EC \uC801\uC5D0\uAC8C \uB458\uB7EC\uC2F8\uC600\uC744 \uB54C \uAC15\uD55C
+    \uC704\uB825\uC744 \uBC1C\uD718\uD569\uB2C8\uB2E4."
+  battlePrefab: {fileID: 6006512201920458258, guid: afdf9b16930ec6e4bb46de3b674dd125, type: 3}
+  battleSprite: {fileID: 21300000, guid: b5f401d2192a460eb1ecec011bce0002, type: 3}
   maxHP: 6
   attackPower: 2
   moveRange: 3
