@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: TeslaOperator
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterId: tesla_operator
-  displayName: 전격술사
-  description: 선택한 적에게 전류를 흘려 주변 적에게 감소된 피해로 연쇄 전이시킵니다.
-  battlePrefab: {fileID: 0}
+  displayName: "\uC804\uACA9\uC220\uC0AC"
+  description: "\uC120\uD0DD\uD55C \uC801\uC5D0\uAC8C \uC804\uB958\uB97C \uD758\uB824
+    \uC8FC\uBCC0 \uC801\uC5D0\uAC8C \uAC10\uC18C\uB41C \uD53C\uD574\uB85C \uC5F0\uC1C4
+    \uC804\uC774\uC2DC\uD0B5\uB2C8\uB2E4."
+  battlePrefab: {fileID: 4088776617382280470, guid: 713ac8f077662b7428d39771e8e5544f, type: 3}
+  battleSprite: {fileID: 21300000, guid: b5f401d2192a460eb1ecec011bce0004, type: 3}
   maxHP: 4
   attackPower: 2
   moveRange: 3

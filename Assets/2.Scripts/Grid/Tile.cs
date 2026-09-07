@@ -33,8 +33,12 @@ public class Tile : MonoBehaviour
     private Renderer tileRenderer;
     private Material tileMaterial;
     private Color zoneColor;
+    private Color highGroundColor = new Color(1f, 0.78f, 0.05f, 1f);
     private bool isHighlighted;
     private Color currentHighlightColor;
+    private GameObject terrainVisual;
+    private Renderer[] terrainRenderers;
+    private Color[] terrainOriginalColors;
 
     private static readonly Color PlayerDeployColor = new Color(0.25f, 0.45f, 0.85f, 1f);
     private static readonly Color EnemyDeployColor = new Color(0.85f, 0.25f, 0.25f, 1f);
@@ -78,12 +82,73 @@ public class Tile : MonoBehaviour
                State != TileState.Occupied;
     }
 
+    public float HeightOffset { get; private set; }
+
     public void SetTerrain(TileTerrain terrain)
+    {
+        SetTerrain(terrain, 0.5f, new Color(1f, 0.78f, 0.05f, 1f), null);
+    }
+
+    public void SetTerrain(TileTerrain terrain, float height, Color color, Material overrideMaterial)
     {
         Terrain = terrain;
         CoverDurability = terrain == TileTerrain.Cover ? 1 : 0;
         State = terrain == TileTerrain.Cover ? TileState.Blocked : TileState.Empty;
+
+        HeightOffset = terrain == TileTerrain.HighGround ? height : 0f;
+        Vector3 pos = transform.localPosition;
+        pos.y = HeightOffset;
+        transform.localPosition = pos;
+
+        if (terrain == TileTerrain.HighGround)
+        {
+            highGroundColor = color;
+            if (overrideMaterial != null && tileRenderer != null)
+            {
+                tileMaterial = new Material(overrideMaterial);
+                tileRenderer.material = tileMaterial;
+            }
+        }
+
         ApplyColor();
+    }
+
+    public void SetTerrainWithPrefab(TileTerrain terrain, float height, GameObject prefab)
+    {
+        Terrain = terrain;
+        CoverDurability = terrain == TileTerrain.Cover ? 1 : 0;
+        State = terrain == TileTerrain.Cover ? TileState.Blocked : TileState.Empty;
+        HeightOffset = terrain == TileTerrain.HighGround ? height : 0f;
+
+        Vector3 pos = transform.localPosition;
+        pos.y = HeightOffset;
+        transform.localPosition = pos;
+
+        if (tileRenderer != null)
+            tileRenderer.enabled = false;
+
+        if (prefab != null)
+        {
+            terrainVisual = Instantiate(prefab, transform);
+            terrainVisual.name = "TerrainVisual";
+            terrainVisual.transform.localPosition = Vector3.zero;
+            terrainVisual.transform.localRotation = Quaternion.identity;
+            terrainVisual.SetActive(true);
+
+            Vector3 ps = transform.localScale;
+            terrainVisual.transform.localScale = new Vector3(
+                1f / Mathf.Max(0.001f, ps.x),
+                1f / Mathf.Max(0.001f, ps.y),
+                1f / Mathf.Max(0.001f, ps.z));
+
+            terrainRenderers = terrainVisual.GetComponentsInChildren<Renderer>();
+            terrainOriginalColors = new Color[terrainRenderers.Length];
+            for (int i = 0; i < terrainRenderers.Length; i++)
+            {
+                terrainRenderers[i].material = new Material(terrainRenderers[i].material);
+                terrainOriginalColors[i] = terrainRenderers[i].material.color;
+            }
+        }
     }
 
     public bool AbsorbRangedAttack()
@@ -116,9 +181,24 @@ public class Tile : MonoBehaviour
 
     private void ApplyColor()
     {
+        if (terrainRenderers != null && terrainRenderers.Length > 0)
+        {
+            for (int i = 0; i < terrainRenderers.Length; i++)
+            {
+                if (terrainRenderers[i] == null) continue;
+                Color color = isHighlighted
+                    ? Color.Lerp(terrainOriginalColors[i], currentHighlightColor, 0.55f)
+                    : terrainOriginalColors[i];
+                terrainRenderers[i].material.color = color;
+                if (terrainRenderers[i].material.HasProperty("_BaseColor"))
+                    terrainRenderers[i].material.SetColor("_BaseColor", color);
+            }
+            return;
+        }
+
         if (tileMaterial == null) return;
         Color baseColor = Terrain == TileTerrain.HighGround
-            ? new Color(1f, 0.78f, 0.05f, 1f)
+            ? highGroundColor
             : Terrain == TileTerrain.Cover
                 ? new Color(0.025f, 0.025f, 0.035f, 1f)
                 : zoneColor;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -48,10 +49,16 @@ public class CameraController : MonoBehaviour
 
         if (pointer.press.wasPressedThisFrame)
         {
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            Vector2 pointerPosition = pointer.position.ReadValue();
+            if (IsPointerOverUI(pointerPosition))
+            {
+                // A previous map press must never survive into a UI interaction.
+                isPressed = false;
+                isDragging = false;
                 return;
+            }
 
-            pressStartPos = pointer.position.ReadValue();
+            pressStartPos = pointerPosition;
             lastPointerPos = pressStartPos;
             isPressed = true;
             isDragging = false;
@@ -93,9 +100,24 @@ public class CameraController : MonoBehaviour
         if (isPressed && pointer.press.wasReleasedThisFrame)
         {
             isPressed = false;
-            if (!isDragging)
+            Vector2 releasePosition = pointer.position.ReadValue();
+            if (!isDragging && !IsPointerOverUI(releasePosition))
                 OnTap?.Invoke(pressStartPos);
         }
+    }
+
+    private static bool IsPointerOverUI(Vector2 screenPosition)
+    {
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null) return false;
+
+        var eventData = new PointerEventData(eventSystem)
+        {
+            position = screenPosition
+        };
+        var raycastResults = new List<RaycastResult>();
+        eventSystem.RaycastAll(eventData, raycastResults);
+        return raycastResults.Count > 0;
     }
 
     private Vector3 ClampToGroundBounds(Vector3 camPos)
