@@ -11,19 +11,36 @@ public class GridManager : MonoBehaviour
     [SerializeField] private GameObject tilePrefab;
     [SerializeField] private float tileRotationX = 60f;
 
-    [Header("Terrain Layout")]
+    [Header("High Ground")]
     [SerializeField] private Vector2Int[] highGroundPositions =
     {
         new Vector2Int(1, 2),
         new Vector2Int(3, 3)
     };
+    [SerializeField, Range(0.1f, 2f)] private float highGroundHeight = 0.5f;
+    [SerializeField] private Material highGroundMaterial;
+    [SerializeField] private Color highGroundColor = new Color(1f, 0.78f, 0.05f, 1f);
+
+    [Header("Cover")]
     [SerializeField] private Vector2Int[] coverPositions =
     {
         new Vector2Int(2, 2),
         new Vector2Int(2, 3)
     };
 
+    [Header("Tile Appearance")]
+    [SerializeField, Range(0.7f, 0.98f)] private float tileScale = 0.88f;
+    [SerializeField, Range(0.02f, 0.15f)] private float tileThickness = 0.06f;
+    [SerializeField] private Color gridBaseColor = new Color(0.1f, 0.1f, 0.13f, 1f);
+
+    [Header("Terrain Prefabs")]
+    [Tooltip("고지대 전용 프리팹 (비워 두면 기본 타일을 높이만 올림)")]
+    [SerializeField] private GameObject highGroundPrefab;
+    [Tooltip("엄폐물 전용 프리팹 (비워 두면 기본 블록 타일을 사용)")]
+    [SerializeField] private GameObject coverPrefab;
+
     private Tile[,] grid;
+    private GameObject gridBase;
 
     public int Width => width;
     public int Height => height;
@@ -51,15 +68,16 @@ public class GridManager : MonoBehaviour
     {
         ClearGrid();
         grid = new Tile[width, height];
+        CreateGridBase();
 
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                GameObject tileObj = Instantiate(tilePrefab, transform);
+                GameObject tileObj = CreateArknightsTile();
+                tileObj.transform.SetParent(transform, false);
                 tileObj.name = $"Tile_({x},{y})";
                 tileObj.transform.localPosition = GridToLocalPosition(x, y);
-                tileObj.transform.localRotation = Quaternion.Euler(tileRotationX, 0f, 0f);
 
                 Tile tile = tileObj.GetComponent<Tile>();
                 if (tile == null)
@@ -71,6 +89,57 @@ public class GridManager : MonoBehaviour
         }
 
         ApplyTerrainLayout();
+    }
+
+    private static Material CreateURPMaterial(Color color, float smoothness = 0.35f)
+    {
+        Renderer probe = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<Renderer>();
+        Material mat = new Material(probe.sharedMaterial);
+        DestroyImmediate(probe.gameObject);
+
+        mat.color = color;
+        if (mat.HasProperty("_BaseColor"))
+            mat.SetColor("_BaseColor", color);
+        if (mat.HasProperty("_Metallic"))
+            mat.SetFloat("_Metallic", 0f);
+        if (mat.HasProperty("_Smoothness"))
+            mat.SetFloat("_Smoothness", smoothness);
+        return mat;
+    }
+
+    private GameObject CreateArknightsTile()
+    {
+        GameObject tileObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        float size = cellSize * tileScale;
+        tileObj.transform.localScale = new Vector3(size, tileThickness, size);
+
+        BoxCollider col = tileObj.GetComponent<BoxCollider>();
+        float expand = 1f / tileScale;
+        col.size = new Vector3(expand, col.size.y, expand);
+
+        Renderer rend = tileObj.GetComponent<Renderer>();
+        rend.material = CreateURPMaterial(Color.gray);
+
+        return tileObj;
+    }
+
+    private void CreateGridBase()
+    {
+        gridBase = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        gridBase.name = "GridBase";
+        gridBase.transform.SetParent(transform, false);
+
+        float baseThickness = 0.02f;
+        float padding = cellSize * 0.3f;
+        float totalWidth = width * cellSize + padding;
+        float totalDepth = height * cellSize + padding;
+        gridBase.transform.localScale = new Vector3(totalWidth, baseThickness, totalDepth);
+        gridBase.transform.localPosition = new Vector3(0f, -(tileThickness + baseThickness) * 0.5f, 0f);
+
+        Renderer rend = gridBase.GetComponent<Renderer>();
+        rend.material = CreateURPMaterial(gridBaseColor, 0.2f);
+
+        Destroy(gridBase.GetComponent<Collider>());
     }
 
     private void ApplyTerrainLayout()
@@ -87,18 +156,32 @@ public class GridManager : MonoBehaviour
         foreach (Vector2Int position in highGroundPositions)
         {
             Tile tile = GetTile(position);
-            if (tile != null) tile.SetTerrain(TileTerrain.HighGround);
+            if (tile == null) continue;
+            if (highGroundPrefab != null)
+                tile.SetTerrainWithPrefab(TileTerrain.HighGround, highGroundHeight, highGroundPrefab);
+            else
+                tile.SetTerrain(TileTerrain.HighGround, highGroundHeight, highGroundColor, highGroundMaterial);
         }
 
         foreach (Vector2Int position in coverPositions)
         {
             Tile tile = GetTile(position);
-            if (tile != null) tile.SetTerrain(TileTerrain.Cover);
+            if (tile == null) continue;
+            if (coverPrefab != null)
+                tile.SetTerrainWithPrefab(TileTerrain.Cover, 0f, coverPrefab);
+            else
+                tile.SetTerrain(TileTerrain.Cover);
         }
     }
 
     private void ClearGrid()
     {
+        if (gridBase != null)
+        {
+            Destroy(gridBase);
+            gridBase = null;
+        }
+
         if (grid == null) return;
 
         for (int x = 0; x < grid.GetLength(0); x++)

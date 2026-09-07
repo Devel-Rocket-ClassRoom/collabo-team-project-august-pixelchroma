@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: NewMap
   m_EditorClassIdentifier: Assembly-CSharp::MapData
   mapName: City_All
-  backgroundPrefab: {fileID: 1304817836363114420, guid: 1d9d42d83d10b704093012536e777232, type: 3}
-  backgroundPosition: {x: 82.8, y: -4.3, z: 157.03}
+  backgroundPrefab: {fileID: 5876999641347252820, guid: 31de278d3572e7a4f8a804151fb8dadc, type: 3}
+  backgroundPosition: {x: -7.58189, y: 0, z: 45.95631}
   backgroundRotation: {x: -0, y: 0, z: 0}
-  backgroundScale: {x: 10, y: 10, z: 10}
+  backgroundScale: {x: 1, y: 1, z: 1}
   cameraAngle: 60
   cameraZoom: 0.7
   cameraFOV: 50
