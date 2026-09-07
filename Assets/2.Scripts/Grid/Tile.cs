@@ -141,6 +141,14 @@ public class Tile : MonoBehaviour
                 1f / Mathf.Max(0.001f, ps.y),
                 1f / Mathf.Max(0.001f, ps.z));
 
+            // 3D meshes remain fixed to the board. Any 2D artwork inside a
+            // terrain prefab automatically stays front-facing during rotation.
+            foreach (SpriteRenderer sprite in terrainVisual.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (sprite.GetComponent<SpriteBillboard>() == null)
+                    sprite.gameObject.AddComponent<SpriteBillboard>();
+            }
+
             terrainRenderers = terrainVisual.GetComponentsInChildren<Renderer>();
             terrainOriginalColors = new Color[terrainRenderers.Length];
             for (int i = 0; i < terrainRenderers.Length; i++)

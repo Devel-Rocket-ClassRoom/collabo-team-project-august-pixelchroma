@@ -8,12 +8,18 @@ public class CameraController : MonoBehaviour
     public static CameraController Instance { get; private set; }
 
     [SerializeField] private float dragThresholdPixels = 10f;
+    [Header("Two Finger Rotation")]
+    [SerializeField] private bool enableTwoFingerRotation = true;
+    [SerializeField, Range(0.1f, 3f)] private float rotationSensitivity = 1f;
+    [SerializeField, Min(0f)] private float rotationThresholdDegrees = 0.15f;
 
     private Camera cam;
     private bool isPressed;
     private bool isDragging;
     private Vector2 pressStartPos;
     private Vector2 lastPointerPos;
+    private bool isMultiTouchGesture;
+    private bool multiTouchStartedOverUI;
 
     private Plane groundPlane;
     private Vector3 boundsMin;
@@ -44,6 +50,9 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
+        if (HandleTwoFingerRotation())
+            return;
+
         var pointer = Pointer.current;
         if (pointer == null) return;
 
@@ -104,6 +113,85 @@ public class CameraController : MonoBehaviour
             if (!isDragging && !IsPointerOverUI(releasePosition))
                 OnTap?.Invoke(pressStartPos);
         }
+    }
+
+    private bool HandleTwoFingerRotation()
+    {
+        Touchscreen touchscreen = Touchscreen.current;
+        if (!enableTwoFingerRotation || touchscreen == null)
+            return false;
+
+        var activeTouches = new List<UnityEngine.InputSystem.Controls.TouchControl>(2);
+        foreach (var touch in touchscreen.touches)
+        {
+            if (touch.press.isPressed)
+            {
+                activeTouches.Add(touch);
+                if (activeTouches.Count == 2) break;
+            }
+        }
+
+        if (activeTouches.Count < 2)
+        {
+            if (isMultiTouchGesture)
+            {
+                // Do not let the remaining finger turn the completed rotation into
+                // a drag or a map tap. Normal input resumes after every finger lifts.
+                if (activeTouches.Count == 0)
+                {
+                    isMultiTouchGesture = false;
+                    multiTouchStartedOverUI = false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        var firstTouch = activeTouches[0];
+        var secondTouch = activeTouches[1];
+        Vector2 firstPosition = firstTouch.position.ReadValue();
+        Vector2 secondPosition = secondTouch.position.ReadValue();
+
+        if (!isMultiTouchGesture)
+        {
+            isMultiTouchGesture = true;
+            isPressed = false;
+            isDragging = false;
+            multiTouchStartedOverUI =
+                IsPointerOverUI(firstPosition) || IsPointerOverUI(secondPosition);
+        }
+
+        if (multiTouchStartedOverUI)
+            return true;
+
+        Vector2 previousFirst = firstPosition - firstTouch.delta.ReadValue();
+        Vector2 previousSecond = secondPosition - secondTouch.delta.ReadValue();
+        Vector2 previousDirection = previousSecond - previousFirst;
+        Vector2 currentDirection = secondPosition - firstPosition;
+
+        if (previousDirection.sqrMagnitude < 1f || currentDirection.sqrMagnitude < 1f)
+            return true;
+
+        float twistDegrees = Vector2.SignedAngle(previousDirection, currentDirection);
+        if (Mathf.Abs(twistDegrees) < rotationThresholdDegrees)
+            return true;
+
+        Vector3 pivot = GetCurrentGroundFocus();
+        cam.transform.RotateAround(
+            pivot,
+            Vector3.up,
+            -twistDegrees * rotationSensitivity);
+
+        return true;
+    }
+
+    private Vector3 GetCurrentGroundFocus()
+    {
+        Ray forwardRay = new Ray(cam.transform.position, cam.transform.forward);
+        if (groundPlane.Raycast(forwardRay, out float distance))
+            return forwardRay.GetPoint(distance);
+
+        return hasBounds ? (boundsMin + boundsMax) * 0.5f : Vector3.zero;
     }
 
     private static bool IsPointerOverUI(Vector2 screenPosition)

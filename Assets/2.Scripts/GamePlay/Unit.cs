@@ -100,7 +100,14 @@ public class Unit : MonoBehaviour
             if (unit.unitRenderer != null)
                 unit.unitRenderer.enabled = false;
         }
-        else if (unit.unitRenderer != null)
+        else
+        {
+            // Also support art prefabs that already contain their own
+            // SpriteRenderer instead of using CharacterData.BattleSprite.
+            unit.SetupExistingSpriteVisuals();
+        }
+
+        if (unit.spriteRenderer == null && unit.unitRenderer != null)
         {
             unit.unitMaterial = new Material(unit.unitRenderer.material);
             unit.unitRenderer.material = unit.unitMaterial;
@@ -240,5 +247,18 @@ public class Unit : MonoBehaviour
         visualTransform.localScale = Vector3.one * scale;
         visualTransform.localPosition = Vector3.up *
             ((spriteGroundOffset + targetHeight * 0.5f) / parentScaleY);
+    }
+
+    private void SetupExistingSpriteVisuals()
+    {
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>(true);
+        if (renderers.Length == 0) return;
+
+        spriteRenderer = renderers[0];
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer.GetComponent<SpriteBillboard>() == null)
+                renderer.gameObject.AddComponent<SpriteBillboard>();
+        }
     }
 }
