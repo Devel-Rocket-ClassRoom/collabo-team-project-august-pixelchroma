@@ -1360,6 +1360,7 @@ public class GameManager : MonoBehaviour
         {
             currentPhase = GamePhase.BattleResult;
             resultMessage = gameTextData != null ? gameTextData.victory : "VICTORY!";
+            StageProgressManager.UnlockNextStage();
             return true;
         }
         if (playerUnits.Count == 0)
