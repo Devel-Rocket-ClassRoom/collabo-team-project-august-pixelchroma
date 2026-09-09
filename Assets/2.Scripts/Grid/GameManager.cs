@@ -44,8 +44,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<CharacterData> availableCharacters = new List<CharacterData>();
 
     [Header("Camera")]
-    [SerializeField] private float cameraZoom = 0.7f;
-    [SerializeField] private float cameraAngle = 60f;
+    [SerializeField] private float cameraZoom = 0.9f;
+    [SerializeField] private float cameraAngle = 20f;
     [SerializeField] private float cameraFOV = 50f;
 
     [Header("UI")]

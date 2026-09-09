@@ -1,0 +1,130 @@
+// =============================================================================
+// 7차시 GPU 파티클 시뮬레이션 (Compute Shader)
+//
+// 학습 목표
+//  - numthreads / SV_DispatchThreadID / 스레드 그룹
+//  - RWStructuredBuffer 읽기·쓰기
+//  - GPU에는 rand()가 없다 -> 결정적 해시 함수 사용
+//  - 경계 검사(if id >= count return)를 왜 반드시 써야 하는가
+//
+// 실습
+//  1) numthreads를 [1,1,1]로 바꿔 성능 차이 측정 (워프/웨이브 개념 설명)
+//  2) 경계 검사를 지우고 count를 64의 배수가 아닌 값으로 -> 버퍼 오버런 관찰
+//  3) InterlockedAdd로 살아있는 파티클 수를 세는 카운터 추가 (확장 과제)
+// =============================================================================
+
+#pragma kernel InitParticles
+#pragma kernel SimulateParticles
+
+// C# 측 구조체와 바이트 레이아웃이 정확히 일치해야힘.
+// float4 경계에 맞춰 (float3 + float) 쌍으로 묶으면 플랫폼 간 안전함.
+struct Particle
+{
+    float3 position;
+    float  life;      // 1 -> 0 으로 감소
+    float3 velocity;
+    float  seed;      // 파티클별 고정 난수
+};
+
+RWStructuredBuffer<Particle> _Particles;
+
+uint   _ParticleCount;
+float  _DeltaTime;
+float  _ElapsedTime;
+
+float3 _SpawnCenter;
+float  _SpawnRadius;
+float  _InitialSpeed;
+float  _LifeSpan;
+
+float3 _AttractorPosition;
+float  _AttractorStrength;
+float3 _Gravity;
+float  _Damping;
+float  _NoiseStrength;
+
+// ---------------- 해시 / 난수 ----------------
+float Hash11(float p)
+{
+    p = frac(p * 0.1031);
+    p *= p + 33.33;
+    p *= p + p;
+    return frac(p);
+}
+
+float3 Hash31(float p)
+{
+    float3 p3 = frac(float3(p, p * 1.7, p * 2.3) * float3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yzx + 33.33);
+    return frac((p3.xxy + p3.yzz) * p3.zyx);
+}
+
+// 구 내부 균등 분포 방향
+float3 RandomDirection(float seed)
+{
+    float3 r = Hash31(seed) * 2.0 - 1.0;
+    return normalize(r + 1e-5);
+}
+
+void SpawnParticle(inout Particle p, float seed)
+{
+    float3 dir = RandomDirection(seed);
+    p.position = _SpawnCenter + dir * _SpawnRadius * Hash11(seed * 3.71);
+    p.velocity = dir * _InitialSpeed * (0.5 + Hash11(seed * 7.13));
+    p.life     = 1.0;
+    p.seed     = seed;
+}
+
+// ---------------- 커널 ----------------
+[numthreads(64, 1, 1)]
+void InitParticles(uint3 id : SV_DispatchThreadID)
+{
+    // 스레드 그룹은 64의 배수로 디스패치되므로 남는 스레드를 반드시 잘라낼 것.
+    if (id.x >= _ParticleCount) return;
+
+    Particle p = _Particles[id.x];
+    float seed = (float)id.x * 0.6180339887 + 1.0;   // 황금비로 고르게 분산
+    SpawnParticle(p, seed);
+    // 초기에 수명을 흩뿌려 동시에 죽지 않도록
+    p.life = Hash11(seed * 11.37);
+    _Particles[id.x] = p;
+}
+
+[numthreads(64, 1, 1)]
+void SimulateParticles(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _ParticleCount) return;
+
+    Particle p = _Particles[id.x];
+
+    // 1) 인력/척력 (마우스 위치를 C#에서 넘겨줍니다)
+    float3 toAttractor = _AttractorPosition - p.position;
+    float  dist = max(0.3, length(toAttractor));
+    float3 force = normalize(toAttractor) * (_AttractorStrength / (dist * dist));
+
+    // 2) 중력
+    force += _Gravity;
+
+    // 3) 절차적 난류 (컬 노이즈 대신 간단한 sin 필드)
+    float t = _ElapsedTime * 0.7 + p.seed * 6.283;
+    float3 turbulence = float3(
+        sin(p.position.y * 1.3 + t),
+        sin(p.position.z * 1.1 - t * 1.3),
+        sin(p.position.x * 1.7 + t * 0.8));
+    force += turbulence * _NoiseStrength;
+
+    // 4) 적분 (semi-implicit Euler)
+    p.velocity += force * _DeltaTime;
+    p.velocity *= (1.0 - _Damping * _DeltaTime);
+    p.position += p.velocity * _DeltaTime;
+
+    // 5) 수명
+    p.life -= _DeltaTime / max(0.01, _LifeSpan);
+    if (p.life <= 0.0)
+    {
+        // 재생성. seed를 바꿔 매번 다른 위치에서 나오게 함
+        SpawnParticle(p, p.seed + 0.0173);
+    }
+
+    _Particles[id.x] = p;
+}

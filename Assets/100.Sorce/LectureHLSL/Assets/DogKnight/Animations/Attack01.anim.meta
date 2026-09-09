@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e32785e16a818284e948c8d5ea8dafe7
+timeCreated: 1544605028
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135227
+  packageName: Dog Knight PBR Polyart
+  packageVersion: 1.2
+  assetPath: Assets/DogKnight/Animations/Attack01.anim
+  uploadId: 347742

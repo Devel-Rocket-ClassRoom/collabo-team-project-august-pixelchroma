@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2dd32a1d4762e5742beff332c9337272
+timeCreated: 1544607741
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135227
+  packageName: Dog Knight PBR Polyart
+  packageVersion: 1.2
+  assetPath: Assets/DogKnight/Animations/Defend.anim
+  uploadId: 347742
