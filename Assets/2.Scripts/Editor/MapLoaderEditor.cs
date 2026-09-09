@@ -242,6 +242,13 @@ public class MapLoaderEditor : Editor
             DestroyImmediate(previewObject);
             previewObject = null;
         }
+
+        foreach (GameObject go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            if (go.name.StartsWith("[BG Preview]"))
+                DestroyImmediate(go);
+        }
+
         previewMapData = null;
     }
 

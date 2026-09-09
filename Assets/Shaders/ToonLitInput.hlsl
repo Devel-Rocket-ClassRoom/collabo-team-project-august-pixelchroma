@@ -12,6 +12,7 @@ CBUFFER_START(UnityPerMaterial)
     float4 _EmissionMap_ST;
     half4  _BaseColor;
     half4  _ShadowTint;
+    half4  _MidToneTint;
 
     half4  _SpecularColor;
     half4  _RimColor;
@@ -22,6 +23,9 @@ CBUFFER_START(UnityPerMaterial)
     half   _Flatten;
     half   _ShadowThreshold;
     half   _ShadowFeather;
+    half   _MidToneThreshold;
+    half   _MidToneFeather;
+    half   _UseMidTone;
     half   _ReceiveShadowStrength;
     half   _UseRampMap;
 

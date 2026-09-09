@@ -17,6 +17,12 @@ Shader "Custom/ToonLit"
         [Toggle] _UseRampMap("Use Ramp Texture", Float) = 0
         _RampMap("Ramp Map (1D gradient)", 2D) = "white" {}
 
+        [Header(Mid Tone (3 Tone))][Space(4)]
+        [Toggle] _UseMidTone("Enable 3-Tone", Float) = 0
+        _MidToneThreshold("Mid Tone Threshold", Range(0,1)) = 0.7
+        _MidToneFeather("Mid Tone Feather", Range(0.001,0.4)) = 0.10
+        _MidToneTint("Mid Tone Tint", Color) = (0.85,0.82,0.90,1)
+
         [Header(Specular)][Space(4)]
         _SpecularColor("Specular Color", Color) = (1,1,1,1)
         _SpecGloss("Specular Gloss", Range(1, 256)) = 48
@@ -290,8 +296,20 @@ Shader "Custom/ToonLit"
                     ramp = ToonStep(lightTerm, _ShadowThreshold, _ShadowFeather);
 
                 half3 shadowCol = albedo * _ShadowTint.rgb;
+                half3 toonColor;
+                if (_UseMidTone > 0.5h)
+                {
+                    half midRamp = ToonStep(lightTerm, _MidToneThreshold, _MidToneFeather);
+                    half3 midCol = albedo * _MidToneTint.rgb;
+                    toonColor = lerp(shadowCol, midCol, ramp);
+                    toonColor = lerp(toonColor, albedo, midRamp);
+                }
+                else
+                {
+                    toonColor = lerp(shadowCol, albedo, ramp);
+                }
                 half mainAtten = mainLight.distanceAttenuation * castShadow;
-                half3 diffuse = lerp(shadowCol, albedo, ramp) * mainLight.color * mainLight.distanceAttenuation;
+                half3 diffuse = toonColor * mainLight.color * mainLight.distanceAttenuation;
 
                 // ── Specular ──
                 half3 specular = ToonSpecular(N, mainLight.direction, V, mainAtten, mainLight.color);
@@ -314,7 +332,19 @@ Shader "Custom/ToonLit"
                             half atten = l.distanceAttenuation *
                                          lerp(1.0h, l.shadowAttenuation, _ReceiveShadowStrength);
 
-                            additional += albedo * l.color * lRamp * atten;
+                            half3 lToon;
+                            if (_UseMidTone > 0.5h)
+                            {
+                                half lMidRamp = ToonStep(lNdotL, _MidToneThreshold, _MidToneFeather);
+                                half3 lMidCol = albedo * _MidToneTint.rgb;
+                                lToon = lerp(albedo * _ShadowTint.rgb, lMidCol, lRamp);
+                                lToon = lerp(lToon, albedo, lMidRamp);
+                            }
+                            else
+                            {
+                                lToon = albedo * lRamp;
+                            }
+                            additional += lToon * l.color * atten;
                             additional += ToonSpecular(N, l.direction, V, atten, l.color);
                     #if defined(LIGHT_LOOP_BEGIN)
                         LIGHT_LOOP_END

@@ -57,11 +57,28 @@ public class EnvironmentToonSettings : MonoBehaviour
     [Range(0f, 2f)] public float ambientStrength = 1.0f;
     [Range(0.5f, 3f)] public float brightness = 1.0f;
 
+    // ── 3톤 그림자 ────────────────────────────────────────────────
+    [Serializable]
+    public class MidToneGroup
+    {
+        [Tooltip("켜면 lit → mid-tone → shadow 3단계 셰이딩을 사용한다.")]
+        public bool enabled = false;
+        public Color tint = new Color(0.85f, 0.82f, 0.90f, 1f);
+        [Range(0f, 1f)] public float threshold = 0.7f;
+        [Range(0.001f, 0.4f)] public float feather = 0.10f;
+    }
+
+    public MidToneGroup midToneBuilding = new MidToneGroup();
+    public MidToneGroup midToneTree = new MidToneGroup();
+
     [Tooltip("배경 스펙큘러. 강하면 즉시 리얼해진다. 낮게 권장.")]
     [Range(0f, 1f)] public float specularIntensity = 0.03f;
 
-    [Tooltip("배경 아웃라인. 드로우콜이 2배 되므로 0 권장.")]
-    [Range(0f, 8f)] public float outlineWidth = 0f;
+    [Tooltip("건물 아웃라인. 드로우콜이 2배 되므로 0 권장.")]
+    [Range(0f, 8f)] public float outlineWidthBuilding = 0f;
+
+    [Tooltip("나무 아웃라인.")]
+    [Range(0f, 8f)] public float outlineWidthTree = 0f;
 
     // ── 키 라이트 ───────────────────────────────────────────────
     [Header("키 라이트")]
@@ -108,6 +125,12 @@ public class EnvironmentToonSettings : MonoBehaviour
     // ────────────────────────────────────────────────────────────
     private Renderer[] cachedRenderers;
 
+    private static bool IsTreeMaterial(Material m)
+    {
+        string n = m.name.ToLowerInvariant();
+        return n.Contains("leaf") || n.Contains("leaves") || n.Contains("tree") || n.Contains("bark");
+    }
+
     private void OnEnable() => Apply();
     private void OnValidate() => Apply();
 
@@ -136,7 +159,7 @@ public class EnvironmentToonSettings : MonoBehaviour
         if (originalCaptured) return;
 
         originalLights = new List<LightState>();
-        foreach (Light l in FindObjectsByType<Light>(FindObjectsSortMode.None))
+        foreach (Light l in GetComponentsInChildren<Light>(true))
         {
             if (l.type != LightType.Directional) continue;
             originalLights.Add(new LightState
@@ -188,7 +211,7 @@ public class EnvironmentToonSettings : MonoBehaviour
 
     private void RevertLighting()
     {
-        foreach (Light l in FindObjectsByType<Light>(FindObjectsSortMode.None))
+        foreach (Light l in GetComponentsInChildren<Light>(true))
         {
             if (l.type != LightType.Directional) continue;
             l.enabled = true;
@@ -228,7 +251,7 @@ public class EnvironmentToonSettings : MonoBehaviour
         {
             if (r == null) continue;
 
-            Material[] mats = Application.isPlaying ? r.materials : r.sharedMaterials;
+            Material[] mats = r.sharedMaterials;
             foreach (Material m in mats)
             {
                 if (m == null) continue;
@@ -249,8 +272,16 @@ public class EnvironmentToonSettings : MonoBehaviour
                 m.SetFloat("_AmbientFlatten", ambientFlatten);
                 m.SetFloat("_AmbientStrength", ambientStrength);
                 m.SetFloat("_Brightness", brightness);
-                m.SetFloat("_OutlineWidth", outlineWidth);
-                m.SetFloat("_OutlineEnabled", outlineWidth > 0f ? 1f : 0f);
+                bool isTree = IsTreeMaterial(m);
+                float ow = isTree ? outlineWidthTree : outlineWidthBuilding;
+                m.SetFloat("_OutlineWidth", ow);
+                m.SetFloat("_OutlineEnabled", ow > 0f ? 1f : 0f);
+
+                MidToneGroup mg = isTree ? midToneTree : midToneBuilding;
+                m.SetFloat("_UseMidTone", mg.enabled ? 1f : 0f);
+                m.SetColor("_MidToneTint", mg.tint);
+                m.SetFloat("_MidToneThreshold", mg.threshold);
+                m.SetFloat("_MidToneFeather", mg.feather);
 
                 m.SetColor("_SpecularColor", Color.white * specularIntensity);
                 m.SetFloat("_RimIntensity", 0f);
@@ -272,7 +303,7 @@ public class EnvironmentToonSettings : MonoBehaviour
 
         if (disableExtraDirectionalLights)
         {
-            foreach (Light l in FindObjectsByType<Light>(FindObjectsSortMode.None))
+            foreach (Light l in GetComponentsInChildren<Light>(true))
             {
                 if (l == key) continue;
                 if (l.type != LightType.Directional) continue;
@@ -293,7 +324,7 @@ public class EnvironmentToonSettings : MonoBehaviour
     private Light FindBrightestDirectional()
     {
         Light best = null;
-        foreach (Light l in FindObjectsByType<Light>(FindObjectsSortMode.None))
+        foreach (Light l in GetComponentsInChildren<Light>(true))
         {
             if (l.type != LightType.Directional) continue;
             if (best == null || l.intensity > best.intensity) best = l;
@@ -418,8 +449,8 @@ public class EnvironmentToonSettings : MonoBehaviour
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($"[EnvironmentToonSettings] 현재 상태 (disableToon={disableToon})");
 
-        sb.AppendLine("== 디렉셔널 라이트 ==");
-        foreach (Light l in FindObjectsByType<Light>(FindObjectsSortMode.None))
+        sb.AppendLine("== 디렉셔널 라이트 (자식) ==");
+        foreach (Light l in GetComponentsInChildren<Light>(true))
         {
             if (l.type != LightType.Directional) continue;
             sb.AppendLine($"  {l.name,-26} enabled={l.enabled,-5} intensity={l.intensity:F2} " +

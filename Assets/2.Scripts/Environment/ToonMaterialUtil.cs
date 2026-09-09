@@ -31,7 +31,15 @@ public static class ToonMaterialUtil
 
         float srcBlend = m.HasProperty("_SrcBlend") ? m.GetFloat("_SrcBlend") : 1f;
         float dstBlend = m.HasProperty("_DstBlend") ? m.GetFloat("_DstBlend") : 0f;
-        float zWrite = m.HasProperty("_ZWrite") ? m.GetFloat("_ZWrite") : 1f;
+
+        bool wasMultiply = wasTransparent &&
+                           Mathf.Approximately(srcBlend, (float)BlendMode.DstColor) &&
+                           Mathf.Approximately(dstBlend, (float)BlendMode.Zero);
+
+        bool wasCullOff = m.HasProperty("_Cull") && m.GetFloat("_Cull") == 0f;
+        bool wasBothFace = wasCullOff ||
+                           (m.HasProperty("_Cull") && m.GetFloat("_Cull") == 0f) ||
+                           m.doubleSidedGI;
 
         Texture emissionMap = GetTex(m, "_EmissionMap");
         Color emissionColor = m.HasProperty("_EmissionColor") ? m.GetColor("_EmissionColor") : Color.black;
@@ -42,6 +50,13 @@ public static class ToonMaterialUtil
                          m.HasProperty("_MainTex") ? m.GetTextureOffset("_MainTex") : Vector2.zero;
 
         int renderQueue = m.renderQueue;
+
+        if (wasMultiply)
+        {
+            wasAlphaClip = true;
+            wasTransparent = false;
+            if (cutoff < 0.01f) cutoff = 0.5f;
+        }
 
         m.shader = toon;
 
@@ -77,8 +92,11 @@ public static class ToonMaterialUtil
             m.SetFloat("_SrcBlend", 1f);
             m.SetFloat("_DstBlend", 0f);
             m.SetFloat("_ZWrite", 1f);
-            m.renderQueue = -1;
+            m.renderQueue = wasAlphaClip ? (int)RenderQueue.AlphaTest : -1;
         }
+
+        if (wasMultiply || wasBothFace)
+            m.SetFloat("_Cull", 0f);
 
         if (emissionMap != null)
             m.SetTexture("_EmissionMap", emissionMap);
