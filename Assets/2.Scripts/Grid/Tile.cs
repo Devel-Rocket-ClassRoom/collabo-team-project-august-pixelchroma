@@ -21,6 +21,13 @@ public enum TileTerrain
     Cover
 }
 
+public enum TileVisualType
+{
+    Default,
+    Wireframe,
+    Hologram
+}
+
 public class Tile : MonoBehaviour
 {
     public Vector2Int GridPosition { get; private set; }
@@ -39,6 +46,11 @@ public class Tile : MonoBehaviour
     private GameObject terrainVisual;
     private Renderer[] terrainRenderers;
     private Color[] terrainOriginalColors;
+
+    private TileVisualType visualType = TileVisualType.Default;
+    private Color baseBorderColor;
+    private Color baseFillColor;
+    private Color baseRimColor;
 
     private static readonly Color PlayerDeployColor = new Color(0.25f, 0.45f, 0.85f, 1f);
     private static readonly Color EnemyDeployColor = new Color(0.85f, 0.25f, 0.25f, 1f);
@@ -64,6 +76,26 @@ public class Tile : MonoBehaviour
             zoneColor = EnemyDeployColor;
         else
             zoneColor = NeutralColor;
+
+        ApplyColor();
+    }
+
+    public void SetVisualType(TileVisualType type, Material mat, Color primary, Color secondary)
+    {
+        visualType = type;
+        tileMaterial = new Material(mat);
+        tileRenderer.material = tileMaterial;
+
+        switch (type)
+        {
+            case TileVisualType.Wireframe:
+                baseBorderColor = primary;
+                baseFillColor = secondary;
+                break;
+            case TileVisualType.Hologram:
+                baseRimColor = primary;
+                break;
+        }
 
         ApplyColor();
     }
@@ -107,6 +139,7 @@ public class Tile : MonoBehaviour
             {
                 tileMaterial = new Material(overrideMaterial);
                 tileRenderer.material = tileMaterial;
+                visualType = TileVisualType.Default;
             }
         }
 
@@ -141,8 +174,6 @@ public class Tile : MonoBehaviour
                 1f / Mathf.Max(0.001f, ps.y),
                 1f / Mathf.Max(0.001f, ps.z));
 
-            // 3D meshes remain fixed to the board. Any 2D artwork inside a
-            // terrain prefab automatically stays front-facing during rotation.
             foreach (SpriteRenderer sprite in terrainVisual.GetComponentsInChildren<SpriteRenderer>(true))
             {
                 if (sprite.GetComponent<SpriteBillboard>() == null)
@@ -205,6 +236,47 @@ public class Tile : MonoBehaviour
         }
 
         if (tileMaterial == null) return;
+
+        switch (visualType)
+        {
+            case TileVisualType.Wireframe:
+                ApplyWireframeColor();
+                break;
+            case TileVisualType.Hologram:
+                ApplyHologramColor();
+                break;
+            default:
+                ApplyDefaultColor();
+                break;
+        }
+    }
+
+    private void ApplyWireframeColor()
+    {
+        if (isHighlighted)
+        {
+            tileMaterial.SetColor("_BorderColor", currentHighlightColor);
+            Color fill = currentHighlightColor;
+            fill.a *= 0.4f;
+            tileMaterial.SetColor("_FillColor", fill);
+        }
+        else
+        {
+            tileMaterial.SetColor("_BorderColor", baseBorderColor);
+            tileMaterial.SetColor("_FillColor", baseFillColor);
+        }
+    }
+
+    private void ApplyHologramColor()
+    {
+        if (isHighlighted)
+            tileMaterial.SetColor("_RimColor", currentHighlightColor);
+        else
+            tileMaterial.SetColor("_RimColor", baseRimColor);
+    }
+
+    private void ApplyDefaultColor()
+    {
         Color baseColor = Terrain == TileTerrain.HighGround
             ? highGroundColor
             : Terrain == TileTerrain.Cover

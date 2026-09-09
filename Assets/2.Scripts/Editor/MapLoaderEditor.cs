@@ -154,28 +154,7 @@ public class MapLoaderEditor : Editor
             {
                 if (mat == null || mat.shader == toonShader) continue;
 
-                Texture baseMap = null;
-
-                if (mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") != null)
-                    baseMap = mat.GetTexture("_BaseMap");
-                else if (mat.HasProperty("_MainTex") && mat.GetTexture("_MainTex") != null)
-                    baseMap = mat.GetTexture("_MainTex");
-
-                mat.shader = toonShader;
-
-                if (baseMap != null)
-                    mat.SetTexture("_BaseMap", baseMap);
-                mat.SetColor("_BaseColor", Color.white);
-                mat.SetFloat("_Flatten", 0.425f);
-                mat.SetFloat("_ShadowThreshold", 0.68f);
-                mat.SetFloat("_ShadowFeather", 0.10f);
-                mat.SetColor("_ShadowTint", new Color(0.66f, 0.71f, 0.86f, 1f));
-                mat.SetFloat("_ReceiveShadowStrength", 0f);
-                mat.SetFloat("_AmbientStrength", 1.0f);
-                mat.SetFloat("_AmbientFlatten", 0.6f);
-                mat.SetFloat("_EnvironmentInfluence", 0.583f);
-                mat.SetFloat("_Brightness", 1.0f);
-                mat.SetFloat("_AdditionalLightIntensity", 0.5f);
+                ToonMaterialUtil.ToToon(mat, isEnvironment: true);
 
                 EditorUtility.SetDirty(mat);
                 converted++;
@@ -213,19 +192,7 @@ public class MapLoaderEditor : Editor
             {
                 if (mat == null || mat.shader == urpLit) continue;
 
-                Texture baseMap = null;
-                Color baseColor = Color.white;
-
-                if (mat.HasProperty("_BaseMap") && mat.GetTexture("_BaseMap") != null)
-                    baseMap = mat.GetTexture("_BaseMap");
-                if (mat.HasProperty("_BaseColor"))
-                    baseColor = mat.GetColor("_BaseColor");
-
-                mat.shader = urpLit;
-
-                if (baseMap != null)
-                    mat.SetTexture("_BaseMap", baseMap);
-                mat.SetColor("_BaseColor", baseColor);
+                ToonMaterialUtil.ToUrpLit(mat);
 
                 EditorUtility.SetDirty(mat);
                 converted++;
@@ -275,6 +242,13 @@ public class MapLoaderEditor : Editor
             DestroyImmediate(previewObject);
             previewObject = null;
         }
+
+        foreach (GameObject go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            if (go.name.StartsWith("[BG Preview]"))
+                DestroyImmediate(go);
+        }
+
         previewMapData = null;
     }
 

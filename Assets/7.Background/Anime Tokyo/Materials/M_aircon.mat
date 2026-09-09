@@ -8,20 +8,21 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_aircon
-  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_Shader: {fileID: 4800000, guid: 7f4f70f40e5faaa4e84353f9970c3d98, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _METALLICSPECGLOSSMAP
   - _NORMALMAP
+  - _OUTLINE_ON
   m_InvalidKeywords:
   - _METALLICGLOSSMAP
+  - _SCREENSPACEWIDTH_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap:
-    RenderType: Opaque
+  stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
   m_LockedProperties: 
@@ -68,6 +69,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _RampMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -90,11 +95,11 @@ Material:
     - _AdditionalLightIntensity: 0.5
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _AmbientFlatten: 0.6
-    - _AmbientStrength: 1
+    - _AmbientFlatten: 0
+    - _AmbientStrength: 1.329
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _Brightness: 1
+    - _Brightness: 1.21
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -104,42 +109,60 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _EnvironmentInfluence: 0.583
+    - _EnvironmentInfluence: 0.114
     - _EnvironmentReflections: 1
-    - _Flatten: 0.425
+    - _Flatten: 0.395
     - _GlossMapScale: 1
     - _Glossiness: 0
     - _GlossyReflections: 1
     - _Metallic: 0
+    - _MidToneFeather: 0.1
+    - _MidToneThreshold: 0.7
     - _MinBrightness: 0.55
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _OutlineWidth: 0.002
+    - _OutlineEnabled: 1
+    - _OutlineMaxWidth: 0.006
+    - _OutlineTintByAlbedo: 0.35
+    - _OutlineWidth: 0.39
+    - _OutlineZOffset: 0
     - _Parallax: 0.02
     - _QueueOffset: 0
-    - _ReceiveShadowStrength: 0
+    - _ReceiveShadowStrength: 0.202
     - _ReceiveShadows: 1
-    - _ShadowFeather: 0.1
+    - _RimIntensity: 0
+    - _RimPower: 4
+    - _ScreenSpaceWidth: 1
+    - _ShadowFeather: 0.093
     - _ShadowSmoothness: 0.02
-    - _ShadowThreshold: 0.68
+    - _ShadowThreshold: 0.194
     - _Smoothness: 1
     - _SmoothnessTextureChannel: 0
+    - _SpecGloss: 48
+    - _SpecSmooth: 0.02
+    - _SpecThreshold: 0.5
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _UVSec: 0
+    - _UseMidTone: 1
+    - _UseRampMap: 0
     - _WorkflowMode: 1
     - _XRMotionVectorsPass: 1
+    - _ZOffset: 0
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _MidToneTint: {r: 0.7924528, g: 0.7924528, b: 0.7924528, a: 1}
     - _OutlineColor: {r: 0.15, g: 0.1, b: 0.2, a: 1}
+    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _ShadowColor: {r: 0.55, g: 0.5, b: 0.65, a: 1}
-    - _ShadowTint: {r: 0.66, g: 0.71, b: 0.86, a: 1}
+    - _ShadowTint: {r: 0.7783019, g: 0.8348132, b: 1, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+    - _SpecularColor: {r: 0.26, g: 0.26, b: 0.26, a: 0.26}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &1532194301080240824

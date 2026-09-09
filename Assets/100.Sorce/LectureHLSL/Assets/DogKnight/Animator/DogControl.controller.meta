@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 64d7be55956ce1149846a7c841db9fb4
+timeCreated: 1544605003
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135227
+  packageName: Dog Knight PBR Polyart
+  packageVersion: 1.2
+  assetPath: Assets/DogKnight/Animator/DogControl.controller
+  uploadId: 347742

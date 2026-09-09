@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 6d9cd14469ff50141a29629f0d3ed566
+timeCreated: 1544605090
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135227
+  packageName: Dog Knight PBR Polyart
+  packageVersion: 1.2
+  assetPath: Assets/DogKnight/Animations/Idle_Battle.anim
+  uploadId: 347742

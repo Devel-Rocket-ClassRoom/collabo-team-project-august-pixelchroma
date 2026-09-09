@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ea3543677455cc04e94af4439a2962a9
+timeCreated: 1544605085
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135227
+  packageName: Dog Knight PBR Polyart
+  packageVersion: 1.2
+  assetPath: Assets/DogKnight/Animations/GetHit.anim
+  uploadId: 347742

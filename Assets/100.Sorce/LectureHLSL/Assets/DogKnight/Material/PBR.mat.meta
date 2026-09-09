@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2911a365ae4e6574d8e5410b3befd333
+timeCreated: 1540780855
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135227
+  packageName: Dog Knight PBR Polyart
+  packageVersion: 1.2
+  assetPath: Assets/DogKnight/Material/PBR.mat
+  uploadId: 347742

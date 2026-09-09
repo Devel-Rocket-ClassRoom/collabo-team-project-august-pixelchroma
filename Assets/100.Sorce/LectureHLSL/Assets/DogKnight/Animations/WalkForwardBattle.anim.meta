@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 76bf60d9728e1884cade24fc15383618
+timeCreated: 1544607284
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135227
+  packageName: Dog Knight PBR Polyart
+  packageVersion: 1.2
+  assetPath: Assets/DogKnight/Animations/WalkForwardBattle.anim
+  uploadId: 347742
