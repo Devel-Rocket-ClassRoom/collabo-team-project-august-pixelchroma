@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MapData
   mapName: City_All
   backgroundPrefab: {fileID: 5876999641347252820, guid: 31de278d3572e7a4f8a804151fb8dadc, type: 3}
-  backgroundPosition: {x: -7.58189, y: 0, z: 45.95631}
+  backgroundPosition: {x: -3.88, y: -3.3, z: 46.59}
   backgroundRotation: {x: -0, y: 0, z: 0}
   backgroundScale: {x: 1, y: 1, z: 1}
   cameraAngle: 60

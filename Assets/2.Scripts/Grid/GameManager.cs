@@ -62,6 +62,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private DeploymentUIView deploymentUIPrefab;
     [Tooltip("디자인팀이 직접 편집하는 공격 미리보기 UI Prefab")]
     [SerializeField] private AttackPreviewUIView attackPreviewUIPrefab;
+    [Tooltip("턴 전환 배너 UI Prefab (Turnline)")]
+    [SerializeField] private TurnBannerUI turnBannerPrefab;
 
     [Header("Runtime UI Images")]
     [Tooltip("공격 미리보기의 취소 버튼 이미지")]
@@ -105,9 +107,15 @@ public class GameManager : MonoBehaviour
     private Button attackConfirmButton;
     private Button attackCancelButton;
 
-    private static readonly Color DeployHighlight = new Color(0.2f, 0.85f, 0.3f, 1f);
-    private static readonly Color MoveHighlight = new Color(0.3f, 0.75f, 1f, 1f);
-    private static readonly Color AttackHighlight = new Color(1f, 0.25f, 0.25f, 1f);
+    private Color DeployHighlight => GridManager.Instance != null
+        ? GridManager.Instance.DeployHighlight
+        : new Color(0.2f, 0.85f, 0.3f, 0.6f);
+    private Color MoveHighlight => GridManager.Instance != null
+        ? GridManager.Instance.MoveHighlight
+        : new Color(0.3f, 0.75f, 1f, 0.6f);
+    private Color AttackHighlight => GridManager.Instance != null
+        ? GridManager.Instance.AttackHighlight
+        : new Color(1f, 0.25f, 0.25f, 0.6f);
 
     private void Awake()
     {
@@ -137,6 +145,7 @@ public class GameManager : MonoBehaviour
         SetupCamera();
         SpawnEnemies();
         HideOriginalPrefabs();
+        EnsureTurnBanner();
 
         currentPhase = GamePhase.Deployment;
         deployedCount = 0;
@@ -144,6 +153,22 @@ public class GameManager : MonoBehaviour
         ShowDeployZone();
         SetupUI();
         SetupDeploymentRoster();
+    }
+
+    private void EnsureTurnBanner()
+    {
+        if (TurnBannerUI.Instance != null) return;
+        if (turnBannerPrefab != null)
+        {
+            Instantiate(turnBannerPrefab);
+        }
+        else
+        {
+            new GameObject("TurnBannerUI", typeof(TurnBannerUI));
+        }
+
+        if (TurnBannerUI.Instance != null && uiFont != null)
+            TurnBannerUI.Instance.SetFont(uiFont);
     }
 
     // ─────────────────── Camera ───────────────────
@@ -720,10 +745,17 @@ public class GameManager : MonoBehaviour
 
     private void StartBattle()
     {
+        StartCoroutine(StartBattleRoutine());
+    }
+
+    private IEnumerator StartBattleRoutine()
+    {
         currentPhase = GamePhase.PlayerTurn;
         battleState = BattleState.Idle;
         turnCount = 1;
         ResetPlayerActions();
+        if (TurnBannerUI.Instance != null)
+            yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
     }
 
     private void ResetPlayerActions()
@@ -1246,7 +1278,10 @@ public class GameManager : MonoBehaviour
     private IEnumerator ProcessEnemyTurn()
     {
         currentPhase = GamePhase.EnemyTurn;
-        yield return new WaitForSeconds(0.5f);
+        if (TurnBannerUI.Instance != null)
+            yield return TurnBannerUI.Instance.ShowEnemyTurnAndWait();
+        else
+            yield return new WaitForSeconds(0.5f);
 
         for (int i = enemyUnits.Count - 1; i >= 0; i--)
         {
@@ -1299,6 +1334,8 @@ public class GameManager : MonoBehaviour
             currentPhase = GamePhase.PlayerTurn;
             battleState = BattleState.Idle;
             ResetPlayerActions();
+            if (TurnBannerUI.Instance != null)
+                yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
         }
     }
 

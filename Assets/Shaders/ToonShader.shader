@@ -5,9 +5,12 @@ Shader "Custom/ToonLit"
         [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
         [MainColor]   _BaseColor("Base Color", Color) = (1,1,1,1)
 
+        [Toggle(_ALPHATEST_ON)] _AlphaClip("Alpha Clip", Float) = 0
+        _Cutoff("Alpha Cutoff", Range(0,1)) = 0.5
+
         [Header(Toon Ramp)][Space(4)]
         _Flatten("Flatten (contrast reduce)", Range(0,1)) = 0.425
-        _ShadowThreshold("Shadow Threshold", Range(0,1)) = 0.68
+        _ShadowThreshold("Shadow Threshold", Range(0,1)) = 0.5
         _ShadowFeather("Shadow Feather", Range(0.001,0.4)) = 0.10
         _ShadowTint("Shadow Tint", Color) = (0.66,0.71,0.86,1)
         _ReceiveShadowStrength("Receive Shadow Strength", Range(0,1)) = 0.0
@@ -26,9 +29,11 @@ Shader "Custom/ToonLit"
         _RimIntensity("Rim Intensity", Range(0, 2)) = 0.6
 
         [Header(Outline)][Space(4)]
-        _OutlineColor("Outline Color", Color) = (0, 0, 0, 1)
-        _OutlineWidth("Outline Width", Range(0, 20)) = 3
-        [Toggle] _ScreenSpaceWidth("Constant Screen Width", Float) = 1
+        [Toggle(_OUTLINE_ON)] _OutlineEnabled("Enable Outline", Float) = 1
+        _OutlineColor("Outline Color", Color) = (0.13, 0.15, 0.30, 1)
+        _OutlineWidth("Outline Width (screen px)", Range(0, 8)) = 1.4
+        _OutlineMaxWidth("Outline Max Width (world)", Range(0.0005,0.05)) = 0.006
+        _OutlineTintByAlbedo("Tint By Albedo", Range(0,1)) = 0.35
 
         [Header(Ambient)][Space(4)]
         _AmbientStrength("Ambient Strength", Range(0,2)) = 1.0
@@ -41,8 +46,22 @@ Shader "Custom/ToonLit"
         [Header(Additional Lights)][Space(4)]
         _AdditionalLightIntensity("Additional Light Intensity", Range(0,2)) = 0.5
 
+        [Header(Emission)][Space(4)]
+        [HDR] _EmissionColor("Emission Color", Color) = (0,0,0,0)
+        _EmissionMap("Emission Map", 2D) = "white" {}
+
+        [Header(Depth Offset)][Space(4)]
+        _ZOffset("Z Offset (toward camera)", Range(0,0.1)) = 0
+        _OutlineZOffset("Outline Z Offset (away)", Range(0,0.1)) = 0
+
+        [Header(Surface)][Space(4)]
+        [Enum(Opaque,0,Transparent Decal,1)] _Surface("Surface Type", Float) = 0
+        [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend("Src Blend", Float) = 1
+        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend("Dst Blend", Float) = 0
+
         [Header(Rendering)][Space(4)]
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Float) = 2
+        [Enum(Off,0,On,1)] _ZWrite("ZWrite", Float) = 1
     }
 
     SubShader
@@ -62,13 +81,15 @@ Shader "Custom/ToonLit"
             Name "Outline"
             Tags { "LightMode" = "SRPDefaultUnlit" }
             Cull Front
-            ZWrite On
+            ZWrite [_ZWrite]
             ZTest LEqual
 
             HLSLPROGRAM
             #pragma target 3.0
             #pragma vertex   OutlineVert
             #pragma fragment OutlineFrag
+            #pragma shader_feature_local _OUTLINE_ON
+            #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile_instancing
 
             #include "ToonLitInput.hlsl"
@@ -77,44 +98,56 @@ Shader "Custom/ToonLit"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS   : NORMAL;
+                float2 uv         : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                float2 uv         : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
-            Varyings OutlineVert(Attributes IN)
+            Varyings OutlineVert(Attributes v)
             {
-                Varyings OUT = (Varyings)0;
-                UNITY_SETUP_INSTANCE_ID(IN);
-                UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
+                Varyings o = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-                float3 smoothDirOS = normalize(IN.positionOS.xyz);
-                float3 normalWS = TransformObjectToWorldNormal(smoothDirOS);
+            #ifdef _OUTLINE_ON
+                float3 positionWS = TransformObjectToWorld(v.positionOS.xyz);
+                float3 normalWS   = normalize(TransformObjectToWorldNormal(v.normalOS));
 
-                float3 positionWS = TransformObjectToWorld(IN.positionOS.xyz);
-                float4 positionCS = TransformWorldToHClip(positionWS);
+                float dist = distance(GetCameraPositionWS(), positionWS);
+                float fovFactor = 2.0 / max(1e-4, abs(UNITY_MATRIX_P._m11));
+                float width = _OutlineWidth * 0.0012 * dist * fovFactor;
+                width = min(width, _OutlineMaxWidth);
 
-                float3 normalCS = mul((float3x3)UNITY_MATRIX_VP, normalWS);
-                float2 offset   = normalize(normalCS.xy + 1e-6);
-                offset.x *= _ScreenParams.y / _ScreenParams.x;
+                positionWS += normalWS * width;
+                o.positionCS = ApplyZOffset(TransformWorldToHClip(positionWS), -_OutlineZOffset);
+            #else
+                o.positionCS = float4(0, 0, -10, 1);
+            #endif
 
-                float scale = _OutlineWidth * 0.002;
-                if (_ScreenSpaceWidth > 0.5)
-                    positionCS.xy += offset * scale * positionCS.w;
-                else
-                    positionCS.xy += offset * scale;
-
-                OUT.positionCS = positionCS;
-                return OUT;
+                o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
+                return o;
             }
 
-            half4 OutlineFrag(Varyings IN) : SV_Target
+            half4 OutlineFrag(Varyings i) : SV_Target
             {
-                return _OutlineColor;
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+
+                half4 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
+
+            #ifdef _ALPHATEST_ON
+                clip(albedo.a - _Cutoff);
+            #endif
+
+                half3 col = lerp(_OutlineColor.rgb, _OutlineColor.rgb * albedo.rgb, _OutlineTintByAlbedo);
+                return half4(col, 1);
             }
             ENDHLSL
         }
@@ -127,8 +160,9 @@ Shader "Custom/ToonLit"
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
 
+            Blend [_SrcBlend] [_DstBlend]
             Cull [_Cull]
-            ZWrite On
+            ZWrite [_ZWrite]
             ZTest LEqual
 
             HLSLPROGRAM
@@ -136,10 +170,13 @@ Shader "Custom/ToonLit"
             #pragma vertex ToonVert
             #pragma fragment ToonFrag
 
+            #pragma shader_feature_local _ALPHATEST_ON
+
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _FORWARD_PLUS _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ LIGHTMAP_ON
@@ -147,6 +184,7 @@ Shader "Custom/ToonLit"
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
             #include "ToonLitInput.hlsl"
 
             struct Attributes
@@ -171,11 +209,6 @@ Shader "Custom/ToonLit"
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
-            half ToonStep(half value, half threshold, half feather)
-            {
-                return smoothstep(threshold - feather, threshold + feather, value);
-            }
-
             half3 ToonSpecular(half3 N, half3 L, half3 V, half atten, half3 lightColor)
             {
                 half3 H = SafeNormalize(L + V);
@@ -196,7 +229,7 @@ Shader "Custom/ToonLit"
                 VertexPositionInputs pos = GetVertexPositionInputs(v.positionOS.xyz);
                 VertexNormalInputs nrm = GetVertexNormalInputs(v.normalOS);
 
-                o.positionCS = pos.positionCS;
+                o.positionCS = ApplyZOffset(pos.positionCS, _ZOffset);
                 o.positionWS = pos.positionWS;
                 o.normalWS   = nrm.normalWS;
                 o.uv         = TRANSFORM_TEX(v.uv, _BaseMap);
@@ -215,6 +248,10 @@ Shader "Custom/ToonLit"
 
                 half4 baseTex = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
                 half3 albedo = baseTex.rgb;
+
+            #ifdef _ALPHATEST_ON
+                clip(baseTex.a - _Cutoff);
+            #endif
 
                 half3 N = normalize(i.normalWS);
                 half3 V = SafeNormalize(GetWorldSpaceViewDir(i.positionWS));
@@ -294,13 +331,23 @@ Shader "Custom/ToonLit"
                 envSH = lerp(half3(1,1,1) * Luminance(envSH), envSH, _EnvironmentInfluence);
                 half3 ambient = envSH * albedo * _AmbientStrength * lerp(0.35h, 1.0h, _EnvironmentInfluence);
 
+            #ifdef _SCREEN_SPACE_OCCLUSION
+                AmbientOcclusionFactor aoFactor =
+                    GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+                ambient *= aoFactor.indirectAmbientOcclusion;
+            #endif
+
                 // ── Rim Light ──
                 half rim = pow(saturate(1.0h - saturate(dot(N, V))), _RimPower);
                 rim *= smoothstep(0.0h, 0.4h, saturate(NdotL));
                 half3 rimColor = rim * _RimIntensity * _RimColor.rgb;
 
+                // ── Emission ──
+                half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap,
+                                     TRANSFORM_TEX(i.uv, _EmissionMap)).rgb * _EmissionColor.rgb;
+
                 // ── Final ──
-                half3 color = (diffuse + ambient + additional + specular + rimColor) * _Brightness;
+                half3 color = (diffuse + ambient + additional + specular + rimColor + emission) * _Brightness;
                 color = MixFog(color, i.fogFactor);
 
                 return half4(color, baseTex.a);
@@ -325,6 +372,7 @@ Shader "Custom/ToonLit"
             #pragma target 3.0
             #pragma vertex ShadowVert
             #pragma fragment ShadowFrag
+            #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
             #pragma multi_compile_instancing
 
@@ -338,12 +386,14 @@ Shader "Custom/ToonLit"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS   : NORMAL;
+                float2 uv         : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                float2 uv         : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -371,11 +421,16 @@ Shader "Custom/ToonLit"
                 #endif
 
                 o.positionCS = positionCS;
+                o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
                 return o;
             }
 
             half4 ShadowFrag(Varyings i) : SV_Target
             {
+            #ifdef _ALPHATEST_ON
+                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).a * _BaseColor.a;
+                clip(alpha - _Cutoff);
+            #endif
                 return 0;
             }
             ENDHLSL
@@ -396,6 +451,7 @@ Shader "Custom/ToonLit"
             HLSLPROGRAM
             #pragma vertex DepthVert
             #pragma fragment DepthFrag
+            #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile_instancing
 
             #include "ToonLitInput.hlsl"
@@ -403,12 +459,14 @@ Shader "Custom/ToonLit"
             struct Attributes
             {
                 float4 positionOS : POSITION;
+                float2 uv         : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                float2 uv         : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -419,13 +477,19 @@ Shader "Custom/ToonLit"
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                o.positionCS = TransformObjectToHClip(v.positionOS.xyz);
+
+                o.positionCS = ApplyZOffset(TransformObjectToHClip(v.positionOS.xyz), _ZOffset);
+                o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
                 return o;
             }
 
             half4 DepthFrag(Varyings i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+            #ifdef _ALPHATEST_ON
+                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).a * _BaseColor.a;
+                clip(alpha - _Cutoff);
+            #endif
                 return 0;
             }
             ENDHLSL
@@ -445,6 +509,7 @@ Shader "Custom/ToonLit"
             HLSLPROGRAM
             #pragma vertex DepthNormalsVert
             #pragma fragment DepthNormalsFrag
+            #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile_instancing
 
             #include "ToonLitInput.hlsl"
@@ -453,13 +518,15 @@ Shader "Custom/ToonLit"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS   : NORMAL;
+                float2 uv         : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                half3  normalWS   : TEXCOORD0;
+                float2 uv         : TEXCOORD0;
+                half3  normalWS   : TEXCOORD1;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -470,14 +537,20 @@ Shader "Custom/ToonLit"
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                o.positionCS = TransformObjectToHClip(v.positionOS.xyz);
+
+                o.positionCS = ApplyZOffset(TransformObjectToHClip(v.positionOS.xyz), _ZOffset);
                 o.normalWS   = normalize(TransformObjectToWorldNormal(v.normalOS));
+                o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
                 return o;
             }
 
             half4 DepthNormalsFrag(Varyings i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+            #ifdef _ALPHATEST_ON
+                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).a * _BaseColor.a;
+                clip(alpha - _Cutoff);
+            #endif
                 return half4(normalize(i.normalWS) * 0.5 + 0.5, 0);
             }
             ENDHLSL

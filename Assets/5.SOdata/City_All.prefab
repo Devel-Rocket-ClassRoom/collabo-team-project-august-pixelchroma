@@ -14491,6 +14491,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_street_decal (91)
       objectReference: {fileID: 0}
+    - target: {fileID: 9169128927213807288, guid: bc3868686f004824faa2d9b7f40c7ff5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
