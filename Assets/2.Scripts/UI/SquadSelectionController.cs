@@ -18,13 +18,16 @@ public class SquadSelectionController : MonoBehaviour
     [SerializeField] private string previousSceneName = "3.Stage List";
     [SerializeField] private TMP_FontAsset uiFont;
     [SerializeField] private SquadFormationUIView squadUIPrefab;
+    [SerializeField] private SquadSlotCard slotCardPrefab;
 
     private readonly List<CharacterData> selected = new List<CharacterData>();
     private readonly List<Button> rosterButtons = new List<Button>();
+    private readonly List<Color> rosterOriginalColors = new List<Color>();
     private readonly List<TMP_Text> rosterStatusTexts = new List<TMP_Text>();
     private readonly List<Button> squadButtons = new List<Button>();
     private readonly List<TMP_Text> squadNameTexts = new List<TMP_Text>();
     private readonly List<TMP_Text> squadDetailTexts = new List<TMP_Text>();
+    private readonly List<SquadSlotCard> slotCardInstances = new List<SquadSlotCard>();
 
     private RectTransform safeAreaRoot;
     private TMP_Text countText;
@@ -108,27 +111,61 @@ public class SquadSelectionController : MonoBehaviour
         int slotCount = Mathf.Min(squadSize, view.SquadSlots.Count);
         for (int i = 0; i < slotCount; i++)
         {
+            Button slot = view.SquadSlots[i];
+            if (slot == null) continue;
+
             int capturedIndex = i;
-            squadButtons.Add(view.SquadSlots[i]);
-            squadNameTexts.Add(view.SquadNames[i]);
-            squadDetailTexts.Add(view.SquadDetails[i]);
-            view.SquadSlots[i].onClick.AddListener(() => RemoveFromSquad(capturedIndex));
+            squadButtons.Add(slot);
+            squadNameTexts.Add(i < view.SquadNames.Count ? view.SquadNames[i] : null);
+            squadDetailTexts.Add(i < view.SquadDetails.Count ? view.SquadDetails[i] : null);
+            slot.onClick.AddListener(() => RemoveFromSquad(capturedIndex));
+        }
+
+        if (slotCardPrefab != null)
+        {
+            for (int i = 0; i < squadButtons.Count; i++)
+            {
+                SquadSlotCard card = Instantiate(slotCardPrefab, squadButtons[i].transform);
+                RectTransform crt = card.GetComponent<RectTransform>();
+                crt.anchorMin = Vector2.zero;
+                crt.anchorMax = Vector2.one;
+                crt.offsetMin = Vector2.zero;
+                crt.offsetMax = Vector2.zero;
+                if (uiFont != null)
+                {
+                    if (card.NameText != null) card.NameText.font = uiFont;
+                    if (card.DetailText != null) card.DetailText.font = uiFont;
+                }
+                card.ShowEmpty();
+                slotCardInstances.Add(card);
+
+                if (squadNameTexts[i] != null) squadNameTexts[i].gameObject.SetActive(false);
+                if (squadDetailTexts[i] != null) squadDetailTexts[i].gameObject.SetActive(false);
+            }
         }
 
         int rosterCount = Mathf.Min(roster.Count, view.RosterCards.Count);
         for (int i = 0; i < rosterCount; i++)
         {
-            CharacterData captured = roster[i];
             Button card = view.RosterCards[i];
+            if (card == null) continue;
+
+            CharacterData captured = roster[i];
             card.onClick.AddListener(() => ToggleCharacter(captured));
             rosterButtons.Add(card);
-            rosterStatusTexts.Add(view.RosterStatuses[i]);
+            rosterOriginalColors.Add(card.GetComponent<Image>().color);
 
-            view.RosterNames[i].text = captured.DisplayName;
-            view.RosterStats[i].text =
-                $"체력 {captured.MaxHP}  공격 {captured.AttackPower}  " +
-                $"이동 {captured.MoveRange}  사거리 {captured.AttackRange}";
-            view.RosterMonograms[i].text = GetInitials(captured.DisplayName);
+            TMP_Text status = i < view.RosterStatuses.Count ? view.RosterStatuses[i] : null;
+            rosterStatusTexts.Add(status);
+
+            if (i < view.RosterNames.Count && view.RosterNames[i] != null)
+                view.RosterNames[i].text = captured.DisplayName;
+            if (i < view.RosterStats.Count && view.RosterStats[i] != null)
+                view.RosterStats[i].text =
+                    $"체력 {captured.MaxHP}  공격 {captured.AttackPower}  " +
+                    $"이동 {captured.MoveRange}  사거리 {captured.AttackRange}";
+            if (i < view.RosterMonograms.Count && view.RosterMonograms[i] != null)
+                view.RosterMonograms[i].text = GetInitials(captured.DisplayName);
         }
 
         ApplySafeArea();
@@ -290,39 +327,68 @@ public class SquadSelectionController : MonoBehaviour
         for (int i = 0; i < selected.Count; i++)
             power += selected[i].MaxHP * 100 + selected[i].AttackPower * 180 + selected[i].MoveRange * 40;
 
-        countText.text = $"{selected.Count} / {squadSize}";
-        powerText.text = $"전투력 {power:0000}";
+        if (countText != null) countText.text = $"{selected.Count} / {squadSize}";
+        if (powerText != null) powerText.text = $"전투력 {power:0000}";
 
-        for (int i = 0; i < squadSize; i++)
+        for (int i = 0; i < squadButtons.Count; i++)
         {
+            if (squadButtons[i] == null) continue;
             bool filled = i < selected.Count;
             CharacterData character = filled ? selected[i] : null;
-            squadNameTexts[i].text = filled ? character.DisplayName : "빈 슬롯";
-            squadDetailTexts[i].text = filled
-                ? $"{GetInitials(character.DisplayName)}\n이동 {character.MoveRange} / 사거리 {character.AttackRange}"
-                : "+";
-            squadButtons[i].GetComponent<Image>().color = filled
-                ? character.TeamColor
-                : new Color(0.8f, 0.8f, 0.8f, 1f);
+
+            Color slotColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            if (filled)
+            {
+                int rosterIdx = roster.IndexOf(character);
+                slotColor = rosterIdx >= 0 && rosterIdx < rosterOriginalColors.Count
+                    ? rosterOriginalColors[rosterIdx]
+                    : character.TeamColor;
+            }
+
+            if (i < slotCardInstances.Count && slotCardInstances[i] != null)
+            {
+                if (filled)
+                    slotCardInstances[i].Show(
+                        character.DisplayName,
+                        $"이동{character.MoveRange} 사거리{character.AttackRange}",
+                        character.BattleSprite,
+                        slotColor);
+                else
+                    slotCardInstances[i].ShowEmpty();
+            }
+            else
+            {
+                if (squadNameTexts[i] != null)
+                    squadNameTexts[i].text = filled ? character.DisplayName : "빈 슬롯";
+                if (squadDetailTexts[i] != null)
+                    squadDetailTexts[i].text = filled
+                        ? $"{GetInitials(character.DisplayName)}\n이동{character.MoveRange} 사거리{character.AttackRange}"
+                        : "+";
+                squadButtons[i].GetComponent<Image>().color = slotColor;
+            }
         }
 
         for (int i = 0; i < rosterButtons.Count; i++)
         {
+            if (rosterButtons[i] == null) continue;
             CharacterData character = roster[i];
             bool deployed = selected.Contains(character);
-            rosterStatusTexts[i].text = deployed ? "편성 완료" : "";
+            if (rosterStatusTexts[i] != null)
+                rosterStatusTexts[i].text = deployed ? "편성 완료" : "";
 
-            if (usingPrefabUI)
-                continue;
-
+            Color origColor = i < rosterOriginalColors.Count
+                ? rosterOriginalColors[i] : character.TeamColor;
             rosterButtons[i].GetComponent<Image>().color = deployed
-                ? Color.Lerp(character.TeamColor, Color.black, 0.58f)
-                : character.TeamColor;
+                ? Color.Lerp(origColor, Color.black, 0.58f)
+                : origColor;
         }
 
         bool ready = selected.Count == squadSize;
-        startButton.interactable = ready;
-        startButton.GetComponent<Image>().color = ready ? Yellow : new Color(0.22f, 0.24f, 0.28f, 1f);
+        if (startButton != null)
+        {
+            startButton.interactable = ready;
+            startButton.GetComponent<Image>().color = ready ? Yellow : new Color(0.22f, 0.24f, 0.28f, 1f);
+        }
     }
 
     private void ApplySafeArea()
@@ -345,9 +411,9 @@ public class SquadSelectionController : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(value)) return "?";
         string[] words = value.Split(' ');
-        return words.Length > 1
-            ? $"{words[0][0]}{words[1][0]}"
-            : value.Substring(0, Mathf.Min(2, value.Length));
+        if (words.Length > 1)
+            return words[words.Length - 1];
+        return value;
     }
 
     private static RectTransform CreateRect(Transform parent, string name)

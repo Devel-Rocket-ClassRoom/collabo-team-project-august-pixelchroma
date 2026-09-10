@@ -487,7 +487,7 @@ public class GameManager : MonoBehaviour
         startLabelRect.offsetMax = Vector2.zero;
 
         TextMeshProUGUI startLabel = startLabelObject.GetComponent<TextMeshProUGUI>();
-        startLabel.text = "寃뚯엫 ?쒖옉";
+        startLabel.text = "게임 시작";
         startLabel.alignment = TextAlignmentOptions.Center;
         startLabel.fontSize = 34f;
         startLabel.fontStyle = FontStyles.Bold;
@@ -606,8 +606,8 @@ public class GameManager : MonoBehaviour
         TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
         label.text =
             $"{character.DisplayName}\n" +
-            $"泥대젰 {character.MaxHP}  怨듦꺽 {character.AttackPower}\n" +
-            $"?대룞 {character.MoveRange}  ?ш굅由?{character.AttackRange}\n" +
+            $"체력 {character.MaxHP}  공격 {character.AttackPower}\n" +
+            $"이동 {character.MoveRange}  사거리 {character.AttackRange}\n" +
             GetAttackPatternLabel(character.AttackPattern);
         label.alignment = TextAlignmentOptions.Center;
         label.fontSize = 21f;
