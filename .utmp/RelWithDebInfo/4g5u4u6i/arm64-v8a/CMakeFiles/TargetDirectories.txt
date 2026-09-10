@@ -1,0 +1,8 @@
+C:/Users/user/collabo-team-project-august-pixelchroma/.utmp/RelWithDebInfo/4g5u4u6i/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/user/collabo-team-project-august-pixelchroma/.utmp/RelWithDebInfo/4g5u4u6i/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/user/collabo-team-project-august-pixelchroma/.utmp/RelWithDebInfo/4g5u4u6i/arm64-v8a/GameActivity/CMakeFiles/game.dir
+C:/Users/user/collabo-team-project-august-pixelchroma/.utmp/RelWithDebInfo/4g5u4u6i/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
+C:/Users/user/collabo-team-project-august-pixelchroma/.utmp/RelWithDebInfo/4g5u4u6i/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir
+C:/Users/user/collabo-team-project-august-pixelchroma/.utmp/RelWithDebInfo/4g5u4u6i/arm64-v8a/FramePacing/CMakeFiles/swappywrapper.dir
+C:/Users/user/collabo-team-project-august-pixelchroma/.utmp/RelWithDebInfo/4g5u4u6i/arm64-v8a/FramePacing/CMakeFiles/edit_cache.dir
+C:/Users/user/collabo-team-project-august-pixelchroma/.utmp/RelWithDebInfo/4g5u4u6i/arm64-v8a/FramePacing/CMakeFiles/rebuild_cache.dir

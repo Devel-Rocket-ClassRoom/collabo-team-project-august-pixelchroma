@@ -545,6 +545,10 @@ MonoBehaviour:
   coverPositions:
   - {x: 2, y: 2}
   - {x: 2, y: 3}
+  gridOpaqueMaterialTemplate: {fileID: 2100000, guid: eac6536c94b14a3fa7058d2466a18a41, type: 2}
+  gridTransparentMaterialTemplate: {fileID: 2100000, guid: a6dfb72e2d6948bb912d542df5ef377c, type: 2}
+  gridWireframeMaterialTemplate: {fileID: 2100000, guid: cfb56c0e6ee14dd19a233285c86f8a75, type: 2}
+  gridHologramMaterialTemplate: {fileID: 2100000, guid: d547636ac83549e9af51c08dd0496a1a, type: 2}
 --- !u!4 &171899232
 Transform:
   m_ObjectHideFlags: 0
@@ -2304,3 +2308,4 @@ SceneRoots:
   - {fileID: 549082041}
   - {fileID: 1484749773}
   - {fileID: 1356899330}
+

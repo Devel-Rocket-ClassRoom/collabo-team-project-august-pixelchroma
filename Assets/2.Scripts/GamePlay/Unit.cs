@@ -18,12 +18,33 @@ public class Unit : MonoBehaviour
 
     public Team UnitTeam { get; private set; }
     public int HP { get; private set; }
+    public int MaxHP { get; private set; }
     public int AttackPower { get; private set; }
     public int MoveRange { get; private set; }
     public int AttackRange { get; private set; }
     public Vector2Int GridPosition { get; set; }
     public bool HasActed { get; set; }
     public CharacterData CharacterData { get; private set; }
+
+    /// <summary>
+    /// 적 전용 데이터입니다. EnemyUnitData는 CharacterData를 상속하므로
+    /// 플레이어 유닛에서는 null이 반환됩니다.
+    /// </summary>
+    public EnemyUnitData EnemyData => CharacterData as EnemyUnitData;
+
+    public EnemyRole Role => EnemyData != null ? EnemyData.Role : EnemyRole.MeleeDealer;
+    public AttackType UnitAttackType =>
+        EnemyData != null ? EnemyData.EnemyAttackType : AttackType.Pierce;
+    public ArmorType UnitArmorType =>
+        EnemyData != null ? EnemyData.EnemyArmorType : ArmorType.Light;
+
+    /// <summary>상성을 반영한 실제 피해량입니다.</summary>
+    public int GetDamageAgainst(Unit target)
+    {
+        if (target == null) return 0;
+        return TypeAffinity.ApplyToDamage(
+            AttackPower, UnitAttackType, target.UnitArmorType);
+    }
 
     private Renderer unitRenderer;
     private Material unitMaterial;
@@ -83,6 +104,7 @@ public class Unit : MonoBehaviour
         unit.UnitTeam = team;
         unit.CharacterData = characterData;
         unit.HP = characterData != null ? characterData.MaxHP : 3;
+        unit.MaxHP = unit.HP;
         unit.AttackPower = characterData != null ? characterData.AttackPower : 1;
         unit.MoveRange = characterData != null ? characterData.MoveRange : 3;
         unit.AttackRange = characterData != null ? characterData.AttackRange : 1;

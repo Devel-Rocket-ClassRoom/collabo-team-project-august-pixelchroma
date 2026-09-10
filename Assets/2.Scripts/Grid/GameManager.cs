@@ -37,7 +37,17 @@ public class GameManager : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] private int maxPlayerUnits = 4;
+    [Tooltip("Enemy Squad가 비어 있을 때만 사용하는 적 수입니다. 단체를 지정하면 단체 편성이 우선합니다.")]
     [SerializeField] private int maxEnemyUnits = 4;
+
+    [Header("Enemy Squad")]
+    [Tooltip("이 전투에 배치할 적 단체입니다. 비워 두면 기존 방식(enemyPrefab 복제)으로 동작합니다.")]
+    [SerializeField] private EnemySquadData enemySquad;
+
+    [Header("Combat Random")]
+    [Tooltip("전투 판정 난수의 시드입니다. 0이면 매 판 다른 시드를 쓰고 Console에 기록합니다.\n" +
+             "버그를 재현하려면 로그에 찍힌 시드를 여기에 입력하세요.")]
+    [SerializeField] private uint combatSeed;
 
     [Header("Deployment Roster")]
     [Tooltip("Characters that can be selected before battle. Empty uses a prototype roster.")]
@@ -107,6 +117,12 @@ public class GameManager : MonoBehaviour
     private Button attackConfirmButton;
     private Button attackCancelButton;
 
+    /// <summary>가장 최근 공격의 결과 문구입니다. 명중/빗나감/치명타/반격을 알려줍니다.</summary>
+    private string lastCombatMessage = "";
+
+    /// <summary>이번 전투의 난수입니다. 시드를 다시 넣으면 같은 전투가 재현됩니다.</summary>
+    private DeterministicRandom combatRandom;
+
     private Color DeployHighlight => GridManager.Instance != null
         ? GridManager.Instance.DeployHighlight
         : new Color(0.2f, 0.85f, 0.3f, 0.6f);
@@ -142,6 +158,7 @@ public class GameManager : MonoBehaviour
 
     private void InitGame()
     {
+        InitCombatRandom();
         SetupCamera();
         SpawnEnemies();
         HideOriginalPrefabs();
@@ -153,6 +170,21 @@ public class GameManager : MonoBehaviour
         ShowDeployZone();
         SetupUI();
         SetupDeploymentRoster();
+    }
+
+    /// <summary>
+    /// 전투 난수를 초기화합니다. 시드가 0이면 매 판 다르게 뽑되 반드시 로그로 남깁니다.
+    /// 버그를 재현할 때 그 시드를 Inspector에 넣으면 같은 전투가 그대로 재생됩니다.
+    /// </summary>
+    private void InitCombatRandom()
+    {
+        combatRandom = combatSeed == 0u
+            ? DeterministicRandom.FromTime()
+            : new DeterministicRandom(combatSeed);
+
+        CombatResolver.InitRandom(combatRandom);
+        Debug.Log($"[Combat] 전투 시드 = {combatRandom.Seed}  " +
+                  "(재현하려면 GameManager의 Combat Seed에 이 값을 입력하세요)");
     }
 
     private void EnsureTurnBanner()
@@ -717,11 +749,16 @@ public class GameManager : MonoBehaviour
     private void SpawnEnemies()
     {
         GridManager grid = GridManager.Instance;
-        var available = new List<Vector2Int>();
 
+        // 단체가 지정되어 있으면 단체가 정한 배치 구역을 씁니다.
+        Vector2Int rows = enemySquad != null
+            ? enemySquad.SpawnRowRange
+            : new Vector2Int(4, 5);
+
+        var available = new List<Vector2Int>();
         for (int x = 0; x < grid.Width; x++)
         {
-            for (int y = 4; y <= 5; y++)
+            for (int y = rows.x; y <= rows.y; y++)
             {
                 Tile tile = grid.GetTile(x, y);
                 if (tile != null && tile.State == TileState.Empty)
@@ -729,16 +766,79 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        if (enemySquad != null)
+            SpawnSquadMembers(available);
+        else
+            SpawnGenericEnemies(available);
+    }
+
+    /// <summary>단체 편성표대로 적을 세웁니다. 스탯·이미지는 EnemyUnitData에서 옵니다.</summary>
+    private void SpawnSquadMembers(List<Vector2Int> available)
+    {
+        foreach (EnemySquadData.SquadMember member in enemySquad.Members)
+        {
+            if (member.unit == null) continue;
+
+            int count = Mathf.Max(1, member.count);
+            for (int i = 0; i < count; i++)
+            {
+                Vector2Int pos = default;
+
+                bool placed =
+                    member.preferredCells != null &&
+                    i < member.preferredCells.Length &&
+                    TryTakeCell(available, member.preferredCells[i], out pos);
+
+                if (!placed && !TryTakeRandomCell(available, out pos))
+                    return;   // 빈 칸 소진
+
+                Unit enemy = Unit.Create(
+                    Team.Enemy, pos, enemyPrefab, member.unit, defaultEnemySprite);
+                enemyUnits.Add(enemy);
+            }
+        }
+    }
+
+    /// <summary>단체가 없을 때의 기존 동작입니다.</summary>
+    private void SpawnGenericEnemies(List<Vector2Int> available)
+    {
         int count = Mathf.Min(maxEnemyUnits, available.Count);
         for (int i = 0; i < count; i++)
         {
-            int idx = Random.Range(0, available.Count);
-            Vector2Int pos = available[idx];
-            available.RemoveAt(idx);
+            if (!TryTakeRandomCell(available, out Vector2Int pos)) break;
 
-            Unit enemy = Unit.Create(Team.Enemy, pos, enemyPrefab, null, defaultEnemySprite);
+            Unit enemy = Unit.Create(
+                Team.Enemy, pos, enemyPrefab, null, defaultEnemySprite);
             enemyUnits.Add(enemy);
         }
+    }
+
+    private static bool TryTakeCell(
+        List<Vector2Int> available, Vector2Int wanted, out Vector2Int pos)
+    {
+        int idx = available.IndexOf(wanted);
+        if (idx < 0)
+        {
+            pos = default;
+            return false;
+        }
+        pos = available[idx];
+        available.RemoveAt(idx);
+        return true;
+    }
+
+    private static bool TryTakeRandomCell(
+        List<Vector2Int> available, out Vector2Int pos)
+    {
+        if (available.Count == 0)
+        {
+            pos = default;
+            return false;
+        }
+        int idx = Random.Range(0, available.Count);
+        pos = available[idx];
+        available.RemoveAt(idx);
+        return true;
     }
 
     // ─────────────────── Battle ───────────────────
@@ -890,19 +990,21 @@ public class GameManager : MonoBehaviour
 
     private void AttackTarget(Unit target)
     {
-        Tile blockingCover = FindBlockingCover(selectedUnit, target);
         ClearAllMarkers();
 
-        if (blockingCover != null && blockingCover.AbsorbRangedAttack())
-        {
-            FinishUnitAction();
-            return;
-        }
+        Unit attacker = selectedUnit;
+        AttackOutcome outcome = CombatResolver.Resolve(attacker, target);
+        lastCombatMessage = CombatResolver.DescribeOutcome(outcome, attacker, target);
 
-        target.TakeDamage(selectedUnit.AttackPower);
-
-        if (target.IsDead)
+        if (outcome.TargetDied)
             enemyUnits.Remove(target);
+
+        // 반격으로 아군이 쓰러질 수 있습니다.
+        if (outcome.AttackerDied)
+        {
+            playerUnits.Remove(attacker);
+            if (selectedUnit == attacker) selectedUnit = null;
+        }
 
         FinishUnitAction();
     }
@@ -920,22 +1022,19 @@ public class GameManager : MonoBehaviour
         if (attackPreviewPanel == null || attackPreviewText == null) return;
 
         attackPreviewTarget = target;
-        Tile blockingCover = FindBlockingCover(selectedUnit, target);
-        int predictedDamage = blockingCover == null
-            ? Mathf.Min(selectedUnit.AttackPower, target.HP)
-            : 0;
-        int remainingHP = Mathf.Max(0, target.HP - selectedUnit.AttackPower);
-        if (blockingCover != null) remainingHP = target.HP;
 
-        string terrainNotice = blockingCover != null
+        // 실제 판정과 완전히 동일한 계산입니다. 예측과 결과가 갈라질 수 없습니다.
+        AttackForecast forecast = CombatResolver.Forecast(selectedUnit, target);
+
+        string terrainNotice = forecast.CoverBlocks
             ? "\n엄폐물이 원거리 공격을 1회 차단합니다"
             : IsOnHighGround(selectedUnit)
-                ? "\n고지대 효과: 공격 사거리 +1"
+                ? $"\n고지대: 사거리 +1, 명중 +{CombatResolver.HighGroundAccuracyBonus}%"
                 : "";
+
         attackPreviewText.text =
-            $"예상 피해 {predictedDamage}    체력 {target.HP} > {remainingHP}\n" +
-            $"이동 {selectedUnit.MoveRange}    사거리 {GetEffectiveAttackRange(selectedUnit)}" +
-            terrainNotice;
+            CombatResolver.DescribeForecast(forecast, target) + terrainNotice;
+
         attackPreviewPanel.gameObject.SetActive(true);
         UpdateAttackPreviewPosition();
     }
@@ -1232,45 +1331,16 @@ public class GameManager : MonoBehaviour
         return null;
     }
 
+    // 전투 규칙은 CombatResolver 한 곳에만 둡니다. 여기서는 위임만 합니다.
+
     private int GetEffectiveAttackRange(Unit unit)
-    {
-        return unit.AttackRange + (IsOnHighGround(unit) ? 1 : 0);
-    }
+        => CombatResolver.GetEffectiveRange(unit);
 
     private bool IsOnHighGround(Unit unit)
     {
         if (unit == null || GridManager.Instance == null) return false;
         Tile tile = GridManager.Instance.GetTile(unit.GridPosition);
         return tile != null && tile.Terrain == TileTerrain.HighGround;
-    }
-
-    private Tile FindBlockingCover(Unit attacker, Unit target)
-    {
-        if (attacker == null || target == null) return null;
-
-        Vector2Int from = attacker.GridPosition;
-        Vector2Int to = target.GridPosition;
-        int distance = Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
-        if (distance <= 1) return null;
-
-        Vector2Int step;
-        if (from.x == to.x)
-            step = new Vector2Int(0, to.y > from.y ? 1 : -1);
-        else if (from.y == to.y)
-            step = new Vector2Int(to.x > from.x ? 1 : -1, 0);
-        else
-            return null;
-
-        Vector2Int position = from + step;
-        while (position != to)
-        {
-            Tile tile = GridManager.Instance.GetTile(position);
-            if (tile != null && tile.Terrain == TileTerrain.Cover && tile.CoverDurability > 0)
-                return tile;
-            position += step;
-        }
-
-        return null;
     }
 
     // ─────────────────── Enemy AI ───────────────────
@@ -1283,46 +1353,24 @@ public class GameManager : MonoBehaviour
         else
             yield return new WaitForSeconds(0.5f);
 
+        lastCombatMessage = "";
+
+        // 이번 턴에 이미 처치가 확정된 표적입니다. 어려움 난이도에서 표적 분산에 씁니다.
+        var doomed = new HashSet<Unit>();
+
         for (int i = enemyUnits.Count - 1; i >= 0; i--)
         {
             Unit enemy = enemyUnits[i];
             if (enemy == null || enemy.IsDead) continue;
+            if (playerUnits.Count == 0) break;
 
-            Unit nearest = FindNearestAliveUnit(enemy.GridPosition, Team.Player);
-            if (nearest == null) continue;
+            var topCandidates = new List<AICandidate>();
+            AICandidate decision = EnemyAI.Decide(
+                enemy, playerUnits, enemyUnits, enemySquad, doomed, topCandidates);
 
-            List<Vector2Int> path = Pathfinding.FindPath(
-                enemy.GridPosition, nearest.GridPosition);
+            EnemyAILog.Record(turnCount, enemy, enemySquad, topCandidates);
 
-            if (path != null && path.Count > 1)
-            {
-                int steps = Mathf.Min(path.Count - 1, enemy.MoveRange);
-                for (int s = steps - 1; s >= 0; s--)
-                {
-                    Tile t = GridManager.Instance.GetTile(path[s]);
-                    if (t != null && t.IsWalkable())
-                    {
-                        enemy.MoveTo(path[s]);
-                        break;
-                    }
-                }
-            }
-
-            Unit attackTarget = FindUnitWithinRange(
-                enemy.GridPosition,
-                Team.Player,
-                GetEffectiveAttackRange(enemy));
-            if (attackTarget != null)
-            {
-                Tile blockingCover = FindBlockingCover(enemy, attackTarget);
-                if (blockingCover != null)
-                    blockingCover.AbsorbRangedAttack();
-                else
-                    attackTarget.TakeDamage(enemy.AttackPower);
-
-                if (attackTarget.IsDead)
-                    playerUnits.Remove(attackTarget);
-            }
+            yield return ExecuteEnemyAction(enemy, decision, doomed);
 
             if (CheckBattleEnd()) yield break;
             yield return new WaitForSeconds(0.4f);
@@ -1333,24 +1381,56 @@ public class GameManager : MonoBehaviour
             turnCount++;
             currentPhase = GamePhase.PlayerTurn;
             battleState = BattleState.Idle;
+            lastCombatMessage = "";
             ResetPlayerActions();
             if (TurnBannerUI.Instance != null)
                 yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
         }
     }
 
-    private Unit FindNearestAliveUnit(Vector2Int from, Team team)
+    /// <summary>AI가 고른 행동을 실제로 수행합니다.</summary>
+    private IEnumerator ExecuteEnemyAction(
+        Unit enemy, AICandidate decision, HashSet<Unit> doomed)
     {
-        List<Unit> targets = (team == Team.Player) ? playerUnits : enemyUnits;
-        Unit nearest = null;
-        int minDist = int.MaxValue;
-        foreach (var u in targets)
+        // ── 이동 ────────────────────────────────────
+        if (decision.Destination != enemy.GridPosition)
         {
-            if (u == null || u.IsDead) continue;
-            int d = Mathf.Abs(from.x - u.GridPosition.x) + Mathf.Abs(from.y - u.GridPosition.y);
-            if (d < minDist) { minDist = d; nearest = u; }
+            Tile destinationTile = GridManager.Instance.GetTile(decision.Destination);
+            if (destinationTile != null && destinationTile.IsWalkable())
+            {
+                enemy.MoveTo(decision.Destination);
+                yield return new WaitForSeconds(0.2f);
+            }
         }
-        return nearest;
+
+        // ── 공격 ────────────────────────────────────
+        if (decision.Kind != AIActionKind.Attack) yield break;
+
+        Unit target = decision.Target;
+        if (target == null || target.IsDead) yield break;
+
+        int distance = Mathf.Abs(enemy.GridPosition.x - target.GridPosition.x) +
+                       Mathf.Abs(enemy.GridPosition.y - target.GridPosition.y);
+        if (distance > GetEffectiveAttackRange(enemy)) yield break;
+
+        // 플레이어 공격과 완전히 같은 규칙을 씁니다.
+        AttackOutcome outcome = CombatResolver.Resolve(enemy, target);
+        lastCombatMessage = CombatResolver.DescribeOutcome(outcome, enemy, target);
+
+        if (outcome.TargetDied)
+        {
+            playerUnits.Remove(target);
+            doomed.Remove(target);
+        }
+        else if (outcome.Hit && outcome.Damage >= target.HP)
+        {
+            // 다음 아군이 같은 표적에 낭비하지 않도록 표시합니다.
+            doomed.Add(target);
+        }
+
+        // 플레이어의 반격으로 적이 쓰러질 수 있습니다.
+        if (outcome.AttackerDied)
+            enemyUnits.Remove(enemy);
     }
 
     private Unit FindAdjacentUnit(Vector2Int pos, Team team)
@@ -1363,27 +1443,6 @@ public class GameManager : MonoBehaviour
             if (u != null && u.UnitTeam == team && !u.IsDead) return u;
         }
         return null;
-    }
-
-    private Unit FindUnitWithinRange(Vector2Int from, Team team, int range)
-    {
-        List<Unit> targets = team == Team.Player ? playerUnits : enemyUnits;
-        Unit nearest = null;
-        int nearestDistance = int.MaxValue;
-
-        foreach (Unit unit in targets)
-        {
-            if (unit == null || unit.IsDead) continue;
-            int distance = Mathf.Abs(from.x - unit.GridPosition.x) +
-                           Mathf.Abs(from.y - unit.GridPosition.y);
-            if (distance <= range && distance < nearestDistance)
-            {
-                nearest = unit;
-                nearestDistance = distance;
-            }
-        }
-
-        return nearest;
     }
 
     // ─────────────────── Result ───────────────────
@@ -1502,9 +1561,13 @@ public class GameManager : MonoBehaviour
                 if (selectedUnit != null)
                     header += string.Format(gameTextData.unitStatsFormat,
                         selectedUnit.HP, selectedUnit.AttackPower, selectedUnit.MoveRange);
+                if (!string.IsNullOrEmpty(lastCombatMessage))
+                    header += "\n" + lastCombatMessage;
                 return header;
             case GamePhase.EnemyTurn:
-                return gameTextData.enemyTurn;
+                return string.IsNullOrEmpty(lastCombatMessage)
+                    ? gameTextData.enemyTurn
+                    : gameTextData.enemyTurn + "\n" + lastCombatMessage;
             case GamePhase.BattleResult:
                 return resultMessage;
             default:

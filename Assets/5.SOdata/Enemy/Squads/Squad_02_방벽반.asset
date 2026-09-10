@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2fd861ed691be246af0598fbbb3f7ad, type: 3}
+  m_Name: "Squad_02_\uBC29\uBCBD\uBC18"
+  m_EditorClassIdentifier: Assembly-CSharp::EnemySquadData
+  squadId: "squad_02_\uBC29\uBCBD\uBC18"
+  squadName: "\uB2A5\uB825\uC790\uC790\uC720\uD574\uBC29\uC804\uC120 \xB7 \uBC29\uBCBD\uBC18"
+  description: "3\uCE78 \uC548\uC5D0 \uB4E4\uC5B4\uC624\uAE30 \uC804\uAE4C\uC9C0
+    \uC6C0\uC9C1\uC774\uC9C0 \uC54A\uACE0 \uACE0\uC9C0\xB7\uC5C4\uD3D0\uB97C \uC810\uC720\uD569\uB2C8\uB2E4."
+  doctrine: 1
+  difficulty: 1
+  weightProfile: {fileID: 11400000, guid: 3ffe1ca2a207f834bb3087b67ef7318e, type: 2}
+  activationRange: 3
+  retreatHpRatio: 0.4
+  coordinateTargets: 1
+  members:
+  - unit: {fileID: 11400000, guid: 19a4917993cfe5c4ca6e7c8f8b328c74, type: 2}
+    count: 1
+    preferredCells: []
+  - unit: {fileID: 11400000, guid: 7d49943a0d5700940a1335fd2f1852b9, type: 2}
+    count: 2
+    preferredCells: []
+  - unit: {fileID: 11400000, guid: e357bcd7e0b39f345848567c4139cfad, type: 2}
+    count: 1
+    preferredCells: []
+  spawnRowRange: {x: 4, y: 5}

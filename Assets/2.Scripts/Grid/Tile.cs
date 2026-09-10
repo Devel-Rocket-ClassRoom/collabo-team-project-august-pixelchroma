@@ -253,26 +253,28 @@ public class Tile : MonoBehaviour
 
     private void ApplyWireframeColor()
     {
+        Color fill = isHighlighted ? currentHighlightColor : baseFillColor;
         if (isHighlighted)
-        {
-            tileMaterial.SetColor("_BorderColor", currentHighlightColor);
-            Color fill = currentHighlightColor;
             fill.a *= 0.4f;
+
+        if (tileMaterial.HasProperty("_BorderColor"))
+            tileMaterial.SetColor("_BorderColor", isHighlighted ? currentHighlightColor : baseBorderColor);
+        if (tileMaterial.HasProperty("_FillColor"))
             tileMaterial.SetColor("_FillColor", fill);
-        }
-        else
-        {
-            tileMaterial.SetColor("_BorderColor", baseBorderColor);
-            tileMaterial.SetColor("_FillColor", baseFillColor);
-        }
+
+        ApplyMaterialColor(fill);
     }
 
     private void ApplyHologramColor()
     {
-        if (isHighlighted)
-            tileMaterial.SetColor("_RimColor", currentHighlightColor);
-        else
-            tileMaterial.SetColor("_RimColor", baseRimColor);
+        Color color = isHighlighted ? currentHighlightColor : baseRimColor;
+        if (!isHighlighted)
+            color.a = Mathf.Min(color.a, 0.35f);
+
+        if (tileMaterial.HasProperty("_RimColor"))
+            tileMaterial.SetColor("_RimColor", color);
+
+        ApplyMaterialColor(color);
     }
 
     private void ApplyDefaultColor()
@@ -282,9 +284,15 @@ public class Tile : MonoBehaviour
             : Terrain == TileTerrain.Cover
                 ? new Color(0.025f, 0.025f, 0.035f, 1f)
                 : zoneColor;
-        tileMaterial.color = isHighlighted ? currentHighlightColor : baseColor;
+        ApplyMaterialColor(isHighlighted ? currentHighlightColor : baseColor);
+    }
+
+    private void ApplyMaterialColor(Color color)
+    {
         if (tileMaterial.HasProperty("_BaseColor"))
-            tileMaterial.SetColor("_BaseColor", tileMaterial.color);
+            tileMaterial.SetColor("_BaseColor", color);
+        if (tileMaterial.HasProperty("_Color"))
+            tileMaterial.SetColor("_Color", color);
     }
 
     public void PlaceUnit(GameObject unit)

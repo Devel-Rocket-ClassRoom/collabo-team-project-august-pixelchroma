@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45399f90577d71d49adb151cd7a585d5, type: 3}
+  m_Name: e_jammer
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyUnitData
+  characterId: e_jammer
+  displayName: "\uC804\uD30C\uAD50\uB780\uAE30"
+  description: 
+  battlePrefab: {fileID: 0}
+  battleSprite: {fileID: 0}
+  maxHP: 3
+  attackPower: 1
+  moveRange: 3
+  attackRange: 3
+  skillData: {fileID: 0}
+  attackPattern: 0
+  damageType: 0
+  areaRadius: 0
+  maxTargets: 1
+  specialPower: 0
+  cooldownTurns: 0
+  ignoresCover: 0
+  canFriendlyFire: 0
+  teamColor: {r: 0.85, g: 0.25, b: 0.25, a: 1}
+  role: 4
+  attackType: 1
+  armorType: 2
+  trait: 4
+  traitValue: 1
+  traitRadius: 2
+  traitCooldown: 1
+  overrideDoctrine: 0
+  doctrineOverride: 0
+  threatModifier: 0
