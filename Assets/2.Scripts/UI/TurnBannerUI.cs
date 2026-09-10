@@ -17,6 +17,14 @@ public class TurnBannerUI : MonoBehaviour
     [Tooltip("비워두면 단색 바를 사용합니다")]
     [SerializeField] private Sprite enemyBarSprite;
 
+    [Header("Victory")]
+    [SerializeField] private Color victoryColor = new Color(1f, 0.78f, 0.08f, 1f);
+    [SerializeField] private Sprite victoryBarSprite;
+
+    [Header("Defeat")]
+    [SerializeField] private Color defeatColor = new Color(0.25f, 0.25f, 0.3f, 1f);
+    [SerializeField] private Sprite defeatBarSprite;
+
     [Header("Timing")]
     [SerializeField] private float slideInDuration = 0.8f;
     [SerializeField] private float textFadeDuration = 0.3f;
@@ -187,6 +195,26 @@ public class TurnBannerUI : MonoBehaviour
     public Coroutine ShowEnemyTurnAndWait()
     {
         return ShowAndWait("상대 턴", enemyColor, enemyBarSprite);
+    }
+
+    public void ShowVictory(string text = null)
+    {
+        Show(text ?? "승리!", victoryColor, victoryBarSprite);
+    }
+
+    public Coroutine ShowVictoryAndWait(string text = null)
+    {
+        return ShowAndWait(text ?? "승리!", victoryColor, victoryBarSprite);
+    }
+
+    public void ShowDefeat(string text = null)
+    {
+        Show(text ?? "패배...", defeatColor, defeatBarSprite);
+    }
+
+    public Coroutine ShowDefeatAndWait(string text = null)
+    {
+        return ShowAndWait(text ?? "패배...", defeatColor, defeatBarSprite);
     }
 
     private void ApplyBarStyle(Image image, Color color, Sprite sprite)

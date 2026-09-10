@@ -1743,12 +1743,16 @@ public class GameManager : MonoBehaviour
             currentPhase = GamePhase.BattleResult;
             resultMessage = gameTextData != null ? gameTextData.victory : "승리!";
             StageProgressManager.UnlockNextStage();
+            if (TurnBannerUI.Instance != null)
+                TurnBannerUI.Instance.ShowVictory(resultMessage);
             return true;
         }
         if (playerUnits.Count == 0)
         {
             currentPhase = GamePhase.BattleResult;
             resultMessage = gameTextData != null ? gameTextData.defeat : "패배...";
+            if (TurnBannerUI.Instance != null)
+                TurnBannerUI.Instance.ShowDefeat(resultMessage);
             return true;
         }
         return false;
