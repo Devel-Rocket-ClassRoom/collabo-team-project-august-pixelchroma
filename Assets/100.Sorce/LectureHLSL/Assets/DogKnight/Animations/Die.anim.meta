@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4a710e225fb3e9d4dbdba9d346b8fd38
+timeCreated: 1544605073
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 135227
+  packageName: Dog Knight PBR Polyart
+  packageVersion: 1.2
+  assetPath: Assets/DogKnight/Animations/Die.anim
+  uploadId: 347742
