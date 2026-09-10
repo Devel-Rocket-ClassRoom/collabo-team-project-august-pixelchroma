@@ -10,25 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6df9ca60755d4a9fb5f8a1e36e47e3b4, type: 3}
-  m_Name: TeslaOperator
+  m_Name: KamaeTomoka
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterId: tesla_operator
-  displayName: "\uC804\uACA9\uC220\uC0AC"
-  description: "\uC120\uD0DD\uD55C \uC801\uC5D0\uAC8C \uC804\uB958\uB97C \uD758\uB824
-    \uC8FC\uBCC0 \uC801\uC5D0\uAC8C \uAC10\uC18C\uB41C \uD53C\uD574\uB85C \uC5F0\uC1C4
-    \uC804\uC774\uC2DC\uD0B5\uB2C8\uB2E4."
+  characterId: "kamae_tomoka"
+  displayName: "카마에 토모카"
+  description: "기계 초지능을 가진 광역 반격형 전투원. 드론과 장비로 넓은 범위를 제압합니다."
   battlePrefab: {fileID: 4088776617382280470, guid: 713ac8f077662b7428d39771e8e5544f, type: 3}
   battleSprite: {fileID: 21300000, guid: b5f401d2192a460eb1ecec011bce0004, type: 3}
   maxHP: 4
   attackPower: 2
   moveRange: 3
-  attackRange: 3
-  attackPattern: 5
+  attackRange: 4
+  skillData: {fileID: 11400000, guid: 5ddab1dcc0f24fd9b26bd7fa24bfc28e, type: 2}
+  attackPattern: 2
   damageType: 1
-  areaRadius: 1
-  maxTargets: 4
+  areaRadius: 2
+  maxTargets: 8
   specialPower: 3
-  cooldownTurns: 2
+  cooldownTurns: 3
   ignoresCover: 1
   canFriendlyFire: 0
-  teamColor: {r: 0.15, g: 0.95, b: 0.9, a: 1}
+  teamColor: {r: 0.6, g: 0.47, b: 0.32, a: 1}

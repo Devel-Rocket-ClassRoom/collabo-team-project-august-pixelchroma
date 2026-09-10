@@ -10,24 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6df9ca60755d4a9fb5f8a1e36e47e3b4, type: 3}
-  m_Name: ArcMage
+  m_Name: KitanojoAtsuko
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterId: arc_mage
-  displayName: "\uBE44\uC804\uC220\uC0AC"
-  description: "\uB9C8\uBC95\uC73C\uB85C \uB2E4\uC774\uC544\uBAAC\uB4DC \uBC94\uC704\uB97C
-    \uACF5\uACA9\uD558\uBA70 \uB300\uC0C1\uC758 \uC5C4\uD3D0 \uD6A8\uACFC\uB97C \uBB34\uC2DC\uD569\uB2C8\uB2E4."
+  characterId: "kitanojo_atsuko"
+  displayName: "키타노조 아츠코"
+  description: "현장 지휘와 광역 강화를 담당하는 소대장. 오버히트로 전원 공격력과 방어력을 높입니다."
   battlePrefab: {fileID: 5086943025119269493, guid: 6ce7034f024a4b846bef205db57943bb, type: 3}
   battleSprite: {fileID: 21300000, guid: b5f401d2192a460eb1ecec011bce0003, type: 3}
-  maxHP: 3
-  attackPower: 2
-  moveRange: 2
+  maxHP: 5
+  attackPower: 1
+  moveRange: 3
   attackRange: 3
+  skillData: {fileID: 11400000, guid: 52e41721735244c9a8d6aeb7a251b414, type: 2}
   attackPattern: 2
-  damageType: 1
-  areaRadius: 2
-  maxTargets: 8
-  specialPower: 4
-  cooldownTurns: 3
+  damageType: 2
+  areaRadius: 0
+  maxTargets: 4
+  specialPower: 0
+  cooldownTurns: 4
   ignoresCover: 1
   canFriendlyFire: 0
-  teamColor: {r: 0.55, g: 0.3, b: 1, a: 1}
+  teamColor: {r: 0.55, g: 0.08, b: 0.16, a: 1}

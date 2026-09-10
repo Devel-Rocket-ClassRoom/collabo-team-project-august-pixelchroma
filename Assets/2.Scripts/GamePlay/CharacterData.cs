@@ -34,6 +34,7 @@ public class CharacterData : ScriptableObject
     [SerializeField, Min(1)] private int attackRange = 1;
 
     [Header("Special Attack")]
+    [SerializeField] private SkillData skillData;
     [SerializeField] private CharacterAttackPattern attackPattern = CharacterAttackPattern.SingleTarget;
     [SerializeField] private CharacterDamageType damageType = CharacterDamageType.Physical;
     [SerializeField, Min(0)] private int areaRadius;
@@ -44,6 +45,19 @@ public class CharacterData : ScriptableObject
     [SerializeField] private bool canFriendlyFire;
     [SerializeField] private Color teamColor = new Color(0.15f, 0.4f, 1f, 1f);
 
+    [Header("Combat")]
+    [Tooltip("기본 명중률(%)입니다. 대상의 회피를 빼서 최종 명중률을 구합니다.")]
+    [SerializeField, Range(0, 100)] private int accuracy = 90;
+
+    [Tooltip("회피율(%)입니다. 상대 명중률에서 이 값만큼 빠집니다.")]
+    [SerializeField, Range(0, 100)] private int evasion = 5;
+
+    [Tooltip("치명타 확률(%)입니다. 치명타는 피해가 1.5배가 됩니다.")]
+    [SerializeField, Range(0, 100)] private int criticalRate = 10;
+
+    [Tooltip("공격받았을 때 반격할 수 있는지 여부입니다. 사거리 안에 있어야 반격합니다.")]
+    [SerializeField] private bool canCounter = true;
+
     public string CharacterId => characterId;
     public string DisplayName => displayName;
     public string Description => description;
@@ -53,15 +67,21 @@ public class CharacterData : ScriptableObject
     public int AttackPower => attackPower;
     public int MoveRange => moveRange;
     public int AttackRange => attackRange;
-    public CharacterAttackPattern AttackPattern => attackPattern;
-    public CharacterDamageType DamageType => damageType;
-    public int AreaRadius => areaRadius;
-    public int MaxTargets => maxTargets;
-    public int SpecialPower => specialPower;
-    public int CooldownTurns => cooldownTurns;
-    public bool IgnoresCover => ignoresCover;
-    public bool CanFriendlyFire => canFriendlyFire;
+    public SkillData SkillData => skillData;
+    public CharacterAttackPattern AttackPattern => skillData != null ? skillData.AttackPattern : attackPattern;
+    public CharacterDamageType DamageType => skillData != null ? skillData.DamageType : damageType;
+    public int AreaRadius => skillData != null ? skillData.AreaRadius : areaRadius;
+    public int MaxTargets => skillData != null ? skillData.MaxTargets : maxTargets;
+    public int SpecialPower => skillData != null ? skillData.FlatPower : specialPower;
+    public int CooldownTurns => skillData != null ? skillData.CooldownTurns : cooldownTurns;
+    public bool IgnoresCover => skillData != null ? skillData.IgnoresCover : ignoresCover;
+    public bool CanFriendlyFire => skillData != null ? skillData.CanFriendlyFire : canFriendlyFire;
     public Color TeamColor => teamColor;
+
+    public int Accuracy => accuracy;
+    public int Evasion => evasion;
+    public int CriticalRate => criticalRate;
+    public bool CanCounter => canCounter;
 
     public void ConfigureRuntime(
         string id,

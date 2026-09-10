@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb9d8e1e3d7849418b246ea7f470a2b2, type: 3}
+  m_Name: SK_KinoKisae_TimeAccelerationHeal
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  skillId: "skill_kino_kisae_time_acceleration_heal"
+  displayName: "시간가속 치료"
+  description: "전방위 1칸 안의 아군 1명을 선택해 체력을 회복합니다."
+  activationCondition: 1
+  availableFromTurn: 1
+  cooldownTurns: 2
+  triggerIntervalTurns: 0
+  durationTurns: 0
+  targetType: 1
+  attackPattern: 1
+  damageType: 2
+  range: 1
+  areaRadius: 1
+  maxTargets: 1
+  powerPercent: 40
+  flatPower: 3
+  ignoresCover: 1
+  canFriendlyFire: 0
+  statModifiers: []

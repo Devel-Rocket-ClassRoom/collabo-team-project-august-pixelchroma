@@ -10,24 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6df9ca60755d4a9fb5f8a1e36e47e3b4, type: 3}
-  m_Name: FieldMedic
+  m_Name: KinoKisae
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterId: field_medic
-  displayName: "\uC57C\uC804\uC758\uBB34\uBCD1"
-  description: "\uBAA9\uD45C \uCE78\uC744 \uC911\uC2EC\uC73C\uB85C \uC2ED\uC790 \uBC94\uC704
-    \uC548\uC5D0 \uC788\uB294 \uC544\uAD70\uC758 \uCCB4\uB825\uC744 \uD68C\uBCF5\uD569\uB2C8\uB2E4."
+  characterId: "kino_kisae"
+  displayName: "키노 키사에"
+  description: "부분 시간가속으로 근거리 아군을 치료하는 의무지원 캐릭터입니다."
   battlePrefab: {fileID: 7209884822563096349, guid: f0a322197f5a833488552ecc85ed7bf7, type: 3}
   battleSprite: {fileID: 21300000, guid: b5f401d2192a460eb1ecec011bce0001, type: 3}
   maxHP: 4
   attackPower: 1
   moveRange: 4
-  attackRange: 3
+  attackRange: 1
+  skillData: {fileID: 11400000, guid: 31291101517a4051b74a5a5ce56cf098, type: 2}
   attackPattern: 1
   damageType: 2
   areaRadius: 1
-  maxTargets: 5
+  maxTargets: 1
   specialPower: 3
   cooldownTurns: 2
   ignoresCover: 1
   canFriendlyFire: 0
-  teamColor: {r: 1, g: 0.35, b: 0.7, a: 1}
+  teamColor: {r: 0.32, g: 0.34, b: 0.36, a: 1}

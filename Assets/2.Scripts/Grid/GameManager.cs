@@ -30,14 +30,24 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject enemyPrefab;
 
     [Header("2D Character Images")]
-    [Tooltip("CharacterData에 이미지가 없을 때 아군에게 사용할 기본 2D 이미지")]
+    [Tooltip("CharacterData???대?吏媛 ?놁쓣 ???꾧뎔?먭쾶 ?ъ슜??湲곕낯 2D ?대?吏")]
     [SerializeField] private Sprite defaultPlayerSprite;
-    [Tooltip("적 캐릭터에게 사용할 기본 2D 이미지. 적 프리팹의 Unit 이미지가 있으면 프리팹 이미지가 우선합니다.")]
+    [Tooltip("??罹먮┃?곗뿉寃??ъ슜??湲곕낯 2D ?대?吏. ???꾨━?뱀쓽 Unit ?대?吏媛 ?덉쑝硫??꾨━???대?吏媛 ?곗꽑?⑸땲??")]
     [SerializeField] private Sprite defaultEnemySprite;
 
     [Header("Settings")]
     [SerializeField] private int maxPlayerUnits = 4;
+    [Tooltip("Enemy Squad媛 鍮꾩뼱 ?덉쓣 ?뚮쭔 ?ъ슜?섎뒗 ???섏엯?덈떎. ?⑥껜瑜?吏?뺥븯硫??⑥껜 ?몄꽦???곗꽑?⑸땲??")]
     [SerializeField] private int maxEnemyUnits = 4;
+
+    [Header("Enemy Squad")]
+    [Tooltip("???꾪닾??諛곗튂?????⑥껜?낅땲?? 鍮꾩썙 ?먮㈃ 湲곗〈 諛⑹떇(enemyPrefab 蹂듭젣)?쇰줈 ?숈옉?⑸땲??")]
+    [SerializeField] private EnemySquadData enemySquad;
+
+    [Header("Combat Random")]
+    [Tooltip("?꾪닾 ?먯젙 ?쒖닔???쒕뱶?낅땲?? 0?대㈃ 留????ㅻⅨ ?쒕뱶瑜??곌퀬 Console??湲곕줉?⑸땲??\n" +
+             "踰꾧렇瑜??ы쁽?섎젮硫?濡쒓렇??李랁엺 ?쒕뱶瑜??ш린???낅젰?섏꽭??")]
+    [SerializeField] private uint combatSeed;
 
     [Header("Deployment Roster")]
     [Tooltip("Characters that can be selected before battle. Empty uses a prototype roster.")]
@@ -58,23 +68,23 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_FontAsset uiFont;
 
     [Header("Runtime UI Prefabs")]
-    [Tooltip("디자인팀이 직접 편집하는 캐릭터 배치 UI Prefab")]
+    [Tooltip("?붿옄?명???吏곸젒 ?몄쭛?섎뒗 罹먮┃??諛곗튂 UI Prefab")]
     [SerializeField] private DeploymentUIView deploymentUIPrefab;
-    [Tooltip("디자인팀이 직접 편집하는 공격 미리보기 UI Prefab")]
+    [Tooltip("?붿옄?명???吏곸젒 ?몄쭛?섎뒗 怨듦꺽 誘몃━蹂닿린 UI Prefab")]
     [SerializeField] private AttackPreviewUIView attackPreviewUIPrefab;
-    [Tooltip("턴 전환 배너 UI Prefab (Turnline)")]
+    [Tooltip("???꾪솚 諛곕꼫 UI Prefab (Turnline)")]
     [SerializeField] private TurnBannerUI turnBannerPrefab;
 
     [Header("Runtime UI Images")]
-    [Tooltip("공격 미리보기의 취소 버튼 이미지")]
+    [Tooltip("怨듦꺽 誘몃━蹂닿린??痍⑥냼 踰꾪듉 ?대?吏")]
     [SerializeField] private Sprite attackCancelButtonSprite;
-    [Tooltip("공격 미리보기의 공격 확정 버튼 이미지")]
+    [Tooltip("怨듦꺽 誘몃━蹂닿린??怨듦꺽 ?뺤젙 踰꾪듉 ?대?吏")]
     [SerializeField] private Sprite attackConfirmButtonSprite;
-    [Tooltip("배치 완료 후 표시되는 게임 시작 버튼 이미지")]
+    [Tooltip("諛곗튂 ?꾨즺 ???쒖떆?섎뒗 寃뚯엫 ?쒖옉 踰꾪듉 ?대?吏")]
     [SerializeField] private Sprite deploymentStartButtonSprite;
-    [Tooltip("게임 플레이의 되돌리기 버튼 이미지")]
+    [Tooltip("寃뚯엫 ?뚮젅?댁쓽 ?섎룎由ш린 踰꾪듉 ?대?吏")]
     [SerializeField] private Sprite undoButtonSprite;
-    [Tooltip("게임 플레이의 확정/대기 버튼 이미지")]
+    [Tooltip("寃뚯엫 ?뚮젅?댁쓽 ?뺤젙/?湲?踰꾪듉 ?대?吏")]
     [SerializeField] private Sprite confirmButtonSprite;
 
     [Header("Text Data")]
@@ -106,6 +116,12 @@ public class GameManager : MonoBehaviour
     private Canvas attackPreviewCanvas;
     private Button attackConfirmButton;
     private Button attackCancelButton;
+
+    /// <summary>媛??理쒓렐 怨듦꺽??寃곌낵 臾멸뎄?낅땲?? 紐낆쨷/鍮쀫굹媛?移섎챸?/諛섍꺽???뚮젮以띾땲??</summary>
+    private string lastCombatMessage = "";
+
+    /// <summary>?대쾲 ?꾪닾???쒖닔?낅땲?? ?쒕뱶瑜??ㅼ떆 ?ｌ쑝硫?媛숈? ?꾪닾媛 ?ы쁽?⑸땲??</summary>
+    private DeterministicRandom combatRandom;
 
     private Color DeployHighlight => GridManager.Instance != null
         ? GridManager.Instance.DeployHighlight
@@ -142,6 +158,7 @@ public class GameManager : MonoBehaviour
 
     private void InitGame()
     {
+        InitCombatRandom();
         SetupCamera();
         SpawnEnemies();
         HideOriginalPrefabs();
@@ -153,6 +170,21 @@ public class GameManager : MonoBehaviour
         ShowDeployZone();
         SetupUI();
         SetupDeploymentRoster();
+    }
+
+    /// <summary>
+    /// ?꾪닾 ?쒖닔瑜?珥덇린?뷀빀?덈떎. ?쒕뱶媛 0?대㈃ 留????ㅻⅤ寃?戮묐릺 諛섎뱶??濡쒓렇濡??④퉩?덈떎.
+    /// 踰꾧렇瑜??ы쁽????洹??쒕뱶瑜?Inspector???ｌ쑝硫?媛숈? ?꾪닾媛 洹몃?濡??ъ깮?⑸땲??
+    /// </summary>
+    private void InitCombatRandom()
+    {
+        combatRandom = combatSeed == 0u
+            ? DeterministicRandom.FromTime()
+            : new DeterministicRandom(combatSeed);
+
+        CombatResolver.InitRandom(combatRandom);
+        Debug.Log($"[Combat] ?꾪닾 ?쒕뱶 = {combatRandom.Seed}  " +
+                  "(?ы쁽?섎젮硫?GameManager??Combat Seed????媛믪쓣 ?낅젰?섏꽭??");
     }
 
     private void EnsureTurnBanner()
@@ -171,7 +203,7 @@ public class GameManager : MonoBehaviour
             TurnBannerUI.Instance.SetFont(uiFont);
     }
 
-    // ─────────────────── Camera ───────────────────
+    // ??????????????????? Camera ???????????????????
 
     private void SetupCamera()
     {
@@ -221,7 +253,7 @@ public class GameManager : MonoBehaviour
         ctrl.OnTap += HandleTap;
     }
 
-    // ─────────────────── Input ───────────────────
+    // ??????????????????? Input ???????????????????
 
     private void HandleTap(Vector2 screenPosition)
     {
@@ -279,7 +311,7 @@ public class GameManager : MonoBehaviour
         if (playerPrefab != null) playerPrefab.SetActive(false);
     }
 
-    // ─────────────────── Deployment ───────────────────
+    // ??????????????????? Deployment ???????????????????
 
     private void ShowDeployZone()
     {
@@ -375,7 +407,7 @@ public class GameManager : MonoBehaviour
         availableCharacters.Add(CreateRuntimeCharacter(
             "archer", "궁수", 3, 2, 2, 3, new Color(1f, 0.65f, 0.2f)));
         availableCharacters.Add(CreateRuntimeCharacter(
-            "healer", "의무병", 3, 1, 3, 1, new Color(0.95f, 0.35f, 0.75f)));
+            "healer", "힐러", 3, 1, 3, 1, new Color(0.95f, 0.35f, 0.75f)));
     }
 
     private CharacterData CreateRuntimeCharacter(
@@ -455,7 +487,7 @@ public class GameManager : MonoBehaviour
         startLabelRect.offsetMax = Vector2.zero;
 
         TextMeshProUGUI startLabel = startLabelObject.GetComponent<TextMeshProUGUI>();
-        startLabel.text = "게임 시작";
+        startLabel.text = "寃뚯엫 ?쒖옉";
         startLabel.alignment = TextAlignmentOptions.Center;
         startLabel.fontSize = 34f;
         startLabel.fontStyle = FontStyles.Bold;
@@ -574,8 +606,8 @@ public class GameManager : MonoBehaviour
         TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
         label.text =
             $"{character.DisplayName}\n" +
-            $"체력 {character.MaxHP}  공격 {character.AttackPower}\n" +
-            $"이동 {character.MoveRange}  사거리 {character.AttackRange}\n" +
+            $"泥대젰 {character.MaxHP}  怨듦꺽 {character.AttackPower}\n" +
+            $"?대룞 {character.MoveRange}  ?ш굅由?{character.AttackRange}\n" +
             GetAttackPatternLabel(character.AttackPattern);
         label.alignment = TextAlignmentOptions.Center;
         label.fontSize = 21f;
@@ -622,7 +654,7 @@ public class GameManager : MonoBehaviour
         textRect.offsetMax = new Vector2(-16f, -6f);
 
         TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
-        text.text = "배치 취소하려면 배치된 캐릭터를 눌러주세요";
+        text.text = "배치 취소는 배치된 캐릭터를 다시 누르세요.";
         text.alignment = TextAlignmentOptions.Center;
         text.fontSize = 27f;
         text.fontStyle = FontStyles.Bold;
@@ -656,7 +688,7 @@ public class GameManager : MonoBehaviour
         switch (pattern)
         {
             case CharacterAttackPattern.CrossArea: return "십자 범위";
-            case CharacterAttackPattern.DiamondArea: return "광역 폭발";
+            case CharacterAttackPattern.DiamondArea: return "광역 공격";
             case CharacterAttackPattern.PiercingLine: return "직선 관통";
             case CharacterAttackPattern.Cone: return "부채꼴 공격";
             case CharacterAttackPattern.Chain: return "연쇄 공격";
@@ -690,8 +722,8 @@ public class GameManager : MonoBehaviour
         if (deploymentInfoText != null)
         {
             deploymentInfoText.text = selectedDeployCharacter == null
-                ? $"배치할 유닛을 선택하세요  /  {deployedCount}명 배치 완료"
-                : $"{selectedDeployCharacter.DisplayName} 선택  -  파란 칸을 누르세요";
+                ? $"배치할 유닛을 선택하세요 / {deployedCount}명 배치 완료"
+                : $"{selectedDeployCharacter.DisplayName} 선택 - 배치할 타일을 누르세요";
             deploymentInfoText.color = Color.black;
         }
 
@@ -712,16 +744,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ─────────────────── Enemy Spawn ───────────────────
+    // ??????????????????? Enemy Spawn ???????????????????
 
     private void SpawnEnemies()
     {
         GridManager grid = GridManager.Instance;
-        var available = new List<Vector2Int>();
 
+        // ?⑥껜媛 吏?뺣릺???덉쑝硫??⑥껜媛 ?뺥븳 諛곗튂 援ъ뿭???곷땲??
+        Vector2Int rows = enemySquad != null
+            ? enemySquad.SpawnRowRange
+            : new Vector2Int(4, 5);
+
+        var available = new List<Vector2Int>();
         for (int x = 0; x < grid.Width; x++)
         {
-            for (int y = 4; y <= 5; y++)
+            for (int y = rows.x; y <= rows.y; y++)
             {
                 Tile tile = grid.GetTile(x, y);
                 if (tile != null && tile.State == TileState.Empty)
@@ -729,19 +766,82 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        if (enemySquad != null)
+            SpawnSquadMembers(available);
+        else
+            SpawnGenericEnemies(available);
+    }
+
+    /// <summary>?⑥껜 ?몄꽦?쒕?濡??곸쓣 ?몄썎?덈떎. ?ㅽ꺈쨌?대?吏??EnemyUnitData?먯꽌 ?듬땲??</summary>
+    private void SpawnSquadMembers(List<Vector2Int> available)
+    {
+        foreach (EnemySquadData.SquadMember member in enemySquad.Members)
+        {
+            if (member.unit == null) continue;
+
+            int count = Mathf.Max(1, member.count);
+            for (int i = 0; i < count; i++)
+            {
+                Vector2Int pos = default;
+
+                bool placed =
+                    member.preferredCells != null &&
+                    i < member.preferredCells.Length &&
+                    TryTakeCell(available, member.preferredCells[i], out pos);
+
+                if (!placed && !TryTakeRandomCell(available, out pos))
+                    return;   // 鍮?移??뚯쭊
+
+                Unit enemy = Unit.Create(
+                    Team.Enemy, pos, enemyPrefab, member.unit, defaultEnemySprite);
+                enemyUnits.Add(enemy);
+            }
+        }
+    }
+
+    /// <summary>?⑥껜媛 ?놁쓣 ?뚯쓽 湲곗〈 ?숈옉?낅땲??</summary>
+    private void SpawnGenericEnemies(List<Vector2Int> available)
+    {
         int count = Mathf.Min(maxEnemyUnits, available.Count);
         for (int i = 0; i < count; i++)
         {
-            int idx = Random.Range(0, available.Count);
-            Vector2Int pos = available[idx];
-            available.RemoveAt(idx);
+            if (!TryTakeRandomCell(available, out Vector2Int pos)) break;
 
-            Unit enemy = Unit.Create(Team.Enemy, pos, enemyPrefab, null, defaultEnemySprite);
+            Unit enemy = Unit.Create(
+                Team.Enemy, pos, enemyPrefab, null, defaultEnemySprite);
             enemyUnits.Add(enemy);
         }
     }
 
-    // ─────────────────── Battle ───────────────────
+    private static bool TryTakeCell(
+        List<Vector2Int> available, Vector2Int wanted, out Vector2Int pos)
+    {
+        int idx = available.IndexOf(wanted);
+        if (idx < 0)
+        {
+            pos = default;
+            return false;
+        }
+        pos = available[idx];
+        available.RemoveAt(idx);
+        return true;
+    }
+
+    private static bool TryTakeRandomCell(
+        List<Vector2Int> available, out Vector2Int pos)
+    {
+        if (available.Count == 0)
+        {
+            pos = default;
+            return false;
+        }
+        int idx = Random.Range(0, available.Count);
+        pos = available[idx];
+        available.RemoveAt(idx);
+        return true;
+    }
+
+    // ??????????????????? Battle ???????????????????
 
     private void StartBattle()
     {
@@ -753,7 +853,7 @@ public class GameManager : MonoBehaviour
         currentPhase = GamePhase.PlayerTurn;
         battleState = BattleState.Idle;
         turnCount = 1;
-        ResetPlayerActions();
+        BeginPlayerTurnEffects();
         if (TurnBannerUI.Instance != null)
             yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
     }
@@ -766,8 +866,22 @@ public class GameManager : MonoBehaviour
                 unit.ResetTurn();
         }
     }
+    private string BeginPlayerTurnEffects()
+    {
+        foreach (var unit in playerUnits)
+        {
+            if (unit != null && !unit.IsDead)
+                unit.BeginPlayerTurn();
+        }
 
-    // ─────────────────── Player Turn ───────────────────
+        RefreshPlayerPassives();
+        string message = AutoActivateStartTurnSkills();
+        RefreshPlayerPassives();
+        message = JoinMessages(message, ApplyKisaePassiveHealing());
+        return message;
+    }
+
+    // ??????????????????? Player Turn ???????????????????
 
     private void HandleBattleClick(Tile tile, Unit clickedUnit)
     {
@@ -823,6 +937,7 @@ public class GameManager : MonoBehaviour
     private void SelectUnit(Unit unit)
     {
         DeselectUnit();
+        RefreshPlayerPassives();
         selectedUnit = unit;
         selectedUnit.SetSelected(true);
         battleState = BattleState.UnitSelected;
@@ -854,6 +969,7 @@ public class GameManager : MonoBehaviour
         ClearAllMarkers();
         undoPosition = selectedUnit.GridPosition;
         selectedUnit.MoveTo(targetPos);
+        RefreshPlayerPassives();
         battleState = BattleState.UnitMoved;
         ShowAttackRangeAfterMove();
     }
@@ -890,19 +1006,27 @@ public class GameManager : MonoBehaviour
 
     private void AttackTarget(Unit target)
     {
-        Tile blockingCover = FindBlockingCover(selectedUnit, target);
         ClearAllMarkers();
 
-        if (blockingCover != null && blockingCover.AbsorbRangedAttack())
+        Unit attacker = selectedUnit;
+        if (TryUseOffensiveSkill(attacker, target, out string skillMessage))
         {
+            lastCombatMessage = skillMessage;
             FinishUnitAction();
             return;
         }
 
-        target.TakeDamage(selectedUnit.AttackPower);
+        AttackOutcome outcome = CombatResolver.Resolve(attacker, target);
+        lastCombatMessage = CombatResolver.DescribeOutcome(outcome, attacker, target);
 
-        if (target.IsDead)
+        if (outcome.TargetDied)
             enemyUnits.Remove(target);
+
+        if (outcome.AttackerDied)
+        {
+            playerUnits.Remove(attacker);
+            if (selectedUnit == attacker) selectedUnit = null;
+        }
 
         FinishUnitAction();
     }
@@ -920,22 +1044,22 @@ public class GameManager : MonoBehaviour
         if (attackPreviewPanel == null || attackPreviewText == null) return;
 
         attackPreviewTarget = target;
-        Tile blockingCover = FindBlockingCover(selectedUnit, target);
-        int predictedDamage = blockingCover == null
-            ? Mathf.Min(selectedUnit.AttackPower, target.HP)
-            : 0;
-        int remainingHP = Mathf.Max(0, target.HP - selectedUnit.AttackPower);
-        if (blockingCover != null) remainingHP = target.HP;
 
-        string terrainNotice = blockingCover != null
-            ? "\n엄폐물이 원거리 공격을 1회 차단합니다"
+        // ?ㅼ젣 ?먯젙怨??꾩쟾???숈씪??怨꾩궛?낅땲?? ?덉륫怨?寃곌낵媛 媛덈씪吏????놁뒿?덈떎.
+        AttackForecast forecast = selectedUnit.IsSkillReady(turnCount) &&
+            IsOffensiveSkill(selectedUnit.SkillData)
+            ? CombatResolver.ForecastSkill(selectedUnit, target, selectedUnit.SkillData)
+            : CombatResolver.Forecast(selectedUnit, target);
+
+        string terrainNotice = forecast.CoverBlocks
+            ? "\n엄폐물이 원거리 공격을 1회 차단합니다."
             : IsOnHighGround(selectedUnit)
-                ? "\n고지대 효과: 공격 사거리 +1"
+                ? $"\n고지대: 사거리 +1, 명중 +{CombatResolver.HighGroundAccuracyBonus}%"
                 : "";
+
         attackPreviewText.text =
-            $"예상 피해 {predictedDamage}    체력 {target.HP} > {remainingHP}\n" +
-            $"이동 {selectedUnit.MoveRange}    사거리 {GetEffectiveAttackRange(selectedUnit)}" +
-            terrainNotice;
+            CombatResolver.DescribeForecast(forecast, target) + terrainNotice;
+
         attackPreviewPanel.gameObject.SetActive(true);
         UpdateAttackPreviewPosition();
     }
@@ -1011,7 +1135,7 @@ public class GameManager : MonoBehaviour
         attackCancelButton = CreateAttackPreviewButton(
             panelObject.transform,
             "CancelButton",
-            "취소",
+            "痍⑥냼",
             new Vector2(0.035f, 0.045f),
             new Vector2(0.485f, 0.39f),
             new Color(0.24f, 0.27f, 0.32f, 1f),
@@ -1021,7 +1145,7 @@ public class GameManager : MonoBehaviour
         attackConfirmButton = CreateAttackPreviewButton(
             panelObject.transform,
             "AttackButton",
-            "공격",
+            "怨듦꺽",
             new Vector2(0.515f, 0.045f),
             new Vector2(0.965f, 0.39f),
             new Color(0.85f, 0.16f, 0.08f, 1f),
@@ -1232,10 +1356,10 @@ public class GameManager : MonoBehaviour
         return null;
     }
 
+    // ?꾪닾 洹쒖튃? CombatResolver ??怨녹뿉留??〓땲?? ?ш린?쒕뒗 ?꾩엫留??⑸땲??
+
     private int GetEffectiveAttackRange(Unit unit)
-    {
-        return unit.AttackRange + (IsOnHighGround(unit) ? 1 : 0);
-    }
+        => CombatResolver.GetEffectiveRange(unit);
 
     private bool IsOnHighGround(Unit unit)
     {
@@ -1244,36 +1368,7 @@ public class GameManager : MonoBehaviour
         return tile != null && tile.Terrain == TileTerrain.HighGround;
     }
 
-    private Tile FindBlockingCover(Unit attacker, Unit target)
-    {
-        if (attacker == null || target == null) return null;
-
-        Vector2Int from = attacker.GridPosition;
-        Vector2Int to = target.GridPosition;
-        int distance = Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
-        if (distance <= 1) return null;
-
-        Vector2Int step;
-        if (from.x == to.x)
-            step = new Vector2Int(0, to.y > from.y ? 1 : -1);
-        else if (from.y == to.y)
-            step = new Vector2Int(to.x > from.x ? 1 : -1, 0);
-        else
-            return null;
-
-        Vector2Int position = from + step;
-        while (position != to)
-        {
-            Tile tile = GridManager.Instance.GetTile(position);
-            if (tile != null && tile.Terrain == TileTerrain.Cover && tile.CoverDurability > 0)
-                return tile;
-            position += step;
-        }
-
-        return null;
-    }
-
-    // ─────────────────── Enemy AI ───────────────────
+    // ??????????????????? Enemy AI ???????????????????
 
     private IEnumerator ProcessEnemyTurn()
     {
@@ -1283,46 +1378,24 @@ public class GameManager : MonoBehaviour
         else
             yield return new WaitForSeconds(0.5f);
 
+        lastCombatMessage = "";
+
+        // ?대쾲 ?댁뿉 ?대? 泥섏튂媛 ?뺤젙???쒖쟻?낅땲?? ?대젮? ?쒖씠?꾩뿉???쒖쟻 遺꾩궛???곷땲??
+        var doomed = new HashSet<Unit>();
+
         for (int i = enemyUnits.Count - 1; i >= 0; i--)
         {
             Unit enemy = enemyUnits[i];
             if (enemy == null || enemy.IsDead) continue;
+            if (playerUnits.Count == 0) break;
 
-            Unit nearest = FindNearestAliveUnit(enemy.GridPosition, Team.Player);
-            if (nearest == null) continue;
+            var topCandidates = new List<AICandidate>();
+            AICandidate decision = EnemyAI.Decide(
+                enemy, playerUnits, enemyUnits, enemySquad, doomed, topCandidates);
 
-            List<Vector2Int> path = Pathfinding.FindPath(
-                enemy.GridPosition, nearest.GridPosition);
+            EnemyAILog.Record(turnCount, enemy, enemySquad, topCandidates);
 
-            if (path != null && path.Count > 1)
-            {
-                int steps = Mathf.Min(path.Count - 1, enemy.MoveRange);
-                for (int s = steps - 1; s >= 0; s--)
-                {
-                    Tile t = GridManager.Instance.GetTile(path[s]);
-                    if (t != null && t.IsWalkable())
-                    {
-                        enemy.MoveTo(path[s]);
-                        break;
-                    }
-                }
-            }
-
-            Unit attackTarget = FindUnitWithinRange(
-                enemy.GridPosition,
-                Team.Player,
-                GetEffectiveAttackRange(enemy));
-            if (attackTarget != null)
-            {
-                Tile blockingCover = FindBlockingCover(enemy, attackTarget);
-                if (blockingCover != null)
-                    blockingCover.AbsorbRangedAttack();
-                else
-                    attackTarget.TakeDamage(enemy.AttackPower);
-
-                if (attackTarget.IsDead)
-                    playerUnits.Remove(attackTarget);
-            }
+            yield return ExecuteEnemyAction(enemy, decision, doomed);
 
             if (CheckBattleEnd()) yield break;
             yield return new WaitForSeconds(0.4f);
@@ -1333,26 +1406,305 @@ public class GameManager : MonoBehaviour
             turnCount++;
             currentPhase = GamePhase.PlayerTurn;
             battleState = BattleState.Idle;
-            ResetPlayerActions();
+            lastCombatMessage = BeginPlayerTurnEffects();
             if (TurnBannerUI.Instance != null)
                 yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
         }
     }
 
-    private Unit FindNearestAliveUnit(Vector2Int from, Team team)
+    /// <summary>AI媛 怨좊Ⅸ ?됰룞???ㅼ젣濡??섑뻾?⑸땲??</summary>
+    private IEnumerator ExecuteEnemyAction(
+        Unit enemy, AICandidate decision, HashSet<Unit> doomed)
     {
-        List<Unit> targets = (team == Team.Player) ? playerUnits : enemyUnits;
-        Unit nearest = null;
-        int minDist = int.MaxValue;
-        foreach (var u in targets)
+        if (decision.Destination != enemy.GridPosition)
         {
-            if (u == null || u.IsDead) continue;
-            int d = Mathf.Abs(from.x - u.GridPosition.x) + Mathf.Abs(from.y - u.GridPosition.y);
-            if (d < minDist) { minDist = d; nearest = u; }
+            Tile destinationTile = GridManager.Instance.GetTile(decision.Destination);
+            if (destinationTile != null && destinationTile.IsWalkable())
+            {
+                enemy.MoveTo(decision.Destination);
+                yield return new WaitForSeconds(0.2f);
+            }
         }
-        return nearest;
+
+        if (decision.Kind != AIActionKind.Attack) yield break;
+
+        Unit originalTarget = decision.Target;
+        Unit target = ResolveGuardTarget(enemy, originalTarget);
+        if (target == null || target.IsDead) yield break;
+
+        int distance = Mathf.Abs(enemy.GridPosition.x - target.GridPosition.x) +
+                       Mathf.Abs(enemy.GridPosition.y - target.GridPosition.y);
+        if (distance > GetEffectiveAttackRange(enemy)) yield break;
+
+        AttackOutcome outcome = CombatResolver.Resolve(enemy, target);
+        string guardMessage = target != originalTarget
+            ? $"{target.CharacterData.DisplayName} - 캐치암"
+            : "";
+        lastCombatMessage = JoinMessages(
+            guardMessage,
+            CombatResolver.DescribeOutcome(outcome, enemy, target));
+
+        if (outcome.TargetDied)
+        {
+            playerUnits.Remove(target);
+            doomed.Remove(target);
+        }
+        else if (outcome.Hit && outcome.Damage >= target.HP)
+        {
+            doomed.Add(target);
+        }
+
+        if (outcome.AttackerDied)
+            enemyUnits.Remove(enemy);
     }
 
+    private bool TryUseOffensiveSkill(Unit attacker, Unit target, out string message)
+    {
+        message = "";
+        if (attacker == null || target == null || !attacker.IsSkillReady(turnCount))
+            return false;
+
+        SkillData skill = attacker.SkillData;
+        if (!IsOffensiveSkill(skill))
+            return false;
+
+        if (attacker.IsCharacter("kamae_tomoka"))
+        {
+            message = UseTomokaCombatMode(attacker, target, skill);
+            return true;
+        }
+
+        AttackOutcome outcome = CombatResolver.ResolveSkill(
+            attacker, target, skill, 1f, true);
+        attacker.SpendSkill();
+        message = $"{attacker.CharacterData.DisplayName} - {skill.DisplayName}\n" +
+                  CombatResolver.DescribeOutcome(outcome, attacker, target);
+
+        if (outcome.TargetDied)
+            enemyUnits.Remove(target);
+        if (outcome.AttackerDied)
+        {
+            playerUnits.Remove(attacker);
+            if (selectedUnit == attacker) selectedUnit = null;
+        }
+        return true;
+    }
+
+    private string UseTomokaCombatMode(Unit attacker, Unit target, SkillData skill)
+    {
+        List<Unit> targets = new List<Unit>();
+        foreach (Unit enemy in enemyUnits)
+        {
+            if (enemy == null || enemy.IsDead) continue;
+            int distance = Manhattan(enemy.GridPosition, target.GridPosition);
+            if (distance <= Mathf.Max(1, skill.AreaRadius))
+                targets.Add(enemy);
+        }
+
+        targets.Sort((a, b) =>
+        {
+            if (a == target) return -1;
+            if (b == target) return 1;
+            return Manhattan(a.GridPosition, target.GridPosition)
+                .CompareTo(Manhattan(b.GridPosition, target.GridPosition));
+        });
+
+        int limit = Mathf.Min(targets.Count, Mathf.Max(1, skill.MaxTargets));
+        int defeated = 0;
+        int totalDamage = 0;
+        for (int i = 0; i < limit; i++)
+        {
+            Unit hit = targets[i];
+            float scale = hit == target ? 1f : 0.7f;
+            AttackOutcome outcome = CombatResolver.ResolveSkill(
+                attacker, hit, skill, scale, false);
+            totalDamage += outcome.Damage;
+            if (outcome.TargetDied)
+            {
+                defeated++;
+                enemyUnits.Remove(hit);
+            }
+        }
+
+        attacker.SpendSkill();
+        return $"{attacker.CharacterData.DisplayName} - {skill.DisplayName}\n" +
+               $"{limit}명 공격 / 총 {totalDamage} 피해 / {defeated}명 격파";
+    }
+
+    private static bool IsOffensiveSkill(SkillData skill)
+        => skill != null && skill.TargetType == SkillTargetType.Enemy;
+
+    private string AutoActivateStartTurnSkills()
+    {
+        string message = "";
+        foreach (Unit unit in new List<Unit>(playerUnits))
+        {
+            if (unit == null || unit.IsDead || !unit.IsSkillReady(turnCount))
+                continue;
+
+            SkillData skill = unit.SkillData;
+            if (skill == null || IsOffensiveSkill(skill))
+                continue;
+
+            if (unit.IsCharacter("tokikawa_hina"))
+            {
+                int defense = GetSkillPercent(skill, SkillStatType.Defense);
+                unit.ActivateGuard(Mathf.Max(1, skill.DurationTurns), defense);
+                unit.SpendSkill();
+                message = JoinMessages(message,
+                    $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 발동");
+            }
+            else if (unit.IsCharacter("kitanojo_atsuko"))
+            {
+                int attack = GetSkillPercent(skill, SkillStatType.AttackPower);
+                int defense = GetSkillPercent(skill, SkillStatType.Defense);
+                foreach (Unit ally in playerUnits)
+                {
+                    if (ally != null && !ally.IsDead)
+                        ally.GrantSkillBuff(attack, defense,
+                            Mathf.Max(1, skill.DurationTurns));
+                }
+                unit.SpendSkill();
+                message = JoinMessages(message,
+                    $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 아군 강화");
+            }
+            else if (unit.IsCharacter("kino_kisae"))
+            {
+                Unit healTarget = FindDamagedAdjacentAlly(unit, skill.Range);
+                if (healTarget == null)
+                    continue;
+
+                int healed = healTarget.HealPercent(skill.PowerPercent);
+                if (healed <= 0)
+                    continue;
+
+                unit.SpendSkill();
+                message = JoinMessages(message,
+                    $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: {healTarget.CharacterData.DisplayName} {healed} 회복");
+            }
+        }
+        return message;
+    }
+
+    private string ApplyKisaePassiveHealing()
+    {
+        string message = "";
+        foreach (Unit healer in playerUnits)
+        {
+            if (healer == null || healer.IsDead ||
+                !healer.IsCharacter("kino_kisae"))
+                continue;
+
+            foreach (Unit ally in playerUnits)
+            {
+                if (ally == null || ally == healer || ally.IsDead)
+                    continue;
+                if (Chebyshev(healer.GridPosition, ally.GridPosition) > 1)
+                    continue;
+
+                int healed = ally.HealPercent(1f);
+                if (healed > 0)
+                    message = JoinMessages(message,
+                        $"키사에 패시브: {ally.CharacterData.DisplayName} {healed} 회복");
+            }
+        }
+        return message;
+    }
+
+    private void RefreshPlayerPassives()
+    {
+        foreach (Unit unit in playerUnits)
+        {
+            if (unit != null && !unit.IsDead)
+                unit.ClearAuraBonuses();
+        }
+
+        foreach (Unit commander in playerUnits)
+        {
+            if (commander == null || commander.IsDead ||
+                !commander.IsCharacter("kitanojo_atsuko"))
+                continue;
+
+            foreach (Unit ally in playerUnits)
+            {
+                if (ally == null || ally == commander || ally.IsDead)
+                    continue;
+                if (Chebyshev(commander.GridPosition, ally.GridPosition) <= 1)
+                    ally.AddAuraBonus(10, 10);
+            }
+        }
+    }
+
+    private Unit ResolveGuardTarget(Unit attacker, Unit originalTarget)
+    {
+        if (attacker == null || originalTarget == null ||
+            originalTarget.UnitTeam != Team.Player)
+            return originalTarget;
+
+        Unit guard = null;
+        foreach (Unit ally in playerUnits)
+        {
+            if (ally == null || ally == originalTarget || ally.IsDead ||
+                !ally.HasActiveGuard)
+                continue;
+            if (Chebyshev(ally.GridPosition, originalTarget.GridPosition) > 1)
+                continue;
+            if (Manhattan(attacker.GridPosition, ally.GridPosition) >
+                GetEffectiveAttackRange(attacker))
+                continue;
+            guard = ally;
+            break;
+        }
+
+        return guard != null ? guard : originalTarget;
+    }
+
+    private Unit FindDamagedAdjacentAlly(Unit healer, int range)
+    {
+        Unit best = null;
+        int bestMissingHp = 0;
+        int radius = Mathf.Max(1, range);
+        foreach (Unit ally in playerUnits)
+        {
+            if (ally == null || ally.IsDead || ally.HP >= ally.MaxHP)
+                continue;
+            if (Chebyshev(healer.GridPosition, ally.GridPosition) > radius)
+                continue;
+
+            int missing = ally.MaxHP - ally.HP;
+            if (missing > bestMissingHp)
+            {
+                best = ally;
+                bestMissingHp = missing;
+            }
+        }
+        return best;
+    }
+
+    private static int GetSkillPercent(SkillData skill, SkillStatType statType)
+    {
+        if (skill == null) return 0;
+        int total = 0;
+        foreach (SkillStatModifier modifier in skill.StatModifiers)
+        {
+            if (modifier.StatType == statType)
+                total += Mathf.RoundToInt(modifier.PercentAmount);
+        }
+        return total;
+    }
+
+    private static string JoinMessages(string first, string second)
+    {
+        if (string.IsNullOrEmpty(first)) return second ?? "";
+        if (string.IsNullOrEmpty(second)) return first;
+        return first + "\n" + second;
+    }
+
+    private static int Manhattan(Vector2Int a, Vector2Int b)
+        => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+
+    private static int Chebyshev(Vector2Int a, Vector2Int b)
+        => Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
     private Unit FindAdjacentUnit(Vector2Int pos, Team team)
     {
         Tile[] neighbors = GridManager.Instance.GetNeighbors(pos);
@@ -1365,28 +1717,7 @@ public class GameManager : MonoBehaviour
         return null;
     }
 
-    private Unit FindUnitWithinRange(Vector2Int from, Team team, int range)
-    {
-        List<Unit> targets = team == Team.Player ? playerUnits : enemyUnits;
-        Unit nearest = null;
-        int nearestDistance = int.MaxValue;
-
-        foreach (Unit unit in targets)
-        {
-            if (unit == null || unit.IsDead) continue;
-            int distance = Mathf.Abs(from.x - unit.GridPosition.x) +
-                           Mathf.Abs(from.y - unit.GridPosition.y);
-            if (distance <= range && distance < nearestDistance)
-            {
-                nearest = unit;
-                nearestDistance = distance;
-            }
-        }
-
-        return nearest;
-    }
-
-    // ─────────────────── Result ───────────────────
+    // ??????????????????? Result ???????????????????
 
     private bool CheckBattleEnd()
     {
@@ -1396,20 +1727,20 @@ public class GameManager : MonoBehaviour
         if (enemyUnits.Count == 0)
         {
             currentPhase = GamePhase.BattleResult;
-            resultMessage = gameTextData != null ? gameTextData.victory : "VICTORY!";
+            resultMessage = gameTextData != null ? gameTextData.victory : "승리!";
             StageProgressManager.UnlockNextStage();
             return true;
         }
         if (playerUnits.Count == 0)
         {
             currentPhase = GamePhase.BattleResult;
-            resultMessage = gameTextData != null ? gameTextData.defeat : "DEFEAT...";
+            resultMessage = gameTextData != null ? gameTextData.defeat : "패배...";
             return true;
         }
         return false;
     }
 
-    // ─────────────────── Helpers ───────────────────
+    // ??????????????????? Helpers ???????????????????
 
     private void ClearAllMarkers()
     {
@@ -1423,7 +1754,7 @@ public class GameManager : MonoBehaviour
         attackTiles.Clear();
     }
 
-    // ─────────────────── UI ───────────────────
+    // ??????????????????? UI ???????????????????
 
     private void SetupUI()
     {
@@ -1502,9 +1833,13 @@ public class GameManager : MonoBehaviour
                 if (selectedUnit != null)
                     header += string.Format(gameTextData.unitStatsFormat,
                         selectedUnit.HP, selectedUnit.AttackPower, selectedUnit.MoveRange);
+                if (!string.IsNullOrEmpty(lastCombatMessage))
+                    header += "\n" + lastCombatMessage;
                 return header;
             case GamePhase.EnemyTurn:
-                return gameTextData.enemyTurn;
+                return string.IsNullOrEmpty(lastCombatMessage)
+                    ? gameTextData.enemyTurn
+                    : gameTextData.enemyTurn + "\n" + lastCombatMessage;
             case GamePhase.BattleResult:
                 return resultMessage;
             default:

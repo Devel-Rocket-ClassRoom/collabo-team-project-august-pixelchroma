@@ -32,6 +32,10 @@ public class GridManager : MonoBehaviour
     [SerializeField, Range(0.7f, 0.98f)] private float tileScale = 0.88f;
     [SerializeField, Range(0.02f, 0.15f)] private float tileThickness = 0.06f;
     [SerializeField] private Color gridBaseColor = new Color(0.1f, 0.1f, 0.13f, 0.1f);
+    [SerializeField] private Material gridOpaqueMaterialTemplate;
+    [SerializeField] private Material gridTransparentMaterialTemplate;
+    [SerializeField] private Material gridWireframeMaterialTemplate;
+    [SerializeField] private Material gridHologramMaterialTemplate;
 
     [Header("Wireframe (Neutral Zone)")]
     [SerializeField] private Color wireframeBorderColor = new Color(0.4f, 0.6f, 0.8f, 0.6f);
@@ -121,27 +125,14 @@ public class GridManager : MonoBehaviour
 
     private void CreateZoneMaterials()
     {
-        Shader wireShader = Shader.Find("Custom/GridWireframe");
-        Shader holoShader = Shader.Find("Custom/Hologram");
+        wireframeMat = CreateGridEffectMaterial(gridWireframeMaterialTemplate, gridTransparentMaterialTemplate);
+        ApplyWireframeProperties(wireframeMat, wireframeBorderColor, wireframeFillColor);
 
-        if (wireShader != null)
-        {
-            wireframeMat = new Material(wireShader);
-            wireframeMat.SetColor("_BorderColor", wireframeBorderColor);
-            wireframeMat.SetFloat("_BorderWidth", wireframeBorderWidth);
-            wireframeMat.SetColor("_FillColor", wireframeFillColor);
+        enemyWireframeMat = CreateGridEffectMaterial(gridWireframeMaterialTemplate, gridTransparentMaterialTemplate);
+        ApplyWireframeProperties(enemyWireframeMat, enemyBorderColor, enemyFillColor);
 
-            enemyWireframeMat = new Material(wireShader);
-            enemyWireframeMat.SetColor("_BorderColor", enemyBorderColor);
-            enemyWireframeMat.SetFloat("_BorderWidth", wireframeBorderWidth);
-            enemyWireframeMat.SetColor("_FillColor", enemyFillColor);
-        }
-
-        if (holoShader != null)
-        {
-            hologramMat = new Material(holoShader);
-            hologramMat.SetColor("_RimColor", hologramColor);
-        }
+        hologramMat = CreateGridEffectMaterial(gridHologramMaterialTemplate, gridTransparentMaterialTemplate);
+        ApplyHologramProperties(hologramMat, hologramColor);
     }
 
     private void ApplyZoneMaterial(Tile tile)
@@ -168,45 +159,124 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    private static Material CreateURPMaterial(Color color, float smoothness = 0.35f)
+    private Material CreateURPMaterial(Color color, float smoothness = 0.35f)
     {
-        Renderer probe = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<Renderer>();
-        Material mat = new Material(probe.sharedMaterial);
-        DestroyImmediate(probe.gameObject);
+        Material mat = CreateGridMaterial(gridOpaqueMaterialTemplate, false);
+        ApplyStandardMaterialProperties(mat, color, false, smoothness);
+        return mat;
+    }
 
-        mat.color = color;
+    private Material CreateTransparentMaterial(Color color)
+    {
+        Material mat = CreateGridMaterial(gridTransparentMaterialTemplate, true);
+        ApplyStandardMaterialProperties(mat, color, true, 0f);
+        return mat;
+    }
+
+    private static Material CreateGridMaterial(Material template, bool transparent)
+    {
+        if (template != null && template.shader != null && template.shader.isSupported)
+            return new Material(template);
+
+        Shader shader = ResolveGridShader(transparent);
+        return shader != null ? new Material(shader) : null;
+    }
+
+    private static Material CreateGridEffectMaterial(Material effectTemplate, Material fallbackTemplate)
+    {
+        if (effectTemplate != null && effectTemplate.shader != null && effectTemplate.shader.isSupported)
+            return new Material(effectTemplate);
+
+        return CreateGridMaterial(fallbackTemplate, true);
+    }
+
+    private static void ApplyWireframeProperties(Material mat, Color borderColor, Color fillColor)
+    {
+        if (mat == null)
+            return;
+
+        if (mat.HasProperty("_BorderColor"))
+            mat.SetColor("_BorderColor", borderColor);
+        if (mat.HasProperty("_BorderWidth"))
+            mat.SetFloat("_BorderWidth", 0.05f);
+        if (mat.HasProperty("_FillColor"))
+            mat.SetColor("_FillColor", fillColor);
+
+        ApplyStandardMaterialProperties(mat, fillColor, true, 0f);
+    }
+
+    private static void ApplyHologramProperties(Material mat, Color color)
+    {
+        if (mat == null)
+            return;
+
+        if (mat.HasProperty("_RimColor"))
+            mat.SetColor("_RimColor", color);
+
+        Color fallbackColor = color;
+        fallbackColor.a = Mathf.Min(fallbackColor.a, 0.35f);
+        ApplyStandardMaterialProperties(mat, fallbackColor, true, 0f);
+    }
+
+    private static Shader ResolveGridShader(bool transparent)
+    {
+        Shader shader = Shader.Find(transparent
+            ? "Universal Render Pipeline/Unlit"
+            : "Universal Render Pipeline/Lit");
+        if (shader == null)
+            shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null)
+            shader = Shader.Find("Universal Render Pipeline/Simple Lit");
+        if (shader == null)
+            shader = Shader.Find("Sprites/Default");
+        if (shader == null)
+            shader = Shader.Find("Standard");
+        return shader;
+    }
+
+    private static void ApplyStandardMaterialProperties(Material mat, Color color, bool transparent, float smoothness)
+    {
+        if (mat == null)
+            return;
+
         if (mat.HasProperty("_BaseColor"))
             mat.SetColor("_BaseColor", color);
+        if (mat.HasProperty("_Color"))
+            mat.SetColor("_Color", color);
+        if (mat.HasProperty("_BaseMap"))
+            mat.SetTexture("_BaseMap", null);
+        if (mat.HasProperty("_MainTex"))
+            mat.SetTexture("_MainTex", null);
         if (mat.HasProperty("_Metallic"))
             mat.SetFloat("_Metallic", 0f);
         if (mat.HasProperty("_Smoothness"))
             mat.SetFloat("_Smoothness", smoothness);
-        return mat;
-    }
 
-    private static Material CreateTransparentMaterial(Color color)
-    {
-        Renderer probe = GameObject.CreatePrimitive(PrimitiveType.Quad).GetComponent<Renderer>();
-        Material mat = new Material(probe.sharedMaterial);
-        DestroyImmediate(probe.gameObject);
-
-        mat.SetColor("_BaseColor", color);
-        mat.color = color;
-        if (mat.HasProperty("_Metallic"))
-            mat.SetFloat("_Metallic", 0f);
-        if (mat.HasProperty("_Smoothness"))
-            mat.SetFloat("_Smoothness", 0f);
+        if (!transparent)
+        {
+            mat.SetOverrideTag("RenderType", "Opaque");
+            mat.renderQueue = -1;
+            return;
+        }
 
         if (mat.HasProperty("_Surface"))
-        {
             mat.SetFloat("_Surface", 1f);
+        if (mat.HasProperty("_Blend"))
+            mat.SetFloat("_Blend", 0f);
+        if (mat.HasProperty("_AlphaClip"))
+            mat.SetFloat("_AlphaClip", 0f);
+        if (mat.HasProperty("_SrcBlend"))
             mat.SetFloat("_SrcBlend", 5f);
+        if (mat.HasProperty("_DstBlend"))
             mat.SetFloat("_DstBlend", 10f);
+        if (mat.HasProperty("_ZWrite"))
             mat.SetFloat("_ZWrite", 0f);
-            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            mat.renderQueue = 3000;
-        }
-        return mat;
+
+        mat.SetOverrideTag("RenderType", "Transparent");
+        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        mat.DisableKeyword("_ALPHATEST_ON");
+        mat.SetShaderPassEnabled("ShadowCaster", false);
+        mat.renderQueue = 3000;
     }
 
     private GameObject CreateArknightsTile()
@@ -239,19 +309,9 @@ public class GridManager : MonoBehaviour
         gridBase.transform.localPosition = new Vector3(0f, -(tileThickness + baseThickness) * 0.5f, 0f);
 
         Renderer rend = gridBase.GetComponent<Renderer>();
-        Shader wireShader = Shader.Find("Custom/GridWireframe");
-        if (wireShader != null)
-        {
-            Material mat = new Material(wireShader);
-            mat.SetColor("_BorderColor", gridBaseColor);
-            mat.SetFloat("_BorderWidth", 0f);
-            mat.SetColor("_FillColor", gridBaseColor);
-            rend.material = mat;
-        }
-        else
-        {
-            rend.material = CreateTransparentMaterial(gridBaseColor);
-        }
+        Material baseMaterial = CreateGridEffectMaterial(gridWireframeMaterialTemplate, gridTransparentMaterialTemplate);
+        ApplyWireframeProperties(baseMaterial, gridBaseColor, gridBaseColor);
+        rend.material = baseMaterial;
 
         Destroy(gridBase.GetComponent<Collider>());
     }
@@ -399,3 +459,6 @@ public class GridManager : MonoBehaviour
         }
     }
 }
+
+
+

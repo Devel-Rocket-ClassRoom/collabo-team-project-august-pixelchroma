@@ -16,7 +16,6 @@ Material:
   - _EMISSION
   m_InvalidKeywords:
   - _SCREENSPACEWIDTH_ON
-  - _USEMIDTONE_ON
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0

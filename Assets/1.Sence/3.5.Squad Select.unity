@@ -45,7 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SquadSelectionController
   roster:
-  - {fileID: 11400000, guid: 5b45e92d0b074eae8765e06a81f93b01, type: 2}
   - {fileID: 11400000, guid: 11f745b83f3a4eb29a7249d72077b902, type: 2}
   - {fileID: 11400000, guid: 249edbbf72574376a325e7f45ed2ad03, type: 2}
   - {fileID: 11400000, guid: 0853689919ad4b92a684cba787899304, type: 2}
@@ -61,3 +60,4 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1001}
+
