@@ -31,6 +31,7 @@ public class SquadSelectionController : MonoBehaviour
     private TMP_Text powerText;
     private Button startButton;
     private Rect lastSafeArea;
+    private bool usingPrefabUI;
 
     private static readonly Color Background = new Color(0.035f, 0.047f, 0.07f, 1f);
     private static readonly Color Panel = new Color(0.075f, 0.094f, 0.13f, 0.98f);
@@ -91,6 +92,7 @@ public class SquadSelectionController : MonoBehaviour
 
     private void BuildScreenFromPrefab()
     {
+        usingPrefabUI = true;
         SquadFormationUIView view = Instantiate(squadUIPrefab);
         view.name = "SquadFormationUI";
         safeAreaRoot = view.SafeAreaRoot;
@@ -304,13 +306,18 @@ public class SquadSelectionController : MonoBehaviour
                 : new Color(0.8f, 0.8f, 0.8f, 1f);
         }
 
-        for (int i = 0; i < roster.Count; i++)
+        for (int i = 0; i < rosterButtons.Count; i++)
         {
-            bool deployed = selected.Contains(roster[i]);
+            CharacterData character = roster[i];
+            bool deployed = selected.Contains(character);
             rosterStatusTexts[i].text = deployed ? "편성 완료" : "";
+
+            if (usingPrefabUI)
+                continue;
+
             rosterButtons[i].GetComponent<Image>().color = deployed
-                ? Color.Lerp(roster[i].TeamColor, Color.black, 0.58f)
-                : roster[i].TeamColor;
+                ? Color.Lerp(character.TeamColor, Color.black, 0.58f)
+                : character.TeamColor;
         }
 
         bool ready = selected.Count == squadSize;
