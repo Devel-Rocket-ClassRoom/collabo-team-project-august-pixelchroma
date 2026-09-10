@@ -999,6 +999,8 @@ public class GameManager : MonoBehaviour
             Tile tile = GridManager.Instance.GetTile(position);
             if (tile == null) continue;
 
+            if (moveTiles.Contains(position)) continue;
+
             tile.SetHighlight(AttackHighlight);
             attackTiles.Add(position);
         }
