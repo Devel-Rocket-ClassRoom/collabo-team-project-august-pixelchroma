@@ -942,6 +942,9 @@ public class GameManager : MonoBehaviour
         selectedUnit.SetSelected(true);
         battleState = BattleState.UnitSelected;
 
+        if (CameraController.Instance != null)
+            CameraController.Instance.FocusOn(unit.transform.position);
+
         GridManager grid = GridManager.Instance;
 
         var reachable = Pathfinding.GetReachableTiles(unit.GridPosition, unit.MoveRange);
@@ -962,6 +965,9 @@ public class GameManager : MonoBehaviour
         selectedUnit = null;
         battleState = BattleState.Idle;
         ClearAllMarkers();
+
+        if (CameraController.Instance != null)
+            CameraController.Instance.ResetFocus();
     }
 
     private void MoveSelectedUnit(Vector2Int targetPos)
@@ -1397,11 +1403,17 @@ public class GameManager : MonoBehaviour
 
             EnemyAILog.Record(turnCount, enemy, enemySquad, topCandidates);
 
+            if (CameraController.Instance != null)
+                yield return CameraController.Instance.FocusOnAndWait(enemy.transform.position);
+
             yield return ExecuteEnemyAction(enemy, decision, doomed);
 
             if (CheckBattleEnd()) yield break;
             yield return new WaitForSeconds(0.4f);
         }
+
+        if (CameraController.Instance != null)
+            CameraController.Instance.ResetFocus();
 
         if (!CheckBattleEnd())
         {

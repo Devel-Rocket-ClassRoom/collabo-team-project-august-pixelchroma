@@ -13,6 +13,11 @@ public class CameraController : MonoBehaviour
     [SerializeField, Range(0.1f, 3f)] private float rotationSensitivity = 1f;
     [SerializeField, Min(0f)] private float rotationThresholdDegrees = 0.15f;
 
+    [Header("Focus / Zoom")]
+    [SerializeField] private float focusZoomFOV = 38f;
+    [SerializeField] private float focusDuration = 0.35f;
+    [SerializeField] private float focusHeightOffset = 2f;
+
     private Camera cam;
     private bool isPressed;
     private bool isDragging;
@@ -26,6 +31,15 @@ public class CameraController : MonoBehaviour
     private Vector3 boundsMax;
     private bool hasBounds;
 
+    private float defaultFOV;
+    private float targetFOV;
+    private Vector3 focusTargetPos;
+    private bool isFocusing;
+    private float focusLerp = 1f;
+    private Vector3 focusStartPos;
+    private float focusStartFOV;
+
+    public bool IsFocused { get; private set; }
     public System.Action<Vector2> OnTap;
 
     private void Awake()
@@ -38,6 +52,8 @@ public class CameraController : MonoBehaviour
         Instance = this;
         cam = GetComponent<Camera>();
         if (cam == null) cam = Camera.main;
+        defaultFOV = cam.fieldOfView;
+        targetFOV = defaultFOV;
     }
 
     public void SetBounds(Vector3 gridMin, Vector3 gridMax, float padding, float groundY)
@@ -50,6 +66,8 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
+        UpdateFocus();
+
         if (HandleTwoFingerRotation())
             return;
 
@@ -221,5 +239,60 @@ public class CameraController : MonoBehaviour
             Mathf.Clamp(lookAt.z, boundsMin.z, boundsMax.z));
 
         return camPos + (clamped - lookAt);
+    }
+
+    public void FocusOn(Vector3 worldPosition)
+    {
+        Vector3 offset = cam.transform.position - GetCurrentGroundFocus();
+        focusTargetPos = worldPosition + offset;
+        focusTargetPos.y = cam.transform.position.y;
+        if (hasBounds) focusTargetPos = ClampToGroundBounds(focusTargetPos);
+
+        focusStartPos = cam.transform.position;
+        focusStartFOV = cam.fieldOfView;
+        targetFOV = focusZoomFOV;
+        focusLerp = 0f;
+        isFocusing = true;
+        IsFocused = true;
+    }
+
+    public void ResetFocus()
+    {
+        if (!IsFocused) return;
+        focusStartPos = cam.transform.position;
+        focusStartFOV = cam.fieldOfView;
+        targetFOV = defaultFOV;
+        focusTargetPos = cam.transform.position;
+        focusLerp = 0f;
+        isFocusing = true;
+        IsFocused = false;
+    }
+
+    public Coroutine FocusOnAndWait(Vector3 worldPosition)
+    {
+        FocusOn(worldPosition);
+        return StartCoroutine(WaitForFocus());
+    }
+
+    private System.Collections.IEnumerator WaitForFocus()
+    {
+        while (isFocusing)
+            yield return null;
+    }
+
+    private void UpdateFocus()
+    {
+        if (!isFocusing) return;
+
+        focusLerp += Time.deltaTime / Mathf.Max(0.01f, focusDuration);
+        if (focusLerp >= 1f)
+        {
+            focusLerp = 1f;
+            isFocusing = false;
+        }
+
+        float t = Mathf.SmoothStep(0f, 1f, focusLerp);
+        cam.transform.position = Vector3.Lerp(focusStartPos, focusTargetPos, t);
+        cam.fieldOfView = Mathf.Lerp(focusStartFOV, targetFOV, t);
     }
 }
