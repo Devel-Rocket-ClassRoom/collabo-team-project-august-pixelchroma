@@ -34,6 +34,7 @@ public class CharacterData : ScriptableObject
     [SerializeField, Min(1)] private int attackRange = 1;
 
     [Header("Special Attack")]
+    [SerializeField] private SkillData skillData;
     [SerializeField] private CharacterAttackPattern attackPattern = CharacterAttackPattern.SingleTarget;
     [SerializeField] private CharacterDamageType damageType = CharacterDamageType.Physical;
     [SerializeField, Min(0)] private int areaRadius;
@@ -53,14 +54,15 @@ public class CharacterData : ScriptableObject
     public int AttackPower => attackPower;
     public int MoveRange => moveRange;
     public int AttackRange => attackRange;
-    public CharacterAttackPattern AttackPattern => attackPattern;
-    public CharacterDamageType DamageType => damageType;
-    public int AreaRadius => areaRadius;
-    public int MaxTargets => maxTargets;
-    public int SpecialPower => specialPower;
-    public int CooldownTurns => cooldownTurns;
-    public bool IgnoresCover => ignoresCover;
-    public bool CanFriendlyFire => canFriendlyFire;
+    public SkillData SkillData => skillData;
+    public CharacterAttackPattern AttackPattern => skillData != null ? skillData.AttackPattern : attackPattern;
+    public CharacterDamageType DamageType => skillData != null ? skillData.DamageType : damageType;
+    public int AreaRadius => skillData != null ? skillData.AreaRadius : areaRadius;
+    public int MaxTargets => skillData != null ? skillData.MaxTargets : maxTargets;
+    public int SpecialPower => skillData != null ? skillData.FlatPower : specialPower;
+    public int CooldownTurns => skillData != null ? skillData.CooldownTurns : cooldownTurns;
+    public bool IgnoresCover => skillData != null ? skillData.IgnoresCover : ignoresCover;
+    public bool CanFriendlyFire => skillData != null ? skillData.CanFriendlyFire : canFriendlyFire;
     public Color TeamColor => teamColor;
 
     public void ConfigureRuntime(
