@@ -191,6 +191,49 @@ public class Unit : MonoBehaviour
         transform.position = worldPos + Vector3.up * (0.5f + tileHeight);
     }
 
+    public System.Collections.IEnumerator MoveAlongPath(
+        System.Collections.Generic.List<Vector2Int> path, float totalDuration)
+    {
+        if (path == null || path.Count < 2) yield break;
+
+        GridManager grid = GridManager.Instance;
+        float stepDuration = totalDuration / (path.Count - 1);
+
+        Tile oldTile = grid.GetTile(GridPosition);
+        if (oldTile != null) oldTile.RemoveUnit();
+
+        for (int i = 1; i < path.Count; i++)
+        {
+            Vector2Int from = path[i - 1];
+            Vector2Int to = path[i];
+
+            Vector3 fromWorld = grid.GridToWorldPosition(from.x, from.y);
+            Tile fromTile = grid.GetTile(from);
+            float fromH = fromTile != null ? fromTile.HeightOffset : 0f;
+            fromWorld.y = 0.5f + fromH;
+
+            Vector3 toWorld = grid.GridToWorldPosition(to.x, to.y);
+            Tile toTile = grid.GetTile(to);
+            float toH = toTile != null ? toTile.HeightOffset : 0f;
+            toWorld.y = 0.5f + toH;
+
+            float elapsed = 0f;
+            while (elapsed < stepDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / stepDuration);
+                transform.position = Vector3.Lerp(fromWorld, toWorld, t);
+                yield return null;
+            }
+
+            transform.position = toWorld;
+            GridPosition = to;
+        }
+
+        Tile newTile = grid.GetTile(GridPosition);
+        if (newTile != null) newTile.PlaceUnit(gameObject);
+    }
+
     public void TakeDamage(int damage)
     {
         HP -= damage;

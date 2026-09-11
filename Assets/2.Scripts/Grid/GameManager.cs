@@ -1403,20 +1403,25 @@ public class GameManager : MonoBehaviour
 
             EnemyAILog.Record(turnCount, enemy, enemySquad, topCandidates);
 
+            // 1. 카메라가 Enemy를 잡음
             if (CameraController.Instance != null)
                 yield return CameraController.Instance.FocusOnAndWait(enemy.transform.position);
+
+            // 2. 0.2초 딜레이
+            yield return new WaitForSeconds(0.2f);
 
             yield return ExecuteEnemyAction(enemy, decision, doomed);
 
             if (CheckBattleEnd()) yield break;
-            yield return new WaitForSeconds(0.4f);
         }
 
         if (CameraController.Instance != null)
             CameraController.Instance.ResetFocus();
 
+        // 8. 0.1초 딜레이 후 Player Turn 출력
         if (!CheckBattleEnd())
         {
+            yield return new WaitForSeconds(0.1f);
             turnCount++;
             currentPhase = GamePhase.PlayerTurn;
             battleState = BattleState.Idle;
@@ -1435,8 +1440,34 @@ public class GameManager : MonoBehaviour
             Tile destinationTile = GridManager.Instance.GetTile(decision.Destination);
             if (destinationTile != null && destinationTile.IsWalkable())
             {
-                enemy.MoveTo(decision.Destination);
-                yield return new WaitForSeconds(0.2f);
+                List<Vector2Int> path = Pathfinding.FindPath(
+                    enemy.GridPosition, decision.Destination);
+
+                if (path != null && path.Count > 1)
+                {
+                    // 3. 화살표 슬라이드 애니메이션
+                    Color arrowColor = new Color(1f, 0.3f, 0.3f, 0.9f);
+                    yield return PathArrowRenderer.ShowPathAnimated(
+                        this, path, arrowColor, 0.3f);
+
+                    // 4. 0.2초 딜레이
+                    yield return new WaitForSeconds(0.2f);
+
+                    // 5. 이동
+                    float moveDuration = Mathf.Clamp(
+                        (path.Count - 1) * 0.25f, 0.4f, 1.5f);
+                    yield return enemy.MoveAlongPath(path, moveDuration);
+
+                    PathArrowRenderer.Clear();
+
+                    // 7. 0.1초 딜레이
+                    yield return new WaitForSeconds(0.1f);
+                }
+                else
+                {
+                    enemy.MoveTo(decision.Destination);
+                    yield return new WaitForSeconds(0.2f);
+                }
             }
         }
 

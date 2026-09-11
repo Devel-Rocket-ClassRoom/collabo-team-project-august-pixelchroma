@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: "\uAD00\uCE21\uC218"
   description: 
   battlePrefab: {fileID: 0}
-  battleSprite: {fileID: 0}
+  battleSprite: {fileID: 21300000, guid: 92f427ce4e64fdf42ba824181d702afd, type: 3}
   maxHP: 3
   attackPower: 1
   moveRange: 3
@@ -31,6 +31,10 @@ MonoBehaviour:
   ignoresCover: 0
   canFriendlyFire: 0
   teamColor: {r: 0.85, g: 0.25, b: 0.25, a: 1}
+  accuracy: 90
+  evasion: 5
+  criticalRate: 10
+  canCounter: 1
   role: 4
   attackType: 1
   armorType: 2

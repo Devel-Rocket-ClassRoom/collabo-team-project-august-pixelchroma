@@ -3362,7 +3362,7 @@ MonoBehaviour:
   defaultEnemySprite: {fileID: 0}
   maxPlayerUnits: 4
   maxEnemyUnits: 4
-  enemySquad: {fileID: 0}
+  enemySquad: {fileID: 11400000, guid: 3d624148b67dcae408053eb51a535ba8, type: 2}
   combatSeed: 0
   availableCharacters: []
   cameraZoom: 0.9

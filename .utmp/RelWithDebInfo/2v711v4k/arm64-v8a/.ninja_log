@@ -1,0 +1,12 @@
+# ninja log v5
+72	468	8107927131528188	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	2f29d622cd5b778b
+477	829	8107927134972286	C:/SRPG/collabo-team-project-august-pixelchroma/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/2v711v4k/obj/arm64-v8a/libswappywrapper.so	2c27f24a310c3acc
+24	1972	8107927146517055	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	e45d95bbcb996ba5
+33	1994	8107927146652534	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	135af8a1a77f21d6
+17	2040	8107927147253402	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	404bb7b36d14d6d1
+51	2048	8107927147343600	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	f3ed1910b4682ac
+0	2128	8107927148201810	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	a33052b8276a1e19
+62	2286	8107927149790174	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	e7bbf95f5d0272ab
+42	2359	8107927150502905	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	a6bfe71fe6ee82b4
+8	2449	8107927151383702	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	9167b6cd9fb46dba
+2450	2667	8107927153541236	C:/SRPG/collabo-team-project-august-pixelchroma/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/2v711v4k/obj/arm64-v8a/libgame.so	57fc9f63efb01305

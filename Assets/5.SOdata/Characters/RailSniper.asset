@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: "오오하야시 토와코"
   description: "EyeScope로 장거리 표적을 정밀 조준하는 저격수. 엄폐 중인 적에게도 유효타를 남깁니다."
   battlePrefab: {fileID: 0}
-  battleSprite: {fileID: 0}
+  battleSprite: {fileID: 21300000, guid: 8d0d2e8037524c798e62e6f8cab1bd5f, type: 3}
   maxHP: 3
   attackPower: 3
   moveRange: 2

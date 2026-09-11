@@ -1,0 +1,280 @@
+{"kind":"deck","id":"pr/u3lcez","name":"Deck"}
+{"kind":"layout","layoutId":"41234b1c-c181-479c-9bf6-ff4294446692","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"70ea0122-78ac-4b67-8486-fa8e787d05af","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/osuso8","slide":1,"title":"UNITY 6 · GRID TACTICS · TECH REPORT","textShapes":7}
+{"kind":"shape","id":"sh/143uxs7y","slide":1,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/e1cb2d87","slide":1,"bbox":[66,74,9,505]}
+{"kind":"textbox","id":"sh/f2lcvips","slide":1,"text":"UNITY 6 · GRID TACTICS · TECH REPORT","textPreview":"UNITY 6 · GRID TACTICS · TECH REPORT","textChars":36,"textLines":1,"bbox":[106,76,650,30]}
+{"kind":"textbox","id":"sh/o7et8nq9","slide":1,"name":"title","text":"PixelChroma\n추가 작업 보고","textPreview":"PixelChroma | 추가 작업 보고","textChars":20,"textLines":2,"bbox":[102,138,690,165]}
+{"kind":"textbox","id":"sh/psnu1s7u","slide":1,"text":"카메라 연출 · 적 이동 시퀀스 · 부대 스프라이트 · 승리/패배 판정","textPreview":"카메라 연출 · 적 이동 시퀀스 · 부대 스프라이트 · 승리/패배 판정","textChars":39,"textLines":1,"bbox":[106,330,690,72]}
+{"kind":"shape","id":"sh/25cb6x8j","slide":1,"bbox":[106,448,214,34]}
+{"kind":"textbox","id":"sh/36lcz2po","slide":1,"text":"UNITY 6000.3.10f1","textPreview":"UNITY 6000.3.10f1","textChars":17,"textLines":1,"bbox":[116,453,194,22]}
+{"kind":"shape","id":"sh/4batw3q5","slide":1,"bbox":[336,448,145,34]}
+{"kind":"textbox","id":"sh/5cjap87q","slide":1,"text":"5 × 6 GRID","textPreview":"5 × 6 GRID","textChars":10,"textLines":1,"bbox":[346,453,125,22]}
+{"kind":"shape","id":"sh/tg7q1s76","slide":1,"bbox":[497,448,210,34]}
+{"kind":"textbox","id":"sh/sfy98nql","slide":1,"text":"PORTRAIT / MOBILE","textPreview":"PORTRAIT / MOBILE","textChars":17,"textLines":1,"bbox":[507,453,190,22]}
+{"kind":"textbox","id":"sh/re58zipg","slide":1,"text":"2026.09.11","textPreview":"2026.09.11","textChars":10,"textLines":1,"bbox":[106,526,240,28]}
+{"kind":"image","id":"im/1ojml0fi","slide":1,"name":"","alt":"플레이어 뱅가드","bbox":[756,110,390,535]}
+{"kind":"image","id":"im/qhs3mlgv","slide":1,"name":"","alt":"적 정찰병","bbox":[1002,400,220,180]}
+{"kind":"notes","id":"nt/osuso8","slide":1,"text":"원문 제목: PixelChroma 추가 작업 보고. 기술 환경: Unity 6000.3.10f1, 5×6 Grid, Portrait/Mobile."}
+{"kind":"slide","id":"sl/gky1hy","slide":2,"title":"PIXELCHROMA  /  CONTENTS","textShapes":16}
+{"kind":"shape","id":"sh/r6t0byho","slide":2,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/s721k3i9","slide":2,"text":"PIXELCHROMA  /  CONTENTS","textPreview":"PIXELCHROMA  /  CONTENTS","textChars":24,"textLines":1,"bbox":[48,24,560,28]}
+{"kind":"textbox","id":"sh/d8b2d8zu","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1184,24,48,28]}
+{"kind":"shape","id":"sh/i1kjet07","slide":2,"bbox":[48,60,1184,1]}
+{"kind":"textbox","id":"sh/32t07yhs","slide":2,"text":"OVERVIEW","textPreview":"OVERVIEW","textChars":8,"textLines":1,"bbox":[58,82,420,25]}
+{"kind":"textbox","id":"sh/4321g3ix","slide":2,"name":"title","text":"네 가지 작업이 하나의 전투 흐름을 만든다","textPreview":"네 가지 작업이 하나의 전투 흐름을 만든다","textChars":23,"textLines":1,"bbox":[58,110,1120,66]}
+{"kind":"shape","id":"sh/54bi98zi","slide":2,"bbox":[58,215,550,164]}
+{"kind":"shape","id":"sh/ux0ja90v","slide":2,"bbox":[58,215,6,164]}
+{"kind":"textbox","id":"sh/vy903ehg","slide":2,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[80,231,54,42]}
+{"kind":"textbox","id":"sh/ja543qls","slide":2,"text":"카메라 연출","textPreview":"카메라 연출","textChars":6,"textLines":1,"bbox":[136,233,450,38]}
+{"kind":"textbox","id":"sh/i9wnu5k7","slide":2,"text":"포커스 줌 · 건물 페이드","textPreview":"포커스 줌 · 건물 페이드","textChars":14,"textLines":1,"bbox":[82,281,502,82]}
+{"kind":"shape","id":"sh/5c7m503y","slide":2,"bbox":[648,215,550,164]}
+{"kind":"shape","id":"sh/4be5wv2d","slide":2,"bbox":[648,215,6,164]}
+{"kind":"textbox","id":"sh/repo7al4","slide":2,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[670,231,54,42]}
+{"kind":"textbox","id":"sh/6dgny5kj","slide":2,"text":"적 이동 연출","textPreview":"적 이동 연출","textChars":7,"textLines":1,"bbox":[726,233,450,38]}
+{"kind":"textbox","id":"sh/tg769k3u","slide":2,"text":"경로 화살표 · 타일 이동","textPreview":"경로 화살표 · 타일 이동","textChars":14,"textLines":1,"bbox":[672,281,502,82]}
+{"kind":"shape","id":"sh/sfy50f2p","slide":2,"bbox":[58,420,550,164]}
+{"kind":"shape","id":"sh/nil4v6lk","slide":2,"bbox":[58,420,6,164]}
+{"kind":"textbox","id":"sh/mhcn21kf","slide":2,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[80,436,54,42]}
+{"kind":"textbox","id":"sh/qdk7a94n","slide":2,"text":"부대 & 스프라이트","textPreview":"부대 & 스프라이트","textChars":10,"textLines":1,"bbox":[136,438,450,38]}
+{"kind":"textbox","id":"sh/byt83e58","slide":2,"text":"SO 기반 유닛 비주얼","textPreview":"SO 기반 유닛 비주얼","textChars":12,"textLines":1,"bbox":[82,486,502,82]}
+{"kind":"shape","id":"sh/cz2pcjmt","slide":2,"bbox":[648,420,550,164]}
+{"kind":"shape","id":"sh/d0bq5one","slide":2,"bbox":[648,420,6,164]}
+{"kind":"textbox","id":"sh/2907694r","slide":2,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[670,436,54,42]}
+{"kind":"textbox","id":"sh/3a98ze5c","slide":2,"text":"승리 · 패배","textPreview":"승리 · 패배","textChars":7,"textLines":1,"bbox":[726,438,450,38]}
+{"kind":"textbox","id":"sh/ob2p8jmx","slide":2,"text":"배틀 결과 시퀀스","textPreview":"배틀 결과 시퀀스","textChars":9,"textLines":1,"bbox":[672,486,502,82]}
+{"kind":"notes","id":"nt/gky1hy","slide":2,"text":"목차: 04 카메라 연출, 05 적 이동 연출, 06 부대와 스프라이트, 07 승리와 패배."}
+{"kind":"slide","id":"sl/hboee9","slide":3,"title":"PART 04","textShapes":4}
+{"kind":"shape","id":"sh/qlwv6hkz","slide":3,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/donu1cja","slide":3,"bbox":[64,100,10,450]}
+{"kind":"textbox","id":"sh/cned872p","slide":3,"text":"PART 04","textPreview":"PART 04","textChars":7,"textLines":1,"bbox":[104,112,240,42]}
+{"kind":"textbox","id":"sh/3i5cv218","slide":3,"text":"카메라 연출","textPreview":"카메라 연출","textChars":6,"textLines":1,"bbox":[104,174,700,100]}
+{"kind":"textbox","id":"sh/2hcv2xkn","slide":3,"text":"포커스 줌 · 건물 페이드 · 추적","textPreview":"포커스 줌 · 건물 페이드 · 추적","textChars":19,"textLines":1,"bbox":[108,294,620,90]}
+{"kind":"shape","id":"sh/pknuxcje","slide":3,"bbox":[108,430,270,46]}
+{"kind":"textbox","id":"sh/4jed472t","slide":3,"text":"PIXELCHROMA TECH REPORT","textPreview":"PIXELCHROMA TECH REPORT","textChars":23,"textLines":1,"bbox":[128,441,230,22]}
+{"kind":"image","id":"im/65ozi18r","slide":3,"name":"","alt":"카메라 연출 대표 캐릭터","bbox":[800,86,390,570]}
+{"kind":"notes","id":"nt/hboee9","slide":3,"text":"카메라 연출 섹션 구분 슬라이드. 원문 Claude artifact의 내용을 새 레이아웃으로 재구성."}
+{"kind":"slide","id":"sl/kjow60","slide":4,"title":"PIXELCHROMA  /  CAMERA","textShapes":15}
+{"kind":"shape","id":"sh/hw32h8b6","slide":4,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/utsj6tsv","slide":4,"text":"PIXELCHROMA  /  CAMERA","textPreview":"PIXELCHROMA  /  CAMERA","textChars":22,"textLines":1,"bbox":[48,24,560,28]}
+{"kind":"textbox","id":"sh/vulkfytg","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1184,24,48,28]}
+{"kind":"shape","id":"sh/8ra143ap","slide":4,"bbox":[48,60,1184,1]}
+{"kind":"textbox","id":"sh/tsj2d8ba","slide":4,"text":"CAMERACONTROLLER.FOCUSON","textPreview":"CAMERACONTROLLER.FOCUSON","textChars":24,"textLines":1,"bbox":[58,82,420,25]}
+{"kind":"textbox","id":"sh/65sj2tsj","slide":4,"name":"title","text":"턴 전환마다 유닛을 줌인한다","textPreview":"턴 전환마다 유닛을 줌인한다","textChars":15,"textLines":1,"bbox":[58,110,1120,66]}
+{"kind":"shape","id":"sh/7q1kbyt4","slide":4,"bbox":[58,195,636,438]}
+{"kind":"shape","id":"sh/cnelgnat","slide":4,"bbox":[58,195,636,6]}
+{"kind":"textbox","id":"sh/don2psbe","slide":4,"text":"public void FocusOn(Vector3 worldPosition)\n{\n  Vector3 offset = cam.transform.position\n    - GetCurrentGroundFocus();\n  focusTargetPos = worldPosition + offset;\n  focusTargetPos.y = cam.transform.position.y;\n  focusStartPos = cam.transform.position;\n  focusStartFOV = cam.fieldOfView;\n  targetFOV = focusZoomFOV; // 38°\n  focusLerp = 0f;\n  isFocusing = true;\n}\n\nfloat t = Mathf.SmoothStep(0f, 1f, focusLerp);\ncam.transform.position = Vector3.Lerp(\n  focusStartPos, focusTargetPos, t);\ncam.fieldOfView = Mathf.Lerp(\n  focusStartFOV, targetFOV, t);","textPreview":"public void FocusOn(Vector3 worldPosition) | { |   Vector3 offset = cam.transform.position |     - GetCurrentGroundFocus(); |   focusTarg...","textChars":546,"textLines":18,"bbox":[78,215,596,404]}
+{"kind":"shape","id":"sh/l0fy5cre","slide":4,"bbox":[728,195,480,120]}
+{"kind":"shape","id":"sh/kz6hw7at","slide":4,"bbox":[728,195,6,120]}
+{"kind":"textbox","id":"sh/zyxg3298","slide":4,"text":"FocusOnAndWait","textPreview":"FocusOnAndWait","textChars":14,"textLines":1,"bbox":[752,213,432,38]}
+{"kind":"textbox","id":"sh/yx4fuxs3","slide":4,"text":"각 적 행동 전에 코루틴으로 카메라 이동이 끝날 때까지 기다린다.","textPreview":"각 적 행동 전에 코루틴으로 카메라 이동이 끝날 때까지 기다린다.","textChars":36,"textLines":1,"bbox":[752,261,432,38]}
+{"kind":"shape","id":"sh/xwvy1sri","slide":4,"bbox":[728,337,480,120]}
+{"kind":"shape","id":"sh/cvmxs7ax","slide":4,"bbox":[728,337,6,120]}
+{"kind":"textbox","id":"sh/badgz29c","slide":4,"text":"ResetFocus","textPreview":"ResetFocus","textChars":10,"textLines":1,"bbox":[752,355,432,38]}
+{"kind":"textbox","id":"sh/q94fqxsr","slide":4,"text":"모든 적 행동이 끝나면 위치와 FOV를 원래 상태로 복원한다.","textPreview":"모든 적 행동이 끝나면 위치와 FOV를 원래 상태로 복원한다.","textChars":34,"textLines":1,"bbox":[752,403,432,38]}
+{"kind":"shape","id":"sh/hszydwrm","slide":4,"bbox":[728,489,145,112]}
+{"kind":"textbox","id":"sh/wrqh4ra1","slide":4,"text":"38°","textPreview":"38°","textChars":3,"textLines":1,"bbox":[740,504,121,38]}
+{"kind":"textbox","id":"sh/gni9gzmp","slide":4,"text":"ZOOM FOV","textPreview":"ZOOM FOV","textChars":8,"textLines":1,"bbox":[738,550,125,23]}
+{"kind":"shape","id":"sh/1orap43u","slide":4,"bbox":[888,489,145,112]}
+{"kind":"textbox","id":"sh/elgrup4j","slide":4,"text":"0.35s","textPreview":"0.35s","textChars":5,"textLines":1,"bbox":[900,504,121,38]}
+{"kind":"textbox","id":"sh/fmpsnul4","slide":4,"text":"TRANSITION","textPreview":"TRANSITION","textChars":10,"textLines":1,"bbox":[898,550,125,23]}
+{"kind":"shape","id":"sh/sjy9sfmd","slide":4,"bbox":[1048,489,145,112]}
+{"kind":"textbox","id":"sh/tk7alk3y","slide":4,"text":"8f","textPreview":"8f","textChars":2,"textLines":1,"bbox":[1060,504,121,38]}
+{"kind":"textbox","id":"sh/6hgrqp47","slide":4,"text":"FOLLOW DAMPING","textPreview":"FOLLOW DAMPING","textChars":14,"textLines":1,"bbox":[1058,550,125,23]}
+{"kind":"notes","id":"nt/kjow60","slide":4,"text":"SmoothStep 보간으로 카메라 위치와 FOV를 함께 변경한다. 핵심 값은 38도, 0.35초, follow damping 8f."}
+{"kind":"slide","id":"sl/9rw8r0","slide":5,"title":"PIXELCHROMA  /  CAMERA","textShapes":17}
+{"kind":"shape","id":"sh/03et43ah","slide":5,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/z25cvy9w","slide":5,"text":"PIXELCHROMA  /  CAMERA","textPreview":"PIXELCHROMA  /  CAMERA","textChars":22,"textLines":1,"bbox":[48,24,560,28]}
+{"kind":"textbox","id":"sh/e1wb2tsb","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1184,24,48,28]}
+{"kind":"shape","id":"sh/987u18re","slide":5,"bbox":[48,60,1184,1]}
+{"kind":"textbox","id":"sh/87yt83qt","slide":5,"text":"BUILDING FADE","textPreview":"BUILDING FADE","textChars":13,"textLines":1,"bbox":[58,82,420,25]}
+{"kind":"textbox","id":"sh/n6pczy98","slide":5,"name":"title","text":"카메라에 닿는 건물은 투명해진다","textPreview":"카메라에 닿는 건물은 투명해진다","textChars":17,"textLines":1,"bbox":[58,110,1120,66]}
+{"kind":"shape","id":"sh/m5wb6tsn","slide":5,"bbox":[58,190,500,275]}
+{"kind":"shape","id":"sh/xw7u58ra","slide":5,"bbox":[58,190,500,6]}
+{"kind":"textbox","id":"sh/wvytcnqp","slide":5,"text":"int hitCount = Physics.OverlapSphereNonAlloc(\n  transform.position,\n  buildingContactRadius, // 0.75f\n  buildingContactBuffer,\n  buildingContactMask);\n\nfloat targetAlpha = touching\n  ? buildingFadeAlpha : 1f;\npair.Value.MoveTowards(\n  targetAlpha, fadeSpeed * Time.deltaTime);","textPreview":"int hitCount = Physics.OverlapSphereNonAlloc( |   transform.position, |   buildingContactRadius, // 0.75f |   buildingContactBuffer, |   ...","textChars":276,"textLines":10,"bbox":[78,210,460,241]}
+{"kind":"shape","id":"sh/2hw7ax4n","slide":5,"bbox":[590,190,185,275]}
+{"kind":"shape","id":"sh/3i5o32l8","slide":5,"bbox":[590,190,6,275]}
+{"kind":"textbox","id":"sh/4jypc7mt","slide":5,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[612,206,54,42]}
+{"kind":"textbox","id":"sh/pk765c3y","slide":5,"text":"감지","textPreview":"감지","textChars":2,"textLines":1,"bbox":[668,208,85,38]}
+{"kind":"textbox","id":"sh/qlg7eh4j","slide":5,"text":"OverlapSphereNonAlloc\n버퍼 64 · No-GC","textPreview":"OverlapSphereNonAlloc | 버퍼 64 · No-GC","textChars":35,"textLines":2,"bbox":[614,256,137,193]}
+{"kind":"shape","id":"sh/rmp872l4","slide":5,"bbox":[795,190,185,275]}
+{"kind":"shape","id":"sh/cnypg7mp","slide":5,"bbox":[795,190,6,275]}
+{"kind":"textbox","id":"sh/do7q9c3a","slide":5,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[817,206,54,42]}
+{"kind":"textbox","id":"sh/6pc72d4f","slide":5,"text":"머티리얼","textPreview":"머티리얼","textChars":4,"textLines":1,"bbox":[873,208,85,38]}
+{"kind":"textbox","id":"sh/7qlovil0","slide":5,"text":"Renderer 머티리얼 복제\n_BaseColor 알파 조절","textPreview":"Renderer 머티리얼 복제 | _BaseColor 알파 조절","textChars":33,"textLines":2,"bbox":[819,256,137,193]}
+{"kind":"shape","id":"sh/bu143e1s","slide":5,"bbox":[1000,190,185,275]}
+{"kind":"shape","id":"sh/ats3a9k7","slide":5,"bbox":[1000,190,6,275]}
+{"kind":"textbox","id":"sh/xwjm5ojy","slide":5,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1022,206,54,42]}
+{"kind":"textbox","id":"sh/wvalcj2d","slide":5,"text":"복원","textPreview":"복원","textChars":2,"textLines":1,"bbox":[1078,208,85,38]}
+{"kind":"textbox","id":"sh/n6h4zu1g","slide":5,"text":"alpha=1에서 원본 복구\n복제 인스턴스 Destroy","textPreview":"alpha=1에서 원본 복구 | 복제 인스턴스 Destroy","textChars":31,"textLines":2,"bbox":[1024,256,137,193]}
+{"kind":"shape","id":"sh/m58369kb","slide":5,"bbox":[58,500,1147,120]}
+{"kind":"textbox","id":"sh/9sjm14jm","slide":5,"text":"URP TRANSPARENT","textPreview":"URP TRANSPARENT","textChars":15,"textLines":1,"bbox":[82,520,210,25]}
+{"kind":"textbox","id":"sh/orql8z21","slide":5,"text":"_Surface=1   ·   SrcAlpha / OneMinusSrcAlpha   ·   _ZWrite=0   ·   RenderQueue=Transparent   ·   Outline OFF","textPreview":"_Surface=1   ·   SrcAlpha / OneMinusSrcAlpha   ·   _ZWrite=0   ·   RenderQueue=Transparent   ·   Outline OFF","textChars":108,"textLines":1,"bbox":[82,552,1080,28]}
+{"kind":"textbox","id":"sh/72l4by10","slide":5,"text":"건물 루트 탐색: building / apartment / skyscraper · city_all / background_에서 중단 · LateUpdate 실행","textPreview":"건물 루트 탐색: building / apartment / skyscraper · city_all / background_에서 중단 · LateUpdate 실행","textChars":89,"textLines":1,"bbox":[82,587,1080,23]}
+{"kind":"notes","id":"nt/9rw8r0","slide":5,"text":"2.5D 탑뷰에서 카메라와 건물이 닿아 유닛을 가리는 문제를 충돌 감지와 머티리얼 알파 조절로 해결한다."}
+{"kind":"slide","id":"sl/jr6fxh","slide":6,"title":"PART 05","textShapes":4}
+{"kind":"shape","id":"sh/upove10b","slide":6,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/hszepgjm","slide":6,"bbox":[64,100,10,450]}
+{"kind":"textbox","id":"sh/wr6xgbi1","slide":6,"text":"PART 05","textPreview":"PART 05","textChars":7,"textLines":1,"bbox":[104,112,240,42]}
+{"kind":"textbox","id":"sh/jehwrq1s","slide":6,"text":"적 이동 연출","textPreview":"적 이동 연출","textChars":7,"textLines":1,"bbox":[104,174,700,100]}
+{"kind":"textbox","id":"sh/id8fil07","slide":6,"text":"경로 화살표 · Bezier 곡선 · 타일 이동 애니메이션","textPreview":"경로 화살표 · Bezier 곡선 · 타일 이동 애니메이션","textChars":32,"textLines":1,"bbox":[108,294,620,90]}
+{"kind":"shape","id":"sh/5gzet0jy","slide":6,"bbox":[108,430,270,46]}
+{"kind":"textbox","id":"sh/4fqxkvid","slide":6,"text":"PIXELCHROMA TECH REPORT","textPreview":"PIXELCHROMA TECH REPORT","textChars":23,"textLines":1,"bbox":[128,441,230,22]}
+{"kind":"image","id":"im/2dk3at8v","slide":6,"name":"","alt":"적 이동 연출 대표 캐릭터","bbox":[800,86,390,570]}
+{"kind":"notes","id":"nt/jr6fxh","slide":6,"text":"적 이동 연출 섹션 구분 슬라이드. 원문 Claude artifact의 내용을 새 레이아웃으로 재구성."}
+{"kind":"slide","id":"sl/busjqy","slide":7,"title":"PIXELCHROMA  /  ENEMY MOVE","textShapes":8}
+{"kind":"shape","id":"sh/cjedo3y9","slide":7,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/bi5wfyho","slide":7,"text":"PIXELCHROMA  /  ENEMY MOVE","textPreview":"PIXELCHROMA  /  ENEMY MOVE","textChars":26,"textLines":1,"bbox":[48,24,560,28]}
+{"kind":"textbox","id":"sh/qhwvmtg3","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1184,24,48,28]}
+{"kind":"shape","id":"sh/pgnedozi","slide":7,"bbox":[48,60,1184,1]}
+{"kind":"textbox","id":"sh/4fedkjyx","slide":7,"text":"PATHARROWRENDERER","textPreview":"PATHARROWRENDERER","textChars":17,"textLines":1,"bbox":[58,82,420,25]}
+{"kind":"textbox","id":"sh/3elwbehs","slide":7,"name":"title","text":"경로를 화살표로 그린다","textPreview":"경로를 화살표로 그린다","textChars":12,"textLines":1,"bbox":[58,110,1120,66]}
+{"kind":"shape","id":"sh/2dcvi9g7","slide":7,"bbox":[58,190,610,365]}
+{"kind":"shape","id":"sh/hs3e94zm","slide":7,"bbox":[58,190,610,6]}
+{"kind":"textbox","id":"sh/grudgjy1","slide":7,"text":"float dot = Vector3.Dot(dirIn, dirOut);\nif (dot > 0.99f) {\n  result.Add(curr);\n  continue;\n}\nVector3 curveStart = curr - dirIn * radius;\nVector3 curveEnd = curr + dirOut * radius;\nfor (int s = 0; s <= CurveSegments; s++) {\n  float t = (float)s / CurveSegments;\n  Vector3 a = Vector3.Lerp(curveStart, curr, t);\n  Vector3 b = Vector3.Lerp(curr, curveEnd, t);\n  result.Add(Vector3.Lerp(a, b, t));\n}","textPreview":"float dot = Vector3.Dot(dirIn, dirOut); | if (dot > 0.99f) { |   result.Add(curr); |   continue; | } | Vector3 curveStart = curr - dirIn ...","textChars":395,"textLines":13,"bbox":[78,210,570,331]}
+{"kind":"textbox","id":"sh/6hofuhwf","slide":7,"text":"직각 코너를 Quadratic Bezier로 부드럽게 연결","textPreview":"직각 코너를 Quadratic Bezier로 부드럽게 연결","textChars":32,"textLines":1,"bbox":[58,574,610,30]}
+{"kind":"shape","id":"sh/sj6xwrel","slide":7,"bbox":[710,528,498,92]}
+{"kind":"shape","id":"sh/t4fepwv6","slide":7,"bbox":[710,528,6,92]}
+{"kind":"textbox","id":"sh/id4vqhwj","slide":7,"text":"0.3초 드로잉","textPreview":"0.3초 드로잉","textChars":8,"textLines":1,"bbox":[734,545,170,28]}
+{"kind":"textbox","id":"sh/jedwjmd4","slide":7,"text":"ShowPathAnimated()로 진행 방향을 따라 표시","textPreview":"ShowPathAnimated()로 진행 방향을 따라 표시","textChars":32,"textLines":1,"bbox":[914,548,270,24]}
+{"kind":"table","id":"tb/g7ydw7a5","slide":7,"name":"","rows":6,"cols":3,"preview":"상수 | 값 | 역할","bbox":[710,190,498,310]}
+{"kind":"notes","id":"nt/busjqy","slide":7,"text":"A* 경로를 굵은 붉은 선과 삼각형 화살촉으로 시각화한다. 우회전과 좌회전 코너는 Quadratic Bezier로 완화한다."}
+{"kind":"slide","id":"sl/96o0r7","slide":8,"title":"PIXELCHROMA  /  ENEMY MOVE","textShapes":30}
+{"kind":"shape","id":"sh/7adg7ets","slide":8,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/sbmxgjud","slide":8,"text":"PIXELCHROMA  /  ENEMY MOVE","textPreview":"PIXELCHROMA  /  ENEMY MOVE","textChars":26,"textLines":1,"bbox":[48,24,560,28]}
+{"kind":"textbox","id":"sh/tcvy9oby","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1184,24,48,28]}
+{"kind":"shape","id":"sh/yl4fapcb","slide":8,"bbox":[48,60,1184,1]}
+{"kind":"textbox","id":"sh/jmdw3utw","slide":8,"text":"PROCESSENEMYTURN","textPreview":"PROCESSENEMYTURN","textChars":16,"textLines":1,"bbox":[58,82,420,25]}
+{"kind":"textbox","id":"sh/knmxczuh","slide":8,"name":"title","text":"적 턴은 일곱 단계로 연출된다","textPreview":"적 턴은 일곱 단계로 연출된다","textChars":16,"textLines":1,"bbox":[58,110,1120,66]}
+{"kind":"shape","id":"sh/5ove54b2","slide":8,"bbox":[58,205,260,126]}
+{"kind":"textbox","id":"sh/ahkf6pcf","slide":8,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[76,220,44,28]}
+{"kind":"textbox","id":"sh/bitwzut0","slide":8,"text":"FOCUS","textPreview":"FOCUS","textChars":5,"textLines":1,"bbox":[124,220,170,28]}
+{"kind":"textbox","id":"sh/32pkbax8","slide":8,"text":"FocusOnAndWait","textPreview":"FocusOnAndWait","textChars":14,"textLines":1,"bbox":[78,267,220,35]}
+{"kind":"shape","id":"sh/21wj25gn","slide":8,"bbox":[316,254,32,26]}
+{"kind":"shape","id":"sh/po72dkfy","slide":8,"bbox":[350,205,260,126]}
+{"kind":"textbox","id":"sh/o3y14fyd","slide":8,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[368,220,44,28]}
+{"kind":"textbox","id":"sh/bqpkfux4","slide":8,"text":"PAUSE","textPreview":"PAUSE","textChars":5,"textLines":1,"bbox":[416,220,170,28]}
+{"kind":"textbox","id":"sh/qpgj6pgj","slide":8,"text":"0.2s","textPreview":"0.2s","textChars":4,"textLines":1,"bbox":[370,267,220,35]}
+{"kind":"shape","id":"sh/xs72h4fa","slide":8,"bbox":[608,254,32,26]}
+{"kind":"shape","id":"sh/cry18zyp","slide":8,"bbox":[642,205,260,126]}
+{"kind":"textbox","id":"sh/ru503qx0","slide":8,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[660,220,44,28]}
+{"kind":"textbox","id":"sh/6tcjulgf","slide":8,"text":"PATH","textPreview":"PATH","textChars":4,"textLines":1,"bbox":[708,220,170,28]}
+{"kind":"textbox","id":"sh/upkn2t03","slide":8,"text":"ShowPathAnimated 0.3s","textPreview":"ShowPathAnimated 0.3s","textChars":21,"textLines":1,"bbox":[662,267,220,35]}
+{"kind":"shape","id":"sh/vqt4byh8","slide":8,"bbox":[900,254,32,26]}
+{"kind":"shape","id":"sh/wr2543it","slide":8,"bbox":[934,205,260,126]}
+{"kind":"textbox","id":"sh/hsbmd8ze","slide":8,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[952,220,44,28]}
+{"kind":"textbox","id":"sh/mlknyt0r","slide":8,"text":"PAUSE","textPreview":"PAUSE","textChars":5,"textLines":1,"bbox":[1000,220,170,28]}
+{"kind":"textbox","id":"sh/7mt47yhc","slide":8,"text":"0.2s","textPreview":"0.2s","textChars":4,"textLines":1,"bbox":[954,267,220,35]}
+{"kind":"shape","id":"sh/8n2503ix","slide":8,"bbox":[58,371,260,126]}
+{"kind":"textbox","id":"sh/9obm9ozi","slide":8,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[76,386,44,28]}
+{"kind":"textbox","id":"sh/yx03a90v","slide":8,"text":"MOVE","textPreview":"MOVE","textChars":4,"textLines":1,"bbox":[124,386,170,28]}
+{"kind":"textbox","id":"sh/zi943ehg","slide":8,"text":"0.4–1.5s","textPreview":"0.4–1.5s","textChars":8,"textLines":1,"bbox":[78,433,220,35]}
+{"kind":"shape","id":"sh/1czq9cjy","slide":8,"bbox":[316,420,32,26]}
+{"kind":"shape","id":"sh/gb6pg72d","slide":8,"bbox":[350,371,260,126]}
+{"kind":"textbox","id":"sh/fax87m1s","slide":8,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[368,386,44,28]}
+{"kind":"textbox","id":"sh/e9o7ehk7","slide":8,"text":"CLEAR","textPreview":"CLEAR","textChars":5,"textLines":1,"bbox":[416,386,170,28]}
+{"kind":"textbox","id":"sh/t8fq5cjm","slide":8,"text":"화살표 제거 · 0.1s","textPreview":"화살표 제거 · 0.1s","textChars":13,"textLines":1,"bbox":[370,433,220,35]}
+{"kind":"shape","id":"sh/sn6pc721","slide":8,"bbox":[608,420,32,26]}
+{"kind":"shape","id":"sh/rmxo321g","slide":8,"bbox":[642,371,260,126]}
+{"kind":"textbox","id":"sh/6lo7axkb","slide":8,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[660,386,44,28]}
+{"kind":"textbox","id":"sh/5kf61sjq","slide":8,"text":"ATTACK","textPreview":"ATTACK","textChars":6,"textLines":1,"bbox":[708,386,170,28]}
+{"kind":"textbox","id":"sh/4jmp8n25","slide":8,"text":"guard · counter · evasion","textPreview":"guard · counter · evasion","textChars":25,"textLines":1,"bbox":[662,433,220,35]}
+{"kind":"shape","id":"sh/knyx8b21","slide":8,"bbox":[934,371,276,126]}
+{"kind":"textbox","id":"sh/5o7yhwjm","slide":8,"text":"RESET","textPreview":"RESET","textChars":5,"textLines":1,"bbox":[954,388,90,28]}
+{"kind":"textbox","id":"sh/ilwf61kv","slide":8,"text":"ResetFocus → 0.1s\n→ 플레이어 턴 배너","textPreview":"ResetFocus → 0.1s | → 플레이어 턴 배너","textChars":29,"textLines":2,"bbox":[954,430,220,48]}
+{"kind":"shape","id":"sh/jm5gf61g","slide":8,"bbox":[58,548,1152,80]}
+{"kind":"textbox","id":"sh/sryxcb2d","slide":8,"text":"MOVE DURATION","textPreview":"MOVE DURATION","textChars":13,"textLines":1,"bbox":[82,568,178,24]}
+{"kind":"textbox","id":"sh/tc7ylgji","slide":8,"text":"Clamp((tiles - 1) × 0.25, 0.4, 1.5)","textPreview":"Clamp((tiles - 1) × 0.25, 0.4, 1.5)","textChars":35,"textLines":1,"bbox":[270,561,470,36]}
+{"kind":"textbox","id":"sh/6pgfa1k7","slide":8,"text":"첫 타일 RemoveUnit → 타일 간 Lerp → 마지막 타일 PlaceUnit · HeightOffset 반영","textPreview":"첫 타일 RemoveUnit → 타일 간 Lerp → 마지막 타일 PlaceUnit · HeightOffset 반영","textChars":64,"textLines":1,"bbox":[760,568,420,35]}
+{"kind":"notes","id":"nt/96o0r7","slide":8,"text":"적 유닛별로 카메라 포커스, 경로 표시, 이동, 공격, 카메라 복원을 순서대로 실행한다."}
+{"kind":"slide","id":"sl/3srcwf","slide":9,"title":"PART 06","textShapes":4}
+{"kind":"shape","id":"sh/u5ob6tc3","slide":9,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/h8fu1ovu","slide":9,"bbox":[64,100,10,450]}
+{"kind":"textbox","id":"sh/g76t8ju9","slide":9,"text":"PART 06","textPreview":"PART 06","textChars":7,"textLines":1,"bbox":[104,112,240,42]}
+{"kind":"textbox","id":"sh/3axc3yd0","slide":9,"text":"부대 & 스프라이트","textPreview":"부대 & 스프라이트","textChars":10,"textLines":1,"bbox":[104,174,700,100]}
+{"kind":"textbox","id":"sh/i9obatcf","slide":9,"text":"ScriptableObject 기반 유닛 구성 · 2D 스프라이트 비주얼","textPreview":"ScriptableObject 기반 유닛 구성 · 2D 스프라이트 비주얼","textChars":40,"textLines":1,"bbox":[108,294,620,90]}
+{"kind":"shape","id":"sh/5wzu58vq","slide":9,"bbox":[108,430,270,46]}
+{"kind":"textbox","id":"sh/4vqtc3u5","slide":9,"text":"PIXELCHROMA TECH REPORT","textPreview":"PIXELCHROMA TECH REPORT","textChars":23,"textLines":1,"bbox":[128,441,230,22]}
+{"kind":"image","id":"im/ad8j6xwb","slide":9,"name":"","alt":"부대 & 스프라이트 대표 캐릭터","bbox":[800,86,390,570]}
+{"kind":"notes","id":"nt/3srcwf","slide":9,"text":"부대 & 스프라이트 섹션 구분 슬라이드. 원문 Claude artifact의 내용을 새 레이아웃으로 재구성."}
+{"kind":"slide","id":"sl/sk13y8","slide":10,"title":"PIXELCHROMA  /  SQUAD & SPRITE","textShapes":17}
+{"kind":"shape","id":"sh/j2t4na98","slide":10,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/4n25gvat","slide":10,"text":"PIXELCHROMA  /  SQUAD & SPRITE","textPreview":"PIXELCHROMA  /  SQUAD & SPRITE","textChars":30,"textLines":1,"bbox":[48,24,560,28]}
+{"kind":"textbox","id":"sh/5ovmp0re","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1184,24,48,28]}
+{"kind":"shape","id":"sh/uxk3alsr","slide":10,"bbox":[48,60,1184,1]}
+{"kind":"textbox","id":"sh/vyt4jq9c","slide":10,"text":"ENEMYSQUADDATA","textPreview":"ENEMYSQUADDATA","textChars":14,"textLines":1,"bbox":[58,82,420,25]}
+{"kind":"textbox","id":"sh/wz2lcvax","slide":10,"name":"title","text":"스쿼드 데이터로 적을 구성한다","textPreview":"스쿼드 데이터로 적을 구성한다","textChars":16,"textLines":1,"bbox":[58,110,1120,66]}
+{"kind":"shape","id":"sh/h0bml0ri","slide":10,"bbox":[58,190,420,300]}
+{"kind":"shape","id":"sh/et4nmpsv","slide":10,"bbox":[58,190,420,6]}
+{"kind":"textbox","id":"sh/fud4vu9g","slide":10,"text":"[System.Serializable]\npublic class SquadMember {\n  public EnemyUnitData unit;\n  public int count;\n  public Vector2Int[] preferredCells;\n}\n\nUnit.Create(\n  Team.Enemy, pos, enemyPrefab,\n  member.unit, defaultEnemySprite);","textPreview":"[System.Serializable] | public class SquadMember { |   public EnemyUnitData unit; |   public int count; |   public Vector2Int[] preferred...","textChars":219,"textLines":10,"bbox":[78,210,380,266]}
+{"kind":"shape","id":"sh/nq18napk","slide":10,"bbox":[510,190,330,300]}
+{"kind":"textbox","id":"sh/mpsru5oz","slide":10,"text":"SQUAD_01_순찰반","textPreview":"SQUAD_01_순찰반","textChars":12,"textLines":1,"bbox":[534,212,280,32]}
+{"kind":"textbox","id":"sh/vel8rapg","slide":10,"text":"순찰병 × 2","textPreview":"순찰병 × 2","textChars":7,"textLines":1,"bbox":[540,395,125,28]}
+{"kind":"textbox","id":"sh/adcry5ov","slide":10,"text":"돌격병 × 1","textPreview":"돌격병 × 1","textChars":7,"textLines":1,"bbox":[680,395,130,28]}
+{"kind":"textbox","id":"sh/xg3atk7m","slide":10,"text":"SO가 있으면 구성대로 생성\n없으면 generic 적을 생성","textPreview":"SO가 있으면 구성대로 생성 | 없으면 generic 적을 생성","textChars":33,"textLines":2,"bbox":[538,443,272,42]}
+{"kind":"shape","id":"sh/wfu90f61","slide":10,"bbox":[872,190,338,300]}
+{"kind":"textbox","id":"sh/jilsvups","slide":10,"text":"SPRITE PIPELINE","textPreview":"SPRITE PIPELINE","textChars":15,"textLines":1,"bbox":[896,214,290,28]}
+{"kind":"shape","id":"sh/ihcr2po7","slide":10,"bbox":[900,260,260,36]}
+{"kind":"textbox","id":"sh/udgbut8f","slide":10,"text":"CharacterData.BattleSprite","textPreview":"CharacterData.BattleSprite","textChars":26,"textLines":1,"bbox":[914,267,232,20]}
+{"kind":"shape","id":"sh/fepcny90","slide":10,"bbox":[900,310,260,36]}
+{"kind":"textbox","id":"sh/gfytw3ql","slide":10,"text":"unit.battleSprite","textPreview":"unit.battleSprite","textChars":17,"textLines":1,"bbox":[914,317,232,20]}
+{"kind":"shape","id":"sh/hg7upor6","slide":10,"bbox":[900,360,260,36]}
+{"kind":"textbox","id":"sh/69wbq983","slide":10,"text":"fallback Sprite","textPreview":"fallback Sprite","textChars":15,"textLines":1,"bbox":[914,367,232,20]}
+{"kind":"shape","id":"sh/7a5cje9o","slide":10,"bbox":[900,410,260,36]}
+{"kind":"textbox","id":"sh/sbytsjq9","slide":10,"text":"null / red cube","textPreview":"null / red cube","textChars":15,"textLines":1,"bbox":[914,417,232,20]}
+{"kind":"shape","id":"sh/tc7uloru","slide":10,"bbox":[58,528,1152,92]}
+{"kind":"textbox","id":"sh/q50v2d8n","slide":10,"text":"EDITOR TOOL","textPreview":"EDITOR TOOL","textChars":11,"textLines":1,"bbox":[82,548,155,22]}
+{"kind":"textbox","id":"sh/r69cvi98","slide":10,"text":"Tools > 적 유닛 스프라이트 강제 연결","textPreview":"Tools > 적 유닛 스프라이트 강제 연결","textChars":24,"textLines":1,"bbox":[248,542,400,31]}
+{"kind":"textbox","id":"sh/lcv6hwfm","slide":10,"text":"이름으로 Sprite와 EnemyUnitData를 매칭 · SetupSpriteVisual이 Quad + 2D Billboard로 변환","textPreview":"이름으로 Sprite와 EnemyUnitData를 매칭 · SetupSpriteVisual이 Quad + 2D Billboard로 변환","textChars":75,"textLines":1,"bbox":[678,545,500,42]}
+{"kind":"image","id":"im/y9gni9w7","slide":10,"name":"","alt":"적 정찰병","bbox":[540,260,125,120]}
+{"kind":"image","id":"im/zap4bexs","slide":10,"name":"","alt":"적 돌격병","bbox":[686,252,116,135]}
+{"kind":"notes","id":"nt/sk13y8","slide":10,"text":"EnemySquadData ScriptableObject로 적 구성과 수를 정의한다. 전투 스프라이트는 데이터에서 fallback까지 단계적으로 선택한다."}
+{"kind":"slide","id":"sl/mhu7wp","slide":11,"title":"PART 07","textShapes":4}
+{"kind":"shape","id":"sh/ovq1sjut","slide":11,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/nuh0zed8","slide":11,"bbox":[64,100,10,450]}
+{"kind":"textbox","id":"sh/mt8zq9cn","slide":11,"text":"PART 07","textPreview":"PART 07","textChars":7,"textLines":1,"bbox":[104,112,240,42]}
+{"kind":"textbox","id":"sh/1sfix4v2","slide":11,"text":"승리 · 패배","textPreview":"승리 · 패배","textChars":7,"textLines":1,"bbox":[104,174,700,100]}
+{"kind":"textbox","id":"sh/0r6hozuh","slide":11,"text":"배틀 결과 판정 · 배너 연출 · 스테이지 진행","textPreview":"배틀 결과 판정 · 배너 연출 · 스테이지 진행","textChars":26,"textLines":1,"bbox":[108,294,620,90]}
+{"kind":"shape","id":"sh/zqx0vudc","slide":11,"bbox":[108,430,270,46]}
+{"kind":"textbox","id":"sh/e5ozmpcr","slide":11,"text":"PIXELCHROMA TECH REPORT","textPreview":"PIXELCHROMA TECH REPORT","textChars":23,"textLines":1,"bbox":[128,441,230,22]}
+{"kind":"image","id":"im/obahsba1","slide":11,"name":"","alt":"승리 · 패배 대표 캐릭터","bbox":[800,86,390,570]}
+{"kind":"notes","id":"nt/mhu7wp","slide":11,"text":"승리 · 패배 섹션 구분 슬라이드. 원문 Claude artifact의 내용을 새 레이아웃으로 재구성."}
+{"kind":"slide","id":"sl/fvcram","slide":12,"title":"PIXELCHROMA  /  BATTLE RESULT","textShapes":14}
+{"kind":"shape","id":"sh/jy5wjitk","slide":12,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/4zedcna5","slide":12,"text":"PIXELCHROMA  /  BATTLE RESULT","textPreview":"PIXELCHROMA  /  BATTLE RESULT","textChars":29,"textLines":1,"bbox":[48,24,560,28]}
+{"kind":"textbox","id":"sh/50nel8bq","slide":12,"text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1184,24,48,28]}
+{"kind":"shape","id":"sh/u9cv6ts3","slide":12,"bbox":[48,60,1184,1]}
+{"kind":"textbox","id":"sh/va5cfyt8","slide":12,"text":"CHECKBATTLEEND","textPreview":"CHECKBATTLEEND","textChars":14,"textLines":1,"bbox":[58,82,420,25]}
+{"kind":"textbox","id":"sh/wbed83at","slide":12,"name":"title","text":"전투가 끝나는 순간을 판정한다","textPreview":"전투가 끝나는 순간을 판정한다","textChars":16,"textLines":1,"bbox":[58,110,1120,66]}
+{"kind":"shape","id":"sh/hwnuh8be","slide":12,"bbox":[58,195,1160,86]}
+{"kind":"textbox","id":"sh/m5cv2tsr","slide":12,"text":"ATTACK RESOLVED","textPreview":"ATTACK RESOLVED","textChars":15,"textLines":1,"bbox":[82,214,220,24]}
+{"kind":"textbox","id":"sh/76lcbytc","slide":12,"text":"공격 처리 직후 살아 있는 플레이어와 적 유닛 수를 다시 계산","textPreview":"공격 처리 직후 살아 있는 플레이어와 적 유닛 수를 다시 계산","textChars":34,"textLines":1,"bbox":[324,208,838,34]}
+{"kind":"shape","id":"sh/jmtgj65o","slide":12,"bbox":[606,284,64,55]}
+{"kind":"shape","id":"sh/ylkfa143","slide":12,"bbox":[58,350,548,205]}
+{"kind":"shape","id":"sh/l8vylgnu","slide":12,"bbox":[58,350,6,205]}
+{"kind":"textbox","id":"sh/kn2xcbm9","slide":12,"text":"W","textPreview":"W","textChars":1,"textLines":1,"bbox":[80,366,54,42]}
+{"kind":"textbox","id":"sh/7adgn650","slide":12,"text":"VICTORY","textPreview":"VICTORY","textChars":7,"textLines":1,"bbox":[136,368,448,38]}
+{"kind":"textbox","id":"sh/694fe14f","slide":12,"text":"적 생존 수 = 0\nBattleResult → 승리 메시지\nUnlockNextStage() → ShowVictory","textPreview":"적 생존 수 = 0 | BattleResult → 승리 메시지 | UnlockNextStage() → ShowVictory","textChars":64,"textLines":3,"bbox":[82,416,500,123]}
+{"kind":"shape","id":"sh/tcvypgn6","slide":12,"bbox":[670,350,548,205]}
+{"kind":"shape","id":"sh/8bmxgbml","slide":12,"bbox":[670,350,6,205]}
+{"kind":"textbox","id":"sh/ne9wbm5g","slide":12,"text":"L","textPreview":"L","textChars":1,"textLines":1,"bbox":[692,366,54,42]}
+{"kind":"textbox","id":"sh/md0f2h4b","slide":12,"text":"DEFEAT","textPreview":"DEFEAT","textChars":6,"textLines":1,"bbox":[748,368,448,38]}
+{"kind":"textbox","id":"sh/q98japoj","slide":12,"text":"플레이어 생존 수 = 0\nBattleResult → 패배 메시지\nShowDefeat · 스테이지 해금 없음","textPreview":"플레이어 생존 수 = 0 | BattleResult → 패배 메시지 | ShowDefeat · 스테이지 해금 없음","textChars":59,"textLines":3,"bbox":[694,416,500,123]}
+{"kind":"shape","id":"sh/rah0jup4","slide":12,"bbox":[58,585,1160,54]}
+{"kind":"textbox","id":"sh/sbq1cz6p","slide":12,"text":"yield break","textPreview":"yield break","textChars":11,"textLines":1,"bbox":[82,598,155,25]}
+{"kind":"textbox","id":"sh/dczilk7a","slide":12,"text":"결과가 확정되면 남은 코루틴 행동을 즉시 중단한다.","textPreview":"결과가 확정되면 남은 코루틴 행동을 즉시 중단한다.","textChars":28,"textLines":1,"bbox":[248,598,900,25]}
+{"kind":"notes","id":"nt/fvcram","slide":12,"text":"공격 후 CheckBattleEnd가 생존 유닛을 확인한다. 승리 시 다음 스테이지를 해금하고, 패배 시 해금하지 않는다. yield break로 후속 행동을 중단한다."}
+{"kind":"slide","id":"sl/1xvao6","slide":13,"title":"PIXELCHROMA  /  SUMMARY","textShapes":7}
+{"kind":"shape","id":"sh/p0nyxszu","slide":13,"bbox":[0,0,14,720]}
+{"kind":"textbox","id":"sh/2dwf2x03","slide":13,"text":"PIXELCHROMA  /  SUMMARY","textPreview":"PIXELCHROMA  /  SUMMARY","textChars":23,"textLines":1,"bbox":[48,24,560,28]}
+{"kind":"textbox","id":"sh/ny5gviho","slide":13,"text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[1184,24,48,28]}
+{"kind":"shape","id":"sh/c3yh87i5","slide":13,"bbox":[48,60,1184,1]}
+{"kind":"textbox","id":"sh/x47y1czq","slide":13,"text":"DESIGN PRINCIPLE","textPreview":"DESIGN PRINCIPLE","textChars":16,"textLines":1,"bbox":[58,82,420,25]}
+{"kind":"textbox","id":"sh/a1wz6x0z","slide":13,"name":"title","text":"네 파트를 관통하는 원칙","textPreview":"네 파트를 관통하는 원칙","textChars":13,"textLines":1,"bbox":[58,110,1120,66]}
+{"kind":"shape","id":"sh/b25gz2hk","slide":13,"bbox":[58,185,1160,92]}
+{"kind":"textbox","id":"sh/k7yhc7ih","slide":13,"text":"“보이지 않던 것을 보이게 만든다”","textPreview":"“보이지 않던 것을 보이게 만든다”","textChars":19,"textLines":1,"bbox":[86,207,1100,46]}
+{"kind":"textbox","id":"sh/tsvytcr2","slide":13,"text":"KEY FILES","textPreview":"KEY FILES","textChars":9,"textLines":1,"bbox":[58,598,140,24]}
+{"kind":"textbox","id":"sh/srmx0rah","slide":13,"text":"CameraController.cs  ·  PathArrowRenderer.cs  ·  Unit.cs  ·  EnemySpriteLinker.cs  ·  Enemy/Squads/*.asset","textPreview":"CameraController.cs  ·  PathArrowRenderer.cs  ·  Unit.cs  ·  EnemySpriteLinker.cs  ·  Enemy/Squads/*.asset","textChars":106,"textLines":1,"bbox":[210,594,995,31]}
+{"kind":"table","id":"tb/ojax4769","slide":13,"name":"","rows":5,"cols":3,"preview":"파트 | 이전 | 변경 후","bbox":[58,310,1160,260]}
+{"kind":"notes","id":"nt/1xvao6","slide":13,"text":"핵심 원칙은 전투 상태와 의도를 플레이어가 볼 수 있게 만드는 것이다. 주요 파일: Grid/CameraController.cs, UI/PathArrowRenderer.cs, GamePlay/Unit.cs, Editor/EnemySpriteLinker.cs, SOdata/Enemy/Squads/*.asset."}
