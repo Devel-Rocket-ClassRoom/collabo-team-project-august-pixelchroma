@@ -4,6 +4,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+// 이전 씬과의 직렬화 호환성을 위해 남겨 둔 컴포넌트입니다.
+// 실제 화면은 ScreenPrefabBootstrap이 AgentListScreen 프리팹을 불러옵니다.
 public class OwnedAgentListController : MonoBehaviour
 {
     private const string ListSceneName = "5.CharList";
@@ -23,7 +25,6 @@ public class OwnedAgentListController : MonoBehaviour
     private static readonly Color Yellow = new Color(1f, 0.78f, 0.08f, 1f);
     private static readonly Color Muted = new Color(0.62f, 0.68f, 0.77f, 1f);
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void InitializeScene()
     {
         string sceneName = SceneManager.GetActiveScene().name;
@@ -52,10 +53,14 @@ public class OwnedAgentListController : MonoBehaviour
 
     private void Awake()
     {
+        enabled = false;
+        return;
+#pragma warning disable CS0162
         catalog = Resources.Load<OwnedAgentCatalog>("OwnedAgentCatalog");
         uiFont = catalog != null ? catalog.UIFont : null;
         EnsureEventSystem();
         BuildScreen();
+#pragma warning restore CS0162
     }
 
     private void Update()
