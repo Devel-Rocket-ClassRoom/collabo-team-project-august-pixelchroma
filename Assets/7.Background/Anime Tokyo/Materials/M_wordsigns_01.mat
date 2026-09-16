@@ -17,6 +17,7 @@ Material:
   m_InvalidKeywords:
   - _METALLICGLOSSMAP
   - _SCREENSPACEWIDTH_ON
+  - _USEMIDTONE_ON
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -115,8 +116,8 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
-    - _MidToneFeather: 0.1
-    - _MidToneThreshold: 0.7
+    - _MidToneFeather: 0.076
+    - _MidToneThreshold: 0.764
     - _MinBrightness: 0.55
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -145,7 +146,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _UVSec: 0
-    - _UseMidTone: 0
+    - _UseMidTone: 1
     - _UseRampMap: 0
     - _WorkflowMode: 1
     - _XRMotionVectorsPass: 1

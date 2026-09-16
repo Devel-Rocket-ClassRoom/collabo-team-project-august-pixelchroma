@@ -422,6 +422,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Stage_List
       objectReference: {fileID: 0}
+    - target: {fileID: 928094598413485642, guid: 5afeace9e5579e34cbf6f2ee13a4f026, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 2a28a3fed11cf484b96b6301f3aa62b1, type: 3}
     - target: {fileID: 1086638248062757031, guid: 5afeace9e5579e34cbf6f2ee13a4f026, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

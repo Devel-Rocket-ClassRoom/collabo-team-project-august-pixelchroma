@@ -28,10 +28,14 @@ public class BGMManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
+        if (FindAnyObjectByType<AudioListener>() == null)
+            gameObject.AddComponent<AudioListener>();
+
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.loop = true;
         audioSource.playOnAwake = false;
         audioSource.volume = volume;
+        audioSource.spatialBlend = 0f;
 
         SceneManager.sceneLoaded += OnSceneLoaded;
         PlayBGMForScene(SceneManager.GetActiveScene().name);
@@ -51,6 +55,7 @@ public class BGMManager : MonoBehaviour
     private void PlayBGMForScene(string sceneName)
     {
         AudioClip clip = GetClipForScene(sceneName);
+        Debug.Log($"[BGM] Scene: \"{sceneName}\" → Clip: {(clip != null ? clip.name : "null")}");
 
         if (clip == null)
         {
@@ -60,11 +65,15 @@ public class BGMManager : MonoBehaviour
         }
 
         if (currentClip == clip)
+        {
+            Debug.Log($"[BGM] 같은 BGM 유지: {clip.name}");
             return;
+        }
 
         currentClip = clip;
         audioSource.clip = clip;
         audioSource.Play();
+        Debug.Log($"[BGM] 재생 시작: {clip.name}");
     }
 
     private AudioClip GetClipForScene(string sceneName)

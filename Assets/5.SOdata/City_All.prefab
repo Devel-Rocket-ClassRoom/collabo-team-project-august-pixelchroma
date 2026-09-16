@@ -1556,10 +1556,10 @@ MonoBehaviour:
   ambientStrength: 1.532
   brightness: 1.18
   midToneBuilding:
-    enabled: 0
+    enabled: 1
     tint: {r: 0.85, g: 0.82, b: 0.9, a: 1}
-    threshold: 0.7
-    feather: 0.1
+    threshold: 0.764
+    feather: 0.076
   midToneTree:
     enabled: 0
     tint: {r: 0.85, g: 0.82, b: 0.9, a: 1}
@@ -1572,20 +1572,20 @@ MonoBehaviour:
   disableExtraDirectionalLights: 1
   applyLight: 1
   lightColor: {r: 1, g: 0.957, b: 0.902, a: 1}
-  lightIntensity: 0.15
-  shadowStrength: 0.085
-  lightAngleVertical: 17.9
-  lightAngleHorizontal: -132
+  lightIntensity: 0.55
+  shadowStrength: 0.228
+  lightAngleVertical: 32.7
+  lightAngleHorizontal: -76
   applyAmbient: 1
   ambientSky: {r: 0.6, g: 0.68, b: 0.82, a: 1}
   ambientEquator: {r: 0.52, g: 0.56, b: 0.65, a: 1}
   ambientGround: {r: 0.42, g: 0.43, b: 0.47, a: 1}
-  ambientIntensity: 0.39
+  ambientIntensity: 0
   reflectionIntensity: 0
   enableFog: 1
   fogColor: {r: 0.72, g: 0.82, b: 0.94, a: 1}
-  fogStart: 25
-  fogEnd: 260
+  fogStart: 500
+  fogEnd: 1000
   volumeProfile: {fileID: 0}
   applyPost: 1
   postExposure: -0.15
@@ -1621,7 +1621,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6723502131014561200}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.06327703, y: -0.9024226, z: 0.14212255, w: 0.4017844}
+  m_LocalRotation: {x: 0.22182836, y: -0.59076416, z: 0.17331131, w: 0.7561436}
   m_LocalPosition: {x: -177.27705, y: 9.037246, z: 24.675297}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1639,7 +1639,7 @@ Light:
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 0.957, b: 0.902, a: 1}
-  m_Intensity: 0.15
+  m_Intensity: 0.55
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -1648,7 +1648,7 @@ Light:
     m_Type: 2
     m_Resolution: 3
     m_CustomResolution: -1
-    m_Strength: 0.085
+    m_Strength: 0.228
     m_Bias: 0.08
     m_NormalBias: 0.45
     m_NearPlane: 0.2

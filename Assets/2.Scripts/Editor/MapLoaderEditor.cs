@@ -61,9 +61,7 @@ public class MapLoaderEditor : Editor
                 mapData.backgroundScale = scale;
                 EditorUtility.SetDirty(mapData);
 
-                previewObject.transform.position = pos;
-                previewObject.transform.eulerAngles = rot;
-                previewObject.transform.localScale = scale;
+                ApplySOToPreview(mapData);
             }
 
             SyncPreviewToSO(mapData);
@@ -84,9 +82,7 @@ public class MapLoaderEditor : Editor
                 mapData.backgroundScale = Vector3.one;
                 EditorUtility.SetDirty(mapData);
 
-                previewObject.transform.position = Vector3.zero;
-                previewObject.transform.rotation = Quaternion.identity;
-                previewObject.transform.localScale = Vector3.one;
+                ApplySOToPreview(mapData);
             }
             EditorGUILayout.EndHorizontal();
 
@@ -148,12 +144,16 @@ public class MapLoaderEditor : Editor
         Renderer[] renderers = obj.GetComponentsInChildren<Renderer>(true);
         int converted = 0;
 
+        Undo.SetCurrentGroupName("툰 셰이더 변환");
+        int undoGroup = Undo.GetCurrentGroup();
+
         foreach (Renderer rend in renderers)
         {
             foreach (Material mat in rend.sharedMaterials)
             {
                 if (mat == null || mat.shader == toonShader) continue;
 
+                Undo.RecordObject(mat, "Convert to Toon");
                 ToonMaterialUtil.ToToon(mat, isEnvironment: true);
 
                 EditorUtility.SetDirty(mat);
@@ -161,6 +161,7 @@ public class MapLoaderEditor : Editor
             }
         }
 
+        Undo.CollapseUndoOperations(undoGroup);
         AssetDatabase.SaveAssets();
         Debug.Log($"[MapLoader] {converted}개 머터리얼을 툰 셰이더로 변환 완료");
     }
@@ -169,7 +170,14 @@ public class MapLoaderEditor : Editor
     {
         var settings = obj.GetComponent<EnvironmentToonSettings>();
         if (settings == null)
-            settings = obj.AddComponent<EnvironmentToonSettings>();
+        {
+            Undo.AddComponent<EnvironmentToonSettings>(obj);
+            settings = obj.GetComponent<EnvironmentToonSettings>();
+        }
+        else
+        {
+            Undo.RecordObject(settings, "Apply Environment Toon Settings");
+        }
         settings.Apply();
         Debug.Log("[MapLoader] 환경 툰 설정 적용 완료 (조명 + 앰비언트 + 안개)");
     }
@@ -178,7 +186,7 @@ public class MapLoaderEditor : Editor
     {
         var settings = obj.GetComponent<EnvironmentToonSettings>();
         if (settings != null)
-            DestroyImmediate(settings);
+            Undo.DestroyObjectImmediate(settings);
     }
 
     private static void RestoreMaterialsToURPLit(GameObject obj, Shader urpLit)
@@ -186,12 +194,16 @@ public class MapLoaderEditor : Editor
         Renderer[] renderers = obj.GetComponentsInChildren<Renderer>(true);
         int converted = 0;
 
+        Undo.SetCurrentGroupName("URP Lit 복원");
+        int undoGroup = Undo.GetCurrentGroup();
+
         foreach (Renderer rend in renderers)
         {
             foreach (Material mat in rend.sharedMaterials)
             {
                 if (mat == null || mat.shader == urpLit) continue;
 
+                Undo.RecordObject(mat, "Restore to URP Lit");
                 ToonMaterialUtil.ToUrpLit(mat);
 
                 EditorUtility.SetDirty(mat);
@@ -199,6 +211,7 @@ public class MapLoaderEditor : Editor
             }
         }
 
+        Undo.CollapseUndoOperations(undoGroup);
         AssetDatabase.SaveAssets();
         Debug.Log($"[MapLoader] {converted}개 머터리얼을 URP Lit로 복원 완료");
     }
@@ -215,6 +228,14 @@ public class MapLoaderEditor : Editor
         previewMapData = mapData;
     }
 
+    private static void ApplySOToPreview(MapData mapData)
+    {
+        if (previewObject == null || mapData == null) return;
+        previewObject.transform.position = mapData.backgroundPosition;
+        previewObject.transform.eulerAngles = mapData.backgroundRotation;
+        previewObject.transform.localScale = mapData.backgroundScale;
+    }
+
     private void SyncPreviewToSO(MapData mapData)
     {
         if (previewObject == null || mapData == null) return;
@@ -226,7 +247,7 @@ public class MapLoaderEditor : Editor
 
         if (changed)
         {
-            Undo.RecordObject(mapData, "Sync Background Transform");
+            Undo.RecordObject(mapData, "Move Background in Scene");
             mapData.backgroundPosition = previewObject.transform.position;
             mapData.backgroundRotation = previewObject.transform.eulerAngles;
             mapData.backgroundScale = previewObject.transform.localScale;
@@ -258,6 +279,13 @@ public class MapLoaderEditor : Editor
         EditorApplication.playModeStateChanged += OnPlayModeChanged;
         EditorSceneManager.sceneOpened += OnSceneOpened;
         EditorApplication.delayCall += TryAutoSpawn;
+        Undo.undoRedoPerformed += OnUndoRedo;
+    }
+
+    private static void OnUndoRedo()
+    {
+        if (previewMapData != null)
+            ApplySOToPreview(previewMapData);
     }
 
     private static void OnPlayModeChanged(PlayModeStateChange state)

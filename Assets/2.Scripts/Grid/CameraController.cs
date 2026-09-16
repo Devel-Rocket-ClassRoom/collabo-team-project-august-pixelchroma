@@ -19,6 +19,14 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float focusDuration = 0.35f;
     [SerializeField] private float focusHeightOffset = 2f;
 
+    [Header("Mouse Zoom (Scroll Wheel)")]
+    [SerializeField] private float zoomSpeed = 5f;
+    [SerializeField] private float minFOV = 20f;
+    [SerializeField] private float maxFOV = 80f;
+
+    [Header("Mouse Rotate (Right-Click Drag)")]
+    [SerializeField, Range(0.05f, 1f)] private float mouseRotateSensitivity = 0.3f;
+
     [Header("Building Visibility")]
     [SerializeField] private bool fadeBuildingsOnContact = true;
     [SerializeField, Min(0.05f)] private float buildingContactRadius = 0.75f;
@@ -69,8 +77,12 @@ public class CameraController : MonoBehaviour
         Instance = this;
         cam = GetComponent<Camera>();
         if (cam == null) cam = Camera.main;
-        defaultFOV = cam.fieldOfView;
-        targetFOV = defaultFOV;
+        if (cam != null)
+        {
+            defaultFOV = cam.fieldOfView;
+            targetFOV = defaultFOV;
+        }
+        Debug.Log($"[Camera] Awake — cam={(cam != null ? cam.name : "NULL")}");
     }
 
     public void SetBounds(Vector3 gridMin, Vector3 gridMax, float padding, float groundY)
@@ -88,6 +100,11 @@ public class CameraController : MonoBehaviour
         if (HandleTwoFingerRotation())
             return;
 
+        HandleScrollZoom();
+        HandleRightClickRotation();
+
+        if (rightClickHeld) return;
+
         var pointer = Pointer.current;
         if (pointer == null) return;
 
@@ -96,7 +113,6 @@ public class CameraController : MonoBehaviour
             Vector2 pointerPosition = pointer.position.ReadValue();
             if (IsPointerOverUI(pointerPosition))
             {
-                // A previous map press must never survive into a UI interaction.
                 isPressed = false;
                 isDragging = false;
                 return;
@@ -322,6 +338,70 @@ public class CameraController : MonoBehaviour
     public void StopFollow()
     {
         followTarget = null;
+    }
+
+    private void HandleScrollZoom()
+    {
+        var mouse = Mouse.current;
+        float scroll = 0f;
+
+        if (mouse != null)
+            scroll = mouse.scroll.ReadValue().y / 120f;
+
+        if (Mathf.Approximately(scroll, 0f))
+            scroll = Input.mouseScrollDelta.y;
+
+        if (Mathf.Approximately(scroll, 0f)) return;
+        if (cam == null) return;
+
+        float newFOV = cam.fieldOfView - scroll * zoomSpeed;
+        cam.fieldOfView = Mathf.Clamp(newFOV, minFOV, maxFOV);
+        targetFOV = cam.fieldOfView;
+        defaultFOV = cam.fieldOfView;
+        Debug.Log($"[Camera] Zoom scroll={scroll}, FOV={cam.fieldOfView}");
+    }
+
+    private bool rightClickHeld;
+    private Vector2 rightClickLastPos;
+
+    private void HandleRightClickRotation()
+    {
+        var mouse = Mouse.current;
+        bool rightDown = Input.GetMouseButtonDown(1);
+        bool rightUp = Input.GetMouseButtonUp(1);
+        bool rightPressed = Input.GetMouseButton(1);
+
+        if (mouse != null)
+        {
+            rightDown = rightDown || mouse.rightButton.wasPressedThisFrame;
+            rightUp = rightUp || mouse.rightButton.wasReleasedThisFrame;
+            rightPressed = rightPressed || mouse.rightButton.isPressed;
+        }
+
+        if (rightDown)
+        {
+            rightClickHeld = true;
+            rightClickLastPos = Input.mousePosition;
+            Debug.Log("[Camera] Right-click DOWN");
+        }
+
+        if (rightUp)
+        {
+            rightClickHeld = false;
+        }
+
+        if (!rightClickHeld && !rightPressed) return;
+        rightClickHeld = true;
+
+        Vector2 currentPos = Input.mousePosition;
+        float deltaX = currentPos.x - rightClickLastPos.x;
+        rightClickLastPos = currentPos;
+
+        if (Mathf.Approximately(deltaX, 0f)) return;
+
+        Vector3 pivot = GetCurrentGroundFocus();
+        cam.transform.RotateAround(pivot, Vector3.up, deltaX * mouseRotateSensitivity);
+        Debug.Log($"[Camera] Rotate deltaX={deltaX}, pivot={pivot}");
     }
 
     private void UpdateFocus()
