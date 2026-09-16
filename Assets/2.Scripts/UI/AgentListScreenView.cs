@@ -11,6 +11,7 @@ public class AgentListScreenView : MonoBehaviour
     [SerializeField] private TMP_Text totalPowerText;
     [SerializeField] private Button backButton;
     [SerializeField] private Button detailCloseButton;
+    [SerializeField] private Button detailOpenButton;
     [SerializeField] private GameObject detailPanel;
     [SerializeField] private Image detailPortrait;
     [SerializeField] private TMP_Text detailNameText;
@@ -27,6 +28,8 @@ public class AgentListScreenView : MonoBehaviour
             backButton.onClick.AddListener(() => SceneManager.LoadScene("1.MainMenu"));
         if (detailCloseButton != null)
             detailCloseButton.onClick.AddListener(HideDetail);
+        if (detailOpenButton != null)
+            detailOpenButton.onClick.AddListener(OpenStatus);
 
         HideDetail();
         Populate();
@@ -56,6 +59,7 @@ public class AgentListScreenView : MonoBehaviour
     private void ShowDetail(CharacterData agent)
     {
         if (agent == null || detailPanel == null) return;
+        AgentSelectionState.Current = agent;
         detailPanel.SetActive(true);
         detailPanel.transform.SetAsLastSibling();
 
@@ -76,6 +80,12 @@ public class AgentListScreenView : MonoBehaviour
         }
         if (detailDescriptionText != null)
             detailDescriptionText.text = string.IsNullOrWhiteSpace(agent.Description) ? "등록된 요원 설명이 없습니다." : agent.Description;
+    }
+
+    private void OpenStatus()
+    {
+        if (AgentSelectionState.Current != null)
+            SceneManager.LoadScene("6.Status List");
     }
 
     private void HideDetail()

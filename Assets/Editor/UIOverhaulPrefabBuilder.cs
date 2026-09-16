@@ -18,6 +18,8 @@ public static class UIOverhaulPrefabBuilder
     private const string ChapterPath = ScreensFolder + "/챕터_선택_화면.prefab";
     private const string StagePath = ScreensFolder + "/스테이지_선택_화면.prefab";
     private const string SquadPath = RootFolder + "/SquadFormationUI.prefab";
+    private const string TitlePath = ScreensFolder + "/타이틀_화면.prefab";
+    private const string StatusPath = ScreensFolder + "/요원_상세_화면.prefab";
     private const string CatalogPath = "Assets/Resources/UIScreenCatalog.asset";
 
     private static readonly Color Ink = new Color(0.035f, 0.045f, 0.06f, 1f);
@@ -38,21 +40,25 @@ public static class UIOverhaulPrefabBuilder
         BuildTopBar();
         BuildBottomNavigation();
         BuildAgentCard();
+        BuildTitleScreen();
         BuildHomeScreen();
         BuildAgentListScreen();
         BuildChapterScreen();
         BuildStageScreen();
         BuildSquadFormation();
+        BuildAgentStatusScreen();
         BuildCatalog();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("[UIOverhaul] 공통 UI, 메인 로비, 요원 리스트 프리팹 생성 완료");
+        Debug.Log("[UIOverhaul] 1·2차 UI 프리팹 생성 완료");
     }
 
     private static void BuildMissing()
     {
         if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
-        if (AssetDatabase.LoadAssetAtPath<UIScreenCatalog>(CatalogPath) == null)
+        if (AssetDatabase.LoadAssetAtPath<UIScreenCatalog>(CatalogPath) == null ||
+            AssetDatabase.LoadAssetAtPath<GameObject>(TitlePath) == null ||
+            AssetDatabase.LoadAssetAtPath<GameObject>(StatusPath) == null)
             RebuildAll();
     }
 
@@ -152,6 +158,38 @@ public static class UIOverhaulPrefabBuilder
         serialized.FindProperty("levelText").objectReferenceValue = power;
         serialized.ApplyModifiedPropertiesWithoutUndo();
         SavePrefab(root, AgentCardPath);
+    }
+
+    private static void BuildTitleScreen()
+    {
+        GameObject root = CreateCanvas("타이틀 화면", 180);
+        TitleScreenView view = root.AddComponent<TitleScreenView>();
+
+        Image background = CreateImage(root.transform, "도시 배경", Color.white);
+        Stretch(background.rectTransform);
+        background.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/4.Image/BackGround/BG_BuildingRooftop.jpg");
+        background.preserveAspect = false;
+        Image shade = CreateImage(root.transform, "배경 음영", new Color(0.01f, 0.025f, 0.045f, 0.48f));
+        Stretch(shade.rectTransform);
+
+        RectTransform safe = CreateSafeArea(root.transform);
+        Image logo = CreateImage(safe, "게임 로고", Color.white);
+        logo.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/4.Image/UI/Tittle/tiltleLogo_Renual_White.png");
+        logo.preserveAspect = true;
+        SetAnchors(logo.rectTransform, 0.12f, 0.61f, 0.88f, 0.84f);
+
+        TMP_Text subtitle = CreateText(safe, "부제", "3D 전술 맵과 2D 요원이 만나는 턴제 SRPG", 25f, TextAlignmentOptions.Center, Color.white);
+        SetAnchors(subtitle.rectTransform, 0.1f, 0.545f, 0.9f, 0.61f);
+
+        Button start = CreateButton(safe, "게임 시작", "화면을 눌러 시작", new Color(0.02f, 0.54f, 0.83f, 0.96f), 35f);
+        SetAnchors((RectTransform)start.transform, 0.15f, 0.105f, 0.85f, 0.19f);
+        TMP_Text version = CreateText(safe, "버전", "PROTOTYPE  0.2", 18f, TextAlignmentOptions.Center, new Color(1f, 1f, 1f, 0.72f));
+        SetAnchors(version.rectTransform, 0.3f, 0.045f, 0.7f, 0.08f);
+
+        SerializedObject serialized = new SerializedObject(view);
+        serialized.FindProperty("startButton").objectReferenceValue = start;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        SavePrefab(root, TitlePath);
     }
 
     private static void BuildHomeScreen()
@@ -278,8 +316,10 @@ public static class UIOverhaulPrefabBuilder
         SetAnchors(detailStats.rectTransform, 0.52f, 0.42f, 0.94f, 0.68f);
         TMP_Text detailDescription = CreateText(box.transform, "상세 설명", "요원 설명", 24f, TextAlignmentOptions.TopLeft, new Color(0.78f, 0.82f, 0.88f));
         SetAnchors(detailDescription.rectTransform, 0.07f, 0.14f, 0.93f, 0.36f);
-        Button close = CreateButton(box.transform, "닫기", "확인", Cyan, 30f);
-        SetAnchors((RectTransform)close.transform, 0.28f, 0.035f, 0.72f, 0.125f);
+        Button close = CreateButton(box.transform, "닫기", "닫기", new Color(0.18f, 0.21f, 0.27f, 1f), 28f);
+        SetAnchors((RectTransform)close.transform, 0.07f, 0.035f, 0.46f, 0.125f);
+        Button openStatus = CreateButton(box.transform, "상세 화면", "상세 보기  >", Cyan, 28f);
+        SetAnchors((RectTransform)openStatus.transform, 0.54f, 0.035f, 0.93f, 0.125f);
 
         AgentCardView cardPrefab = LoadPrefabComponent<AgentCardView>(AgentCardPath);
         SerializedObject serialized = new SerializedObject(view);
@@ -289,6 +329,7 @@ public static class UIOverhaulPrefabBuilder
         serialized.FindProperty("totalPowerText").objectReferenceValue = power;
         serialized.FindProperty("backButton").objectReferenceValue = back;
         serialized.FindProperty("detailCloseButton").objectReferenceValue = close;
+        serialized.FindProperty("detailOpenButton").objectReferenceValue = openStatus;
         serialized.FindProperty("detailPanel").objectReferenceValue = dim.gameObject;
         serialized.FindProperty("detailPortrait").objectReferenceValue = detailPortrait;
         serialized.FindProperty("detailNameText").objectReferenceValue = detailName;
@@ -504,6 +545,70 @@ public static class UIOverhaulPrefabBuilder
         SavePrefab(root, SquadPath);
     }
 
+    private static void BuildAgentStatusScreen()
+    {
+        GameObject root = CreateCanvas("요원 상세 화면", 180);
+        AgentStatusScreenView view = root.AddComponent<AgentStatusScreenView>();
+        Image background = CreateImage(root.transform, "배경", new Color(0.9f, 0.92f, 0.94f, 1f));
+        Stretch(background.rectTransform);
+        RectTransform safe = CreateSafeArea(root.transform);
+        InstantiateNested(TopBarPath, safe, "공통 상단바", 0f, 0.91f, 1f, 1f);
+
+        Image header = CreateImage(safe, "상세 헤더", Ink);
+        SetAnchors(header.rectTransform, 0f, 0.79f, 1f, 0.91f);
+        Button back = CreateButton(header.transform, "뒤로가기", "<", new Color(1f, 1f, 1f, 0.05f), 42f);
+        SetAnchors((RectTransform)back.transform, 0.025f, 0.2f, 0.13f, 0.82f);
+        TMP_Text screenTitle = CreateText(header.transform, "화면 제목", "요원 상세", 42f, TextAlignmentOptions.Left, Color.white);
+        SetAnchors(screenTitle.rectTransform, 0.16f, 0.43f, 0.58f, 0.9f);
+        TMP_Text power = CreateText(header.transform, "전투력", "전투력  0", 26f, TextAlignmentOptions.Right, Yellow);
+        SetAnchors(power.rectTransform, 0.53f, 0.16f, 0.95f, 0.52f);
+
+        Image heroPanel = CreateImage(safe, "요원 일러스트 영역", new Color(0.075f, 0.09f, 0.12f, 1f));
+        SetAnchors(heroPanel.rectTransform, 0f, 0.38f, 0.69f, 0.79f);
+        Image accent = CreateImage(heroPanel.transform, "병과 색상", Cyan);
+        SetAnchors(accent.rectTransform, 0f, 0f, 0.018f, 1f);
+        Image portrait = CreateImage(heroPanel.transform, "요원 이미지", new Color(0.14f, 0.17f, 0.21f, 1f));
+        SetAnchors(portrait.rectTransform, 0.03f, 0.03f, 0.98f, 0.98f);
+        TMP_Text name = CreateText(heroPanel.transform, "요원 이름", "요원 이름", 48f, TextAlignmentOptions.BottomLeft, Color.white);
+        name.fontStyle = FontStyles.Bold;
+        SetAnchors(name.rectTransform, 0.07f, 0.05f, 0.92f, 0.22f);
+        TMP_Text role = CreateText(heroPanel.transform, "공격 유형", "공격 유형", 25f, TextAlignmentOptions.BottomLeft, Cyan);
+        SetAnchors(role.rectTransform, 0.07f, 0.21f, 0.88f, 0.3f);
+
+        Image statsPanel = CreateImage(safe, "능력치", Color.white);
+        SetAnchors(statsPanel.rectTransform, 0.71f, 0.38f, 1f, 0.79f);
+        TMP_Text statsTitle = CreateText(statsPanel.transform, "제목", "기본 능력", 25f, TextAlignmentOptions.Center, Ink);
+        SetAnchors(statsTitle.rectTransform, 0.06f, 0.88f, 0.94f, 0.98f);
+        TMP_Text stats = CreateText(statsPanel.transform, "능력치 내용", "체력\n0\n\n공격력\n0\n\n이동\n0\n\n사거리\n0", 25f, TextAlignmentOptions.Top, Ink);
+        SetAnchors(stats.rectTransform, 0.08f, 0.04f, 0.92f, 0.86f);
+
+        Image skillPanel = CreateImage(safe, "특수 공격", Color.white);
+        SetAnchors(skillPanel.rectTransform, 0.035f, 0.205f, 0.965f, 0.355f);
+        TMP_Text skillLabel = CreateText(skillPanel.transform, "항목", "SPECIAL ATTACK", 20f, TextAlignmentOptions.Left, Cyan);
+        SetAnchors(skillLabel.rectTransform, 0.035f, 0.7f, 0.42f, 0.94f);
+        TMP_Text skill = CreateText(skillPanel.transform, "특수 공격 내용", "특수 공격 정보", 28f, TextAlignmentOptions.Left, Ink);
+        SetAnchors(skill.rectTransform, 0.035f, 0.08f, 0.95f, 0.7f);
+
+        Image descriptionPanel = CreateImage(safe, "요원 설명", new Color(0.075f, 0.09f, 0.12f, 1f));
+        SetAnchors(descriptionPanel.rectTransform, 0.035f, 0.08f, 0.965f, 0.185f);
+        TMP_Text description = CreateText(descriptionPanel.transform, "설명 내용", "요원 설명", 24f, TextAlignmentOptions.Left, Color.white);
+        SetAnchors(description.rectTransform, 0.04f, 0.12f, 0.96f, 0.88f);
+        InstantiateNested(BottomNavPath, safe, "공통 하단 내비게이션", 0f, 0f, 1f, 0.065f);
+
+        SerializedObject serialized = new SerializedObject(view);
+        serialized.FindProperty("backButton").objectReferenceValue = back;
+        serialized.FindProperty("portrait").objectReferenceValue = portrait;
+        serialized.FindProperty("roleAccent").objectReferenceValue = accent;
+        serialized.FindProperty("nameText").objectReferenceValue = name;
+        serialized.FindProperty("roleText").objectReferenceValue = role;
+        serialized.FindProperty("powerText").objectReferenceValue = power;
+        serialized.FindProperty("statsText").objectReferenceValue = stats;
+        serialized.FindProperty("skillText").objectReferenceValue = skill;
+        serialized.FindProperty("descriptionText").objectReferenceValue = description;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        SavePrefab(root, StatusPath);
+    }
+
     private static void SetObjectArray<T>(SerializedProperty property, T[] values) where T : Object
     {
         property.arraySize = values.Length;
@@ -525,6 +630,8 @@ public static class UIOverhaulPrefabBuilder
         serialized.FindProperty("agentListScreenPrefab").objectReferenceValue = LoadPrefabComponent<AgentListScreenView>(AgentListPath);
         serialized.FindProperty("chapterScreenPrefab").objectReferenceValue = LoadPrefabComponent<OperationSelectionScreenView>(ChapterPath);
         serialized.FindProperty("stageScreenPrefab").objectReferenceValue = LoadPrefabComponent<OperationSelectionScreenView>(StagePath);
+        serialized.FindProperty("titleScreenPrefab").objectReferenceValue = LoadPrefabComponent<TitleScreenView>(TitlePath);
+        serialized.FindProperty("agentStatusScreenPrefab").objectReferenceValue = LoadPrefabComponent<AgentStatusScreenView>(StatusPath);
         serialized.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(catalog);
     }

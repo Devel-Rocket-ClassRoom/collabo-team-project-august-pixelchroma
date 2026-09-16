@@ -16,3 +16,5 @@ MonoBehaviour:
   agentListScreenPrefab: {fileID: 7769349284005935760, guid: 2405bee761f79c346b421e3a376c1404, type: 3}
   chapterScreenPrefab: {fileID: 1999645514868648658, guid: afb70eea6be3da54f81a7c11b6bbce06, type: 3}
   stageScreenPrefab: {fileID: 7147970495685456799, guid: 60776084f4da304438bdc72b3c80f90d, type: 3}
+  titleScreenPrefab: {fileID: 1630939771246408860, guid: 9c2c578a9848fd84ab90d0b9c3d93f5f, type: 3}
+  agentStatusScreenPrefab: {fileID: 1877681634008099833, guid: 9cb102ad6d8d9ab4faadb221535f4b93, type: 3}
