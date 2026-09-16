@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57b1f97c5d2e4d97811c1722cbf97f01, type: 3}
+  m_Name: OwnedAgentCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::OwnedAgentCatalog
+  ownedAgents:
+  - {fileID: 11400000, guid: 5b45e92d0b074eae8765e06a81f93b01, type: 2}
+  - {fileID: 11400000, guid: 11f745b83f3a4eb29a7249d72077b902, type: 2}
+  - {fileID: 11400000, guid: 249edbbf72574376a325e7f45ed2ad03, type: 2}
+  - {fileID: 11400000, guid: 0853689919ad4b92a684cba787899304, type: 2}
+  - {fileID: 11400000, guid: ee2cdde9449c4d29b73178908b216305, type: 2}
+  - {fileID: 11400000, guid: 02d05459439448a39b6bf5a3e8575b06, type: 2}
+  uiFont: {fileID: 11400000, guid: 88630710c7b8f8b4cad73e02a9ec81af, type: 2}
