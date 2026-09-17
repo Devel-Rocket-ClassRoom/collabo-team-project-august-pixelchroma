@@ -25,6 +25,8 @@ public static class UIBootstrap
         {
             if (canvas.renderMode == RenderMode.WorldSpace)
                 continue;
+            if (canvas.GetComponent<UIScreenCanvas>() != null)
+                continue;
 
             CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
             if (scaler == null)
