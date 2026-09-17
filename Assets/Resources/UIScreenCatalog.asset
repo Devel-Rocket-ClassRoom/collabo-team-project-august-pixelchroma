@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b80080c2fb7ce434a937bb201db82044, type: 3}
   m_Name: UIScreenCatalog
   m_EditorClassIdentifier: Assembly-CSharp::UIScreenCatalog
-  homeScreenPrefab: {fileID: 3967414875744718411, guid: 287f5a9ce65a265478c98c3184ac471d, type: 3}
-  agentListScreenPrefab: {fileID: 7769349284005935760, guid: 2405bee761f79c346b421e3a376c1404, type: 3}
-  chapterScreenPrefab: {fileID: 1999645514868648658, guid: afb70eea6be3da54f81a7c11b6bbce06, type: 3}
-  stageScreenPrefab: {fileID: 7147970495685456799, guid: 60776084f4da304438bdc72b3c80f90d, type: 3}
-  titleScreenPrefab: {fileID: 1630939771246408860, guid: 9c2c578a9848fd84ab90d0b9c3d93f5f, type: 3}
-  agentStatusScreenPrefab: {fileID: 1877681634008099833, guid: 9cb102ad6d8d9ab4faadb221535f4b93, type: 3}
+  homeScreenPrefab: {fileID: 6178577590729146154, guid: 11b4c8b54421eee46b81bc0871756cbc, type: 3}
+  agentListScreenPrefab: {fileID: 7623920566511586975, guid: 12b3da6b3faaeaa429fe5ce284cb6663, type: 3}
+  chapterScreenPrefab: {fileID: 6552240407467128221, guid: 81e0a11bd4470954bb6e45aa6bbaf893, type: 3}
+  stageScreenPrefab: {fileID: 8570228455225678739, guid: 414799b3ff01fba4a94f8bc2c3d54f37, type: 3}
+  titleScreenPrefab: {fileID: 4941712474055731915, guid: dd75a538b18f79548971e107c25d56d6, type: 3}
+  agentStatusScreenPrefab: {fileID: 2869044412928444781, guid: 1f3f412eb7fe40240a742e6d6d3f4e87, type: 3}
