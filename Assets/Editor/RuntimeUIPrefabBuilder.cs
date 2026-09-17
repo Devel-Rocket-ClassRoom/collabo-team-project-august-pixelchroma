@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,7 +10,9 @@ public static class RuntimeUIPrefabBuilder
     private const string Folder = "Assets/3.Prefabs/UI";
     private const string DeploymentPath = Folder + "/DeploymentUI.prefab";
     private const string AttackPath = Folder + "/AttackPreviewUI.prefab";
+    private const string BattleHUDPath = Folder + "/BattleHUDUI.prefab";
     private const string SquadPath = Folder + "/SquadFormationUI.prefab";
+    private const string MainGameScenePath = "Assets/1.Sence/4.MainGame.unity";
 
     static RuntimeUIPrefabBuilder()
     {
@@ -37,6 +40,8 @@ public static class RuntimeUIPrefabBuilder
             BuildDeploymentPrefab();
         if (AssetDatabase.LoadAssetAtPath<GameObject>(AttackPath) == null)
             BuildAttackPrefab();
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(BattleHUDPath) == null)
+            BuildBattleHUDPrefab();
         if (AssetDatabase.LoadAssetAtPath<GameObject>(SquadPath) == null)
             BuildSquadPrefab();
         AssetDatabase.SaveAssets();
@@ -60,9 +65,22 @@ public static class RuntimeUIPrefabBuilder
         EnsureFolders();
         BuildDeploymentPrefab();
         BuildAttackPrefab();
+        BuildBattleHUDPrefab();
+        AssignBattleHUDPrefab();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log("[SRPG UI] 3차 전투 UI 프리팹 생성 완료");
+    }
+
+    [MenuItem("Tools/SRPG UI/3차 전투 HUD 생성 및 씬 연결")]
+    public static void RebuildBattleHUDPrefab()
+    {
+        EnsureFolders();
+        BuildBattleHUDPrefab();
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        AssignBattleHUDPrefab();
+        Debug.Log("[SRPG UI] 전투 HUD 생성 및 메인게임 씬 연결 완료");
     }
 
     [MenuItem("Tools/SRPG UI/3차 전투 UI 연결 검사")]
@@ -70,17 +88,28 @@ public static class RuntimeUIPrefabBuilder
     {
         GameObject deploymentPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DeploymentPath);
         GameObject attackPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(AttackPath);
-        if (deploymentPrefab == null || attackPrefab == null)
+        GameObject battleHUDPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHUDPath);
+        if (deploymentPrefab == null || attackPrefab == null || battleHUDPrefab == null)
             throw new System.InvalidOperationException("전투 UI 프리팹을 찾을 수 없습니다.");
 
         DeploymentUIView deployment = deploymentPrefab.GetComponent<DeploymentUIView>();
         AttackPreviewUIView attack = attackPrefab.GetComponent<AttackPreviewUIView>();
+        BattleHUDUIView battleHUD = battleHUDPrefab.GetComponent<BattleHUDUIView>();
         if (deployment == null || deployment.Panel == null || deployment.CharacterContainer == null ||
             deployment.InfoText == null || deployment.StartButton == null || deployment.CancelHint == null)
             throw new System.InvalidOperationException("배치 UI 연결 필드가 누락됐습니다.");
         if (attack == null || attack.Panel == null || attack.PreviewText == null ||
             attack.CancelButton == null || attack.ConfirmButton == null)
             throw new System.InvalidOperationException("공격 확인 UI 연결 필드가 누락됐습니다.");
+        if (battleHUD == null || battleHUD.InfoText == null || battleHUD.UndoButton == null ||
+            battleHUD.ConfirmButton == null)
+            throw new System.InvalidOperationException("전투 HUD 연결 필드가 누락됐습니다.");
+
+        RectTransform undoRect = (RectTransform)battleHUD.UndoButton.transform;
+        RectTransform hudConfirmRect = (RectTransform)battleHUD.ConfirmButton.transform;
+        if (undoRect.anchorMax.y - undoRect.anchorMin.y < 0.7f ||
+            hudConfirmRect.anchorMax.y - hudConfirmRect.anchorMin.y < 0.7f)
+            throw new System.InvalidOperationException("전투 HUD 버튼의 터치 영역이 너무 작습니다.");
 
         RectTransform panelRect = deployment.Panel.GetComponent<RectTransform>();
         RectTransform hintRect = deployment.CancelHint.GetComponent<RectTransform>();
@@ -95,7 +124,88 @@ public static class RuntimeUIPrefabBuilder
         if (cancelHeight < 120f || confirmHeight < 120f)
             throw new System.InvalidOperationException("공격 확인 버튼의 터치 영역이 너무 작습니다.");
 
+        var scene = EditorSceneManager.OpenScene(MainGameScenePath, OpenSceneMode.Single);
+        GameManager manager = Object.FindFirstObjectByType<GameManager>();
+        SerializedObject managerData = manager != null ? new SerializedObject(manager) : null;
+        SerializedProperty hudProperty = managerData?.FindProperty("battleHUDPrefab");
+        if (hudProperty == null || hudProperty.objectReferenceValue == null)
+            throw new System.InvalidOperationException("메인게임 씬에 전투 HUD가 연결되지 않았습니다.");
+
         Debug.Log("[SRPG UI] 3차 전투 UI 연결/겹침/터치 영역 검사 통과");
+    }
+
+    private static void BuildBattleHUDPrefab()
+    {
+        TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+            "Assets/6.Font/경기천년제목_Medium SDF.asset");
+        GameObject root = CreateCanvas("BattleHUDUI", 80);
+        BattleHUDUIView view = root.AddComponent<BattleHUDUIView>();
+
+        RectTransform safe = CreateRect(root.transform, "SafeArea");
+        Stretch(safe);
+        safe.gameObject.AddComponent<SafeAreaAdapter>();
+
+        Image status = CreateImage(safe, "작전 상태 패널", new Color(0.025f, 0.04f, 0.065f, 0.94f));
+        SetAnchors(status.rectTransform, 0.04f, 0.895f, 0.96f, 0.965f);
+        AddOutline(status.gameObject, new Color(0.03f, 0.68f, 0.92f, 0.85f), 3f);
+        Image statusBar = CreateImage(status.transform, "상태 색상", new Color(0.03f, 0.62f, 0.9f, 1f));
+        SetAnchors(statusBar.rectTransform, 0f, 0f, 0.025f, 1f);
+        TMP_Text info = CreateText(status.transform, "전투 상태 문구", "플레이어 턴 1  ·  행동할 요원을 선택하세요", 28f, font);
+        info.alignment = TextAlignmentOptions.Left;
+        info.margin = new Vector4(34f, 0f, 20f, 0f);
+        Stretch(info.rectTransform);
+
+        Image actionBar = CreateImage(safe, "행동 버튼 패널", new Color(0.02f, 0.03f, 0.05f, 0.96f));
+        SetAnchors(actionBar.rectTransform, 0.04f, 0.025f, 0.96f, 0.115f);
+
+        Button undo = CreateButton(actionBar.transform, "되돌리기 버튼", new Color(0.14f, 0.18f, 0.24f, 1f));
+        SetAnchors((RectTransform)undo.transform, 0.02f, 0.1f, 0.47f, 0.9f);
+        AddOutline(undo.gameObject, new Color(0.45f, 0.55f, 0.68f), 3f);
+        TMP_Text undoText = CreateText(undo.transform, "문구", "↶  이동 취소", 34f, font);
+        Stretch(undoText.rectTransform);
+
+        Button confirm = CreateButton(actionBar.transform, "행동 확정 버튼", new Color(0.02f, 0.58f, 0.82f, 1f));
+        SetAnchors((RectTransform)confirm.transform, 0.53f, 0.1f, 0.98f, 0.9f);
+        AddOutline(confirm.gameObject, new Color(0.3f, 0.88f, 1f), 3f);
+        TMP_Text confirmText = CreateText(confirm.transform, "문구", "행동 확정  >", 34f, font);
+        Stretch(confirmText.rectTransform);
+
+        SerializedObject serialized = new SerializedObject(view);
+        serialized.FindProperty("infoText").objectReferenceValue = info;
+        serialized.FindProperty("undoButton").objectReferenceValue = undo;
+        serialized.FindProperty("confirmButton").objectReferenceValue = confirm;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        PrefabUtility.SaveAsPrefabAsset(root, BattleHUDPath);
+        Object.DestroyImmediate(root);
+    }
+
+    public static void AssignBattleHUDPrefab()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHUDPath);
+        BattleHUDUIView view = prefab != null ? prefab.GetComponent<BattleHUDUIView>() : null;
+        if (view == null)
+            throw new System.InvalidOperationException("전투 HUD 프리팹 컴포넌트를 찾을 수 없습니다.");
+
+        var scene = EditorSceneManager.OpenScene(MainGameScenePath, OpenSceneMode.Single);
+        GameManager manager = Object.FindFirstObjectByType<GameManager>();
+        if (manager == null)
+            throw new System.InvalidOperationException("메인게임 씬에서 GameManager를 찾을 수 없습니다.");
+
+        SerializedObject serialized = new SerializedObject(manager);
+        SerializedProperty property = serialized.FindProperty("battleHUDPrefab");
+        if (property == null)
+            throw new System.InvalidOperationException("GameManager의 battleHUDPrefab 필드를 찾을 수 없습니다.");
+        property.objectReferenceValue = prefab;
+        serialized.ApplyModifiedProperties();
+        EditorUtility.SetDirty(manager);
+        EditorSceneManager.MarkSceneDirty(scene);
+        if (!EditorSceneManager.SaveScene(scene))
+            throw new System.InvalidOperationException("메인게임 씬 저장에 실패했습니다.");
+
+        serialized.Update();
+        if (property.objectReferenceValue == null)
+            throw new System.InvalidOperationException("메인게임 씬에 전투 HUD 참조가 저장되지 않았습니다.");
     }
 
     private static void EnsureFolders()

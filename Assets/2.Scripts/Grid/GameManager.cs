@@ -72,6 +72,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private DeploymentUIView deploymentUIPrefab;
     [Tooltip("?붿옄?명???吏곸젒 ?몄쭛?섎뒗 怨듦꺽 誘몃━蹂닿린 UI Prefab")]
     [SerializeField] private AttackPreviewUIView attackPreviewUIPrefab;
+    [Tooltip("전투 중 상태 문구와 행동 버튼을 표시하는 HUD Prefab")]
+    [SerializeField] private GameObject battleHUDPrefab;
     [Tooltip("???꾪솚 諛곕꼫 UI Prefab (Turnline)")]
     [SerializeField] private TurnBannerUI turnBannerPrefab;
 
@@ -163,6 +165,7 @@ public class GameManager : MonoBehaviour
         SpawnEnemies();
         HideOriginalPrefabs();
         EnsureTurnBanner();
+        CreateBattleHUDFromPrefab();
 
         currentPhase = GamePhase.Deployment;
         deployedCount = 0;
@@ -1822,6 +1825,25 @@ public class GameManager : MonoBehaviour
         RefreshUI();
     }
 
+    private void CreateBattleHUDFromPrefab()
+    {
+        if (battleHUDPrefab == null) return;
+
+        GameObject hudObject = Instantiate(battleHUDPrefab);
+        BattleHUDUIView view = hudObject.GetComponent<BattleHUDUIView>();
+        if (view == null)
+        {
+            Destroy(hudObject);
+            return;
+        }
+        view.name = "BattleHUDUI";
+        view.gameObject.SetActive(false);
+        gamePlayUI = view.gameObject;
+        gameInfoText = view.InfoText;
+        undoButton = view.UndoButton;
+        playButton = view.ConfirmButton;
+    }
+
     private void LateUpdate()
     {
         UpdateAttackPreviewPosition();
@@ -1863,7 +1885,8 @@ public class GameManager : MonoBehaviour
 
     private string GetInfoText()
     {
-        if (gameTextData == null) return "";
+        if (gameTextData == null)
+            return GetFallbackInfoText();
 
         switch (currentPhase)
         {
@@ -1891,6 +1914,29 @@ public class GameManager : MonoBehaviour
                     : gameTextData.enemyTurn + "\n" + lastCombatMessage;
             case GamePhase.BattleResult:
                 return resultMessage;
+            default:
+                return "";
+        }
+    }
+
+    private string GetFallbackInfoText()
+    {
+        switch (currentPhase)
+        {
+            case GamePhase.Deployment:
+                return $"배치 단계  {deployedCount} / {maxPlayerUnits}";
+            case GamePhase.ReadyToStart:
+                return "전투 준비 완료";
+            case GamePhase.PlayerTurn:
+                if (battleState == BattleState.UnitSelected)
+                    return "이동할 칸을 선택하세요";
+                if (battleState == BattleState.UnitMoved)
+                    return "공격 대상을 선택하거나 행동을 확정하세요";
+                return $"플레이어 턴 {turnCount}  ·  행동할 요원을 선택하세요";
+            case GamePhase.EnemyTurn:
+                return "적 턴  ·  적이 행동 중입니다";
+            case GamePhase.BattleResult:
+                return string.IsNullOrEmpty(resultMessage) ? "작전 종료" : resultMessage;
             default:
                 return "";
         }

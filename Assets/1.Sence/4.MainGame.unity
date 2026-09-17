@@ -3377,6 +3377,7 @@ MonoBehaviour:
   uiFont: {fileID: 11400000, guid: 88630710c7b8f8b4cad73e02a9ec81af, type: 2}
   deploymentUIPrefab: {fileID: 7116098781634933645, guid: bb1c4f4d89d2ed54a8ee03f6c7dc25a5, type: 3}
   attackPreviewUIPrefab: {fileID: 8682897199882295331, guid: 8ca1e088bcc0a6e429bbed46de87524d, type: 3}
+  battleHUDPrefab: {fileID: 8923772814256350137, guid: 119beef153ee1624fb541f117b9c9dac, type: 3}
   turnBannerPrefab: {fileID: 0}
   attackCancelButtonSprite: {fileID: 0}
   attackConfirmButtonSprite: {fileID: 0}
