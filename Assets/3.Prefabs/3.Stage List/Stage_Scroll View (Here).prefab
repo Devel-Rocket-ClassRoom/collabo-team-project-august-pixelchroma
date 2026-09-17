@@ -1164,7 +1164,7 @@ GameObject:
   - component: {fileID: 5991595999098029848}
   - component: {fileID: 4300986662392066090}
   m_Layer: 5
-  m_Name: Stage_Scroll View
+  m_Name: Stage_Scroll View (Here)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

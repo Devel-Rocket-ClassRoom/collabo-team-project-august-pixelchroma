@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 5866382715346497883}
   - component: {fileID: 7345461434980233259}
   m_Layer: 0
-  m_Name: SquadFormationUI
+  m_Name: SquadFormationUI (Here)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
