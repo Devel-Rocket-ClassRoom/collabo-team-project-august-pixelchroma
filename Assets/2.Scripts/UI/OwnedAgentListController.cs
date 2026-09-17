@@ -178,9 +178,9 @@ public class OwnedAgentListController : MonoBehaviour
 
         Image portrait = CreateImage(card.transform, "Portrait", Color.Lerp(agent.TeamColor, Background, 0.58f));
         SetAnchors(portrait.rectTransform, 0.035f, 0.37f, 0.965f, 0.95f);
-        if (agent.BattleSprite != null)
+        if (agent.IllustrationSprite != null)
         {
-            portrait.sprite = agent.BattleSprite;
+            portrait.sprite = agent.IllustrationSprite;
             portrait.preserveAspect = true;
             portrait.color = Color.white;
         }

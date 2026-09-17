@@ -48,6 +48,18 @@ public class OperationSelectionScreenView : MonoBehaviour
         StageProgressManager.CurrentStageIndex = index;
         if (selectionTitle != null)
             selectionTitle.text = $"선택 작전  01-{index + 1:00}";
+
+        StageStoryTable storyTable = FindAnyObjectByType<StageStoryTable>();
+        if (storyTable != null && storyTable.TryGetStory(index, out DialogueDataSO story, out bool noBattle))
+        {
+            StorySelection.Scenario = story;
+            StorySelection.NoBattle = noBattle;
+            SceneManager.LoadScene("3.25.Storymode");
+            return;
+        }
+
+        StorySelection.Scenario = null;
+        StorySelection.NoBattle = false;
         SceneManager.LoadScene("3.5.Squad Select");
     }
 }

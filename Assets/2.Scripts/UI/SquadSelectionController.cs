@@ -97,7 +97,7 @@ public class SquadSelectionController : MonoBehaviour
     {
         usingPrefabUI = true;
         SquadFormationUIView view = Instantiate(squadUIPrefab);
-        view.name = "SquadFormationUI";
+        view.name = "SquadFormationUI (PlayHere)";
         safeAreaRoot = view.SafeAreaRoot;
         countText = view.CountText;
         powerText = view.PowerText;
@@ -351,7 +351,7 @@ public class SquadSelectionController : MonoBehaviour
                     slotCardInstances[i].Show(
                         character.DisplayName,
                         $"이동{character.MoveRange} 사거리{character.AttackRange}",
-                        character.BattleSprite,
+                        character.IllustrationSprite,
                         slotColor);
                 else
                     slotCardInstances[i].ShowEmpty();

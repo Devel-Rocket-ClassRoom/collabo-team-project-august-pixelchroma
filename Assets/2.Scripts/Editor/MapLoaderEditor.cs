@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 
 [CustomEditor(typeof(MapLoader))]
 public class MapLoaderEditor : Editor
@@ -277,8 +276,6 @@ public class MapLoaderEditor : Editor
     private static void RegisterCallbacks()
     {
         EditorApplication.playModeStateChanged += OnPlayModeChanged;
-        EditorSceneManager.sceneOpened += OnSceneOpened;
-        EditorApplication.delayCall += TryAutoSpawn;
         Undo.undoRedoPerformed += OnUndoRedo;
     }
 
@@ -292,38 +289,5 @@ public class MapLoaderEditor : Editor
     {
         if (state == PlayModeStateChange.ExitingEditMode)
             RemovePreview();
-        if (state == PlayModeStateChange.EnteredEditMode)
-            EditorApplication.delayCall += TryAutoSpawn;
-    }
-
-    private static void OnSceneOpened(UnityEngine.SceneManagement.Scene scene, OpenSceneMode mode)
-    {
-        EditorApplication.delayCall += TryAutoSpawn;
-    }
-
-    private static void TryAutoSpawn()
-    {
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-        if (previewObject != null) return;
-
-        MapLoader loader = Object.FindFirstObjectByType<MapLoader>();
-        if (loader == null) return;
-
-        var so = new SerializedObject(loader);
-        var mapProp = so.FindProperty("currentMap");
-        MapData mapData = mapProp.objectReferenceValue as MapData;
-
-        if (mapData == null || mapData.backgroundPrefab == null) return;
-
-        previewObject = (GameObject)PrefabUtility.InstantiatePrefab(mapData.backgroundPrefab);
-        previewObject.name = "[BG Preview] " + mapData.backgroundPrefab.name;
-        previewObject.transform.position = mapData.backgroundPosition;
-        previewObject.transform.eulerAngles = mapData.backgroundRotation;
-        previewObject.transform.localScale = mapData.backgroundScale;
-        previewObject.hideFlags = HideFlags.DontSave;
-        previewMapData = mapData;
-
-        string prefabPath = AssetDatabase.GetAssetPath(mapData.backgroundPrefab);
-        lastPrefabHash = AssetDatabase.GetAssetDependencyHash(prefabPath);
     }
 }

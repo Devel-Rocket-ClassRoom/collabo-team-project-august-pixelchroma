@@ -16,7 +16,8 @@ MonoBehaviour:
   displayName: "키타노조 아츠코"
   description: "현장 지휘와 광역 강화를 담당하는 소대장. 오버히트로 전원 공격력과 방어력을 높입니다."
   battlePrefab: {fileID: 5086943025119269493, guid: 6ce7034f024a4b846bef205db57943bb, type: 3}
-  battleSprite: {fileID: 21300000, guid: b5f401d2192a460eb1ecec011bce0003, type: 3}
+  battleSprite: {fileID: 21300000, guid: 6775da91f00f420f8ea86c8b8a3fb2da, type: 3}
+  illustrationSprite: {fileID: 21300000, guid: 31d55078ab564524899abe392faeba36, type: 3}
   maxHP: 5
   attackPower: 1
   moveRange: 3

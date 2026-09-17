@@ -547,7 +547,7 @@ public class GameManager : MonoBehaviour
     private void CreateDeploymentPanelFromPrefab()
     {
         DeploymentUIView view = Instantiate(deploymentUIPrefab);
-        view.name = "DeploymentUI";
+        view.name = "DeploymentUI (PlayHere)";
         deploymentPanel = view.Panel;
         deploymentInfoText = view.InfoText;
         deploymentStartButton = view.StartButton;
@@ -1169,7 +1169,7 @@ public class GameManager : MonoBehaviour
     private void CreateAttackPreviewFromPrefab()
     {
         AttackPreviewUIView view = Instantiate(attackPreviewUIPrefab);
-        view.name = "AttackPreviewUI";
+        view.name = "AttackPreviewUI (PlayHere)";
         attackPreviewPanel = view.Panel;
         attackPreviewText = view.PreviewText as TextMeshProUGUI;
         attackCancelButton = view.CancelButton;
@@ -1836,7 +1836,7 @@ public class GameManager : MonoBehaviour
             Destroy(hudObject);
             return;
         }
-        view.name = "BattleHUDUI";
+        view.name = "BattleHUDUI (PlayHere)";
         view.gameObject.SetActive(false);
         gamePlayUI = view.gameObject;
         gameInfoText = view.InfoText;

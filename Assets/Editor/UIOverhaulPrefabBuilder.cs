@@ -3,23 +3,22 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-[InitializeOnLoad]
 public static class UIOverhaulPrefabBuilder
 {
     private const string RootFolder = "Assets/3.Prefabs/UI";
     private const string CommonFolder = RootFolder + "/Common";
     private const string CardsFolder = RootFolder + "/Cards";
     private const string ScreensFolder = RootFolder + "/Screens";
-    private const string TopBarPath = CommonFolder + "/상단_재화바.prefab";
-    private const string BottomNavPath = CommonFolder + "/하단_내비게이션.prefab";
-    private const string AgentCardPath = CardsFolder + "/요원_카드.prefab";
-    private const string HomeScreenPath = ScreensFolder + "/메인_로비_화면.prefab";
-    private const string AgentListPath = ScreensFolder + "/요원_리스트_화면.prefab";
-    private const string ChapterPath = ScreensFolder + "/챕터_선택_화면.prefab";
-    private const string StagePath = ScreensFolder + "/스테이지_선택_화면.prefab";
-    private const string SquadPath = RootFolder + "/SquadFormationUI.prefab";
-    private const string TitlePath = ScreensFolder + "/타이틀_화면.prefab";
-    private const string StatusPath = ScreensFolder + "/요원_상세_화면.prefab";
+    private const string TopBarPath = CommonFolder + "/상단_재화바 (Here) (PlayHere).prefab";
+    private const string BottomNavPath = CommonFolder + "/하단_내비게이션 (Here) (PlayHere).prefab";
+    private const string AgentCardPath = CardsFolder + "/요원_카드 (Here) (PlayHere).prefab";
+    private const string HomeScreenPath = ScreensFolder + "/메인_로비_화면 (Here) (PlayHere).prefab";
+    private const string AgentListPath = ScreensFolder + "/요원_리스트_화면 (Here) (PlayHere).prefab";
+    private const string ChapterPath = ScreensFolder + "/챕터_선택_화면 (Here) (PlayHere).prefab";
+    private const string StagePath = ScreensFolder + "/스테이지_선택_화면 (Here) (PlayHere).prefab";
+    private const string SquadPath = RootFolder + "/SquadFormationUI (PlayHere).prefab";
+    private const string TitlePath = ScreensFolder + "/타이틀_화면 (Here) (PlayHere).prefab";
+    private const string StatusPath = ScreensFolder + "/요원_상세_화면 (Here) (PlayHere).prefab";
     private const string CatalogPath = "Assets/Resources/UIScreenCatalog.asset";
 
     private static readonly Color Ink = new Color(0.035f, 0.045f, 0.06f, 1f);
@@ -27,11 +26,6 @@ public static class UIOverhaulPrefabBuilder
     private static readonly Color Cyan = new Color(0.02f, 0.68f, 0.95f, 1f);
     private static readonly Color Yellow = new Color(1f, 0.72f, 0.08f, 1f);
     private static readonly Color Paper = new Color(0.94f, 0.95f, 0.96f, 1f);
-
-    static UIOverhaulPrefabBuilder()
-    {
-        EditorApplication.delayCall += BuildMissing;
-    }
 
     [MenuItem("Tools/SRPG UI/니케형 UI 1차 프리팹 생성")]
     public static void RebuildAll()
@@ -51,15 +45,6 @@ public static class UIOverhaulPrefabBuilder
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log("[UIOverhaul] 1·2차 UI 프리팹 생성 완료");
-    }
-
-    private static void BuildMissing()
-    {
-        if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
-        if (AssetDatabase.LoadAssetAtPath<UIScreenCatalog>(CatalogPath) == null ||
-            AssetDatabase.LoadAssetAtPath<GameObject>(TitlePath) == null ||
-            AssetDatabase.LoadAssetAtPath<GameObject>(StatusPath) == null)
-            RebuildAll();
     }
 
     private static void EnsureFolders()
@@ -377,9 +362,11 @@ public static class UIOverhaulPrefabBuilder
         content.anchorMax = new Vector2(1f, 1f);
         content.pivot = new Vector2(0.5f, 1f);
         content.anchoredPosition = Vector2.zero;
+        content.sizeDelta = Vector2.zero;
         VerticalLayoutGroup layout = contentObject.GetComponent<VerticalLayoutGroup>();
         layout.padding = new RectOffset(15, 15, 20, 20);
         layout.spacing = 28f;
+        layout.childControlWidth = true;
         layout.childControlHeight = false;
         layout.childForceExpandHeight = false;
         contentObject.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -397,6 +384,7 @@ public static class UIOverhaulPrefabBuilder
             rect.sizeDelta = new Vector2(0f, 360f);
             LayoutElement element = chapters[i].gameObject.AddComponent<LayoutElement>();
             element.preferredHeight = 360f;
+            if (i > 0) chapters[i].interactable = false;
         }
         InstantiateNested(BottomNavPath, safe, "공통 하단 내비게이션", 0f, 0f, 1f, 0.105f);
 

@@ -25,6 +25,10 @@ public class CharacterData : ScriptableObject
     [SerializeField, TextArea] private string description = "";
     [SerializeField] private GameObject battlePrefab;
 
+    [Header("Character Illustration")]
+    [Tooltip("캐릭터 목록과 상세 화면에 표시할 LD 일러스트입니다.")]
+    [SerializeField] private Sprite illustrationSprite;
+
     [Header("2D Battle Visual")]
     [Tooltip("전투 맵에서 캐릭터 대신 표시할 2D 이미지입니다. 비워 두면 프리팹 또는 GameManager의 기본 이미지를 사용합니다.")]
     [SerializeField] private Sprite battleSprite;
@@ -63,6 +67,7 @@ public class CharacterData : ScriptableObject
     public string Description => description;
     public GameObject BattlePrefab => battlePrefab;
     public Sprite BattleSprite => battleSprite;
+    public Sprite IllustrationSprite => illustrationSprite != null ? illustrationSprite : battleSprite;
     public int MaxHP => maxHP;
     public int AttackPower => attackPower;
     public int MoveRange => moveRange;
