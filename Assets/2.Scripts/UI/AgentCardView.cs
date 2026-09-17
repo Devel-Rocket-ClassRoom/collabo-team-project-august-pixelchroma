@@ -22,8 +22,8 @@ public class AgentCardView : MonoBehaviour
         if (roleAccent != null) roleAccent.color = data.TeamColor;
         if (portrait != null)
         {
-            portrait.sprite = data.BattleSprite;
-            portrait.color = data.BattleSprite != null ? Color.white : Color.Lerp(data.TeamColor, Color.black, 0.25f);
+            portrait.sprite = data.IllustrationSprite;
+            portrait.color = data.IllustrationSprite != null ? Color.white : Color.Lerp(data.TeamColor, Color.black, 0.25f);
             portrait.preserveAspect = true;
         }
 

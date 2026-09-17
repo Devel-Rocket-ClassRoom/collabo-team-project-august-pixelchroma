@@ -9,16 +9,16 @@ public static class UIOverhaulPrefabBuilder
     private const string CommonFolder = RootFolder + "/Common";
     private const string CardsFolder = RootFolder + "/Cards";
     private const string ScreensFolder = RootFolder + "/Screens";
-    private const string TopBarPath = CommonFolder + "/상단_재화바.prefab";
-    private const string BottomNavPath = CommonFolder + "/하단_내비게이션.prefab";
-    private const string AgentCardPath = CardsFolder + "/요원_카드.prefab";
-    private const string HomeScreenPath = ScreensFolder + "/메인_로비_화면.prefab";
-    private const string AgentListPath = ScreensFolder + "/요원_리스트_화면.prefab";
-    private const string ChapterPath = ScreensFolder + "/챕터_선택_화면.prefab";
-    private const string StagePath = ScreensFolder + "/스테이지_선택_화면.prefab";
-    private const string SquadPath = RootFolder + "/SquadFormationUI.prefab";
-    private const string TitlePath = ScreensFolder + "/타이틀_화면.prefab";
-    private const string StatusPath = ScreensFolder + "/요원_상세_화면.prefab";
+    private const string TopBarPath = CommonFolder + "/상단_재화바 (Here) (PlayHere).prefab";
+    private const string BottomNavPath = CommonFolder + "/하단_내비게이션 (Here) (PlayHere).prefab";
+    private const string AgentCardPath = CardsFolder + "/요원_카드 (Here) (PlayHere).prefab";
+    private const string HomeScreenPath = ScreensFolder + "/메인_로비_화면 (Here) (PlayHere).prefab";
+    private const string AgentListPath = ScreensFolder + "/요원_리스트_화면 (Here) (PlayHere).prefab";
+    private const string ChapterPath = ScreensFolder + "/챕터_선택_화면 (Here) (PlayHere).prefab";
+    private const string StagePath = ScreensFolder + "/스테이지_선택_화면 (Here) (PlayHere).prefab";
+    private const string SquadPath = RootFolder + "/SquadFormationUI (PlayHere).prefab";
+    private const string TitlePath = ScreensFolder + "/타이틀_화면 (Here) (PlayHere).prefab";
+    private const string StatusPath = ScreensFolder + "/요원_상세_화면 (Here) (PlayHere).prefab";
     private const string CatalogPath = "Assets/Resources/UIScreenCatalog.asset";
 
     private static readonly Color Ink = new Color(0.035f, 0.045f, 0.06f, 1f);

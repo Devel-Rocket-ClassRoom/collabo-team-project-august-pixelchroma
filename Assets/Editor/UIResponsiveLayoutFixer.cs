@@ -7,8 +7,8 @@ public static class UIResponsiveLayoutFixer
 {
     private static readonly string[] OverlayPrefabPaths =
     {
-        "Assets/3.Prefabs/4.MainGame/DeploymentUI.prefab",
-        "Assets/3.Prefabs/4.MainGame/AttackPreviewUI.prefab"
+        "Assets/3.Prefabs/4.MainGame/DeploymentUI (Here) (PlayHere).prefab",
+        "Assets/3.Prefabs/4.MainGame/AttackPreviewUI (Here) (PlayHere).prefab"
     };
 
     [MenuItem("Tools/SRPG UI/5차 전투 UI 안전영역 적용")]

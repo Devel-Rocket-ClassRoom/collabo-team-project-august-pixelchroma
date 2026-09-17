@@ -65,8 +65,8 @@ public class AgentListScreenView : MonoBehaviour
 
         if (detailPortrait != null)
         {
-            detailPortrait.sprite = agent.BattleSprite;
-            detailPortrait.color = agent.BattleSprite != null ? Color.white : agent.TeamColor;
+            detailPortrait.sprite = agent.IllustrationSprite;
+            detailPortrait.color = agent.IllustrationSprite != null ? Color.white : agent.TeamColor;
             detailPortrait.preserveAspect = true;
         }
         if (detailNameText != null) detailNameText.text = agent.DisplayName;

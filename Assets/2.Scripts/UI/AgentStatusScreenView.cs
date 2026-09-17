@@ -43,8 +43,8 @@ public class AgentStatusScreenView : MonoBehaviour
         if (roleAccent != null) roleAccent.color = agent.TeamColor;
         if (portrait != null)
         {
-            portrait.sprite = agent.BattleSprite;
-            portrait.color = agent.BattleSprite != null ? Color.white : agent.TeamColor;
+            portrait.sprite = agent.IllustrationSprite;
+            portrait.color = agent.IllustrationSprite != null ? Color.white : agent.TeamColor;
             portrait.preserveAspect = true;
         }
 

@@ -16,7 +16,8 @@ MonoBehaviour:
   displayName: "키노 키사에"
   description: "부분 시간가속으로 근거리 아군을 치료하는 의무지원 캐릭터입니다."
   battlePrefab: {fileID: 7209884822563096349, guid: f0a322197f5a833488552ecc85ed7bf7, type: 3}
-  battleSprite: {fileID: 21300000, guid: b5f401d2192a460eb1ecec011bce0001, type: 3}
+  battleSprite: {fileID: 21300000, guid: ee7305f1997d4619921b6b44e3b99856, type: 3}
+  illustrationSprite: {fileID: 21300000, guid: b2b2a94fb9f84091bfbce9febe3a8149, type: 3}
   maxHP: 4
   attackPower: 1
   moveRange: 4

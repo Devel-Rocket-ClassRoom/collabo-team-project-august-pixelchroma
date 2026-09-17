@@ -16,7 +16,8 @@ MonoBehaviour:
   displayName: "카마에 토모카"
   description: "기계 초지능을 가진 광역 반격형 전투원. 드론과 장비로 넓은 범위를 제압합니다."
   battlePrefab: {fileID: 4088776617382280470, guid: 713ac8f077662b7428d39771e8e5544f, type: 3}
-  battleSprite: {fileID: 21300000, guid: b5f401d2192a460eb1ecec011bce0004, type: 3}
+  battleSprite: {fileID: 21300000, guid: ec2e77c45ecf4815a5031d5d7cb5b820, type: 3}
+  illustrationSprite: {fileID: 21300000, guid: e3bdcf59125b47208a5078c032fc3d7f, type: 3}
   maxHP: 4
   attackPower: 2
   moveRange: 3

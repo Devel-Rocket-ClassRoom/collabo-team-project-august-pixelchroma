@@ -25,7 +25,7 @@ public static class PoltergeistUIBuilder
     private const string StageNodePath = CommonFolder + "/UI_StageNode.prefab";
     private const string BottomNavigationPath = CommonFolder + "/UI_BottomNavigation.prefab";
     private const string PopupPanelPath = CommonFolder + "/UI_PopupPanel.prefab";
-    private const string SettingPanelPath = CommonFolder + "/Setting_Panel.prefab";
+    private const string SettingPanelPath = CommonFolder + "/Setting_Panel (Here) (PlayHere).prefab";
     private const string TitleScreenPath = TitleFolder + "/UI_TitleScreen.prefab";
 
     private const string SettingIconSourcePath = "Assets/4.Image/UI/Tittle/option.png";
