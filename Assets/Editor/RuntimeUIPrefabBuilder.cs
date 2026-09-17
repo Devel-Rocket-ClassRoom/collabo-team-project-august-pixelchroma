@@ -14,6 +14,18 @@ public static class RuntimeUIPrefabBuilder
     static RuntimeUIPrefabBuilder()
     {
         EditorApplication.delayCall += BuildMissingPrefabs;
+        EditorApplication.delayCall += RebuildBattlePrefabsIfOutdated;
+    }
+
+    private static void RebuildBattlePrefabsIfOutdated()
+    {
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+
+        GameObject deployment = AssetDatabase.LoadAssetAtPath<GameObject>(DeploymentPath);
+        bool hasPhaseThreeLayout = deployment != null &&
+            deployment.transform.Find("배치 패널/배치 패널 제목 배경") != null;
+        if (!hasPhaseThreeLayout)
+            RebuildBattlePrefabs();
     }
 
     [MenuItem("Tools/SRPG UI/누락된 UI Prefab 생성")]
@@ -42,6 +54,50 @@ public static class RuntimeUIPrefabBuilder
         AssetDatabase.Refresh();
     }
 
+    [MenuItem("Tools/SRPG UI/3차 전투 UI Prefab 다시 생성")]
+    public static void RebuildBattlePrefabs()
+    {
+        EnsureFolders();
+        BuildDeploymentPrefab();
+        BuildAttackPrefab();
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log("[SRPG UI] 3차 전투 UI 프리팹 생성 완료");
+    }
+
+    [MenuItem("Tools/SRPG UI/3차 전투 UI 연결 검사")]
+    public static void ValidateBattlePrefabs()
+    {
+        GameObject deploymentPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DeploymentPath);
+        GameObject attackPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(AttackPath);
+        if (deploymentPrefab == null || attackPrefab == null)
+            throw new System.InvalidOperationException("전투 UI 프리팹을 찾을 수 없습니다.");
+
+        DeploymentUIView deployment = deploymentPrefab.GetComponent<DeploymentUIView>();
+        AttackPreviewUIView attack = attackPrefab.GetComponent<AttackPreviewUIView>();
+        if (deployment == null || deployment.Panel == null || deployment.CharacterContainer == null ||
+            deployment.InfoText == null || deployment.StartButton == null || deployment.CancelHint == null)
+            throw new System.InvalidOperationException("배치 UI 연결 필드가 누락됐습니다.");
+        if (attack == null || attack.Panel == null || attack.PreviewText == null ||
+            attack.CancelButton == null || attack.ConfirmButton == null)
+            throw new System.InvalidOperationException("공격 확인 UI 연결 필드가 누락됐습니다.");
+
+        RectTransform panelRect = deployment.Panel.GetComponent<RectTransform>();
+        RectTransform hintRect = deployment.CancelHint.GetComponent<RectTransform>();
+        RectTransform startRect = deployment.StartButton.transform as RectTransform;
+        if (panelRect.anchorMax.y >= hintRect.anchorMin.y || hintRect.anchorMax.y >= startRect.anchorMin.y)
+            throw new System.InvalidOperationException("배치 패널, 취소 안내, 전투 시작 버튼이 겹칩니다.");
+
+        float cancelHeight = attack.Panel.rect.height *
+            (((RectTransform)attack.CancelButton.transform).anchorMax.y - ((RectTransform)attack.CancelButton.transform).anchorMin.y);
+        float confirmHeight = attack.Panel.rect.height *
+            (((RectTransform)attack.ConfirmButton.transform).anchorMax.y - ((RectTransform)attack.ConfirmButton.transform).anchorMin.y);
+        if (cancelHeight < 120f || confirmHeight < 120f)
+            throw new System.InvalidOperationException("공격 확인 버튼의 터치 영역이 너무 작습니다.");
+
+        Debug.Log("[SRPG UI] 3차 전투 UI 연결/겹침/터치 영역 검사 통과");
+    }
+
     private static void EnsureFolders()
     {
         EnsureFolder("Assets/3.Prefabs", "UI");
@@ -58,20 +114,30 @@ public static class RuntimeUIPrefabBuilder
     {
         TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
             "Assets/6.Font/경기천년제목_Medium SDF.asset");
-        GameObject root = CreateCanvas("DeploymentUI", 40);
+        GameObject root = CreateCanvas("DeploymentUI", 90);
         DeploymentUIView view = root.AddComponent<DeploymentUIView>();
 
-        Image panel = CreateImage(root.transform, "배치 패널", new Color(0.025f, 0.04f, 0.065f, 0.97f));
-        SetAnchors(panel.rectTransform, 0.025f, 0.08f, 0.975f, 0.28f);
+        Image panel = CreateImage(root.transform, "배치 패널", new Color(0.025f, 0.035f, 0.055f, 0.98f));
+        SetAnchors(panel.rectTransform, 0.025f, 0.035f, 0.975f, 0.22f);
+        AddOutline(panel.gameObject, new Color(0.04f, 0.68f, 0.92f, 0.9f), 3f);
 
-        TMP_Text info = CreateText(panel.transform, "배치 안내", "배치할 유닛을 선택하세요", 24f, font);
-        SetAnchors(info.rectTransform, 0.025f, 0.68f, 0.975f, 0.96f);
+        Image panelHeader = CreateImage(panel.transform, "배치 패널 제목 배경", new Color(0.035f, 0.49f, 0.72f, 0.98f));
+        SetAnchors(panelHeader.rectTransform, 0f, 0.73f, 1f, 1f);
+
+        TMP_Text step = CreateText(panelHeader.transform, "단계", "DEPLOYMENT", 18f, font);
+        step.alignment = TextAlignmentOptions.Left;
+        step.color = new Color(0.75f, 0.94f, 1f);
+        SetAnchors(step.rectTransform, 0.035f, 0.5f, 0.35f, 0.94f);
+
+        TMP_Text info = CreateText(panelHeader.transform, "배치 안내", "배치할 요원을 선택하세요", 29f, font);
+        info.alignment = TextAlignmentOptions.Left;
+        SetAnchors(info.rectTransform, 0.035f, 0.03f, 0.97f, 0.58f);
 
         RectTransform row = CreateRect(panel.transform, "캐릭터 카드 영역");
-        SetAnchors(row, 0.025f, 0.06f, 0.975f, 0.66f);
+        SetAnchors(row, 0.02f, 0.045f, 0.98f, 0.69f);
         HorizontalLayoutGroup layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-        layout.padding = new RectOffset(4, 4, 4, 4);
-        layout.spacing = 12f;
+        layout.padding = new RectOffset(6, 6, 6, 6);
+        layout.spacing = 10f;
         layout.childControlWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
@@ -85,21 +151,27 @@ public static class RuntimeUIPrefabBuilder
         };
         for (int i = 0; i < samples.Length; i++)
         {
-            Button card = CreateButton(row, "카드 예시 " + (i + 1), colors[i]);
-            TMP_Text label = CreateText(card.transform, "정보", samples[i] + "\n체력 4  공격 2\n이동 3  사거리 2", 20f, font);
+            Button card = CreateButton(row, "카드 예시 " + (i + 1), Color.Lerp(colors[i], Color.black, 0.38f));
+            AddOutline(card.gameObject, colors[i], 3f);
+            Image roleBar = CreateImage(card.transform, "역할 색상", colors[i]);
+            SetAnchors(roleBar.rectTransform, 0f, 0f, 0.055f, 1f);
+            TMP_Text label = CreateText(card.transform, "정보", samples[i] + "\n체력 4  공격 2\n이동 3  사거리 2", 21f, font);
             Stretch(label.rectTransform);
+            label.margin = new Vector4(14f, 4f, 4f, 4f);
         }
 
-        Button start = CreateButton(root.transform, "게임 시작 버튼", new Color(1f, 0.72f, 0.08f));
-        SetAnchors((RectTransform)start.transform, 0.24f, 0.295f, 0.76f, 0.36f);
-        TMP_Text startLabel = CreateText(start.transform, "문구", "게임 시작", 34f, font);
-        startLabel.color = new Color(0.08f, 0.06f, 0.02f);
+        Button start = CreateButton(root.transform, "게임 시작 버튼", new Color(1f, 0.74f, 0.08f));
+        SetAnchors((RectTransform)start.transform, 0.19f, 0.286f, 0.81f, 0.352f);
+        AddOutline(start.gameObject, new Color(1f, 0.9f, 0.45f), 3f);
+        TMP_Text startLabel = CreateText(start.transform, "문구", "배치 완료 · 전투 시작  >", 34f, font);
+        startLabel.color = new Color(0.055f, 0.045f, 0.02f);
         Stretch(startLabel.rectTransform);
 
-        Image hint = CreateImage(root.transform, "배치 취소 안내", new Color(0.02f, 0.035f, 0.06f, 0.96f));
-        SetAnchors(hint.rectTransform, 0.08f, 0.292f, 0.92f, 0.347f);
-        TMP_Text hintText = CreateText(hint.transform, "문구", "배치 취소하려면 배치된 캐릭터를 눌러주세요", 27f, font);
-        hintText.color = new Color(1f, 0.82f, 0.18f);
+        Image hint = CreateImage(root.transform, "배치 취소 안내", new Color(0.02f, 0.035f, 0.06f, 0.97f));
+        SetAnchors(hint.rectTransform, 0.08f, 0.232f, 0.92f, 0.274f);
+        AddOutline(hint.gameObject, new Color(1f, 0.74f, 0.08f, 0.8f), 2f);
+        TMP_Text hintText = CreateText(hint.transform, "문구", "↙ 배치를 취소하려면 배치된 요원을 눌러주세요", 25f, font);
+        hintText.color = new Color(1f, 0.84f, 0.32f);
         Stretch(hintText.rectTransform);
         hint.gameObject.AddComponent<CanvasGroup>().blocksRaycasts = false;
 
@@ -122,26 +194,35 @@ public static class RuntimeUIPrefabBuilder
         GameObject root = CreateCanvas("AttackPreviewUI", 100);
         AttackPreviewUIView view = root.AddComponent<AttackPreviewUIView>();
 
-        Image panel = CreateImage(root.transform, "공격 미리보기 패널", new Color(0.035f, 0.025f, 0.025f, 0.98f));
+        Image panel = CreateImage(root.transform, "공격 미리보기 패널", new Color(0.025f, 0.035f, 0.055f, 0.985f));
         RectTransform panelRect = panel.rectTransform;
         panelRect.anchorMin = panelRect.anchorMax = new Vector2(0.5f, 0.5f);
         panelRect.pivot = new Vector2(0.5f, 0f);
-        panelRect.sizeDelta = new Vector2(640f, 390f);
-        Outline outline = panel.gameObject.AddComponent<Outline>();
-        outline.effectColor = new Color(1f, 0.35f, 0.12f);
-        outline.effectDistance = new Vector2(7f, -7f);
+        panelRect.sizeDelta = new Vector2(780f, 470f);
+        AddOutline(panel.gameObject, new Color(1f, 0.32f, 0.13f), 5f);
 
-        TMP_Text info = CreateText(panel.transform, "전투 정보", "예상 피해 2    체력 4 > 2\n이동 3    사거리 2", 36f, font);
-        SetAnchors(info.rectTransform, 0f, 0.43f, 1f, 1f);
+        Image header = CreateImage(panel.transform, "공격 대상 제목 배경", new Color(0.72f, 0.1f, 0.06f, 1f));
+        SetAnchors(header.rectTransform, 0f, 0.79f, 1f, 1f);
+        TMP_Text headerText = CreateText(header.transform, "제목", "공격 대상 확인", 31f, font);
+        headerText.alignment = TextAlignmentOptions.Left;
+        headerText.margin = new Vector4(34f, 0f, 0f, 0f);
+        Stretch(headerText.rectTransform);
 
-        Button cancel = CreateButton(panel.transform, "취소 버튼", new Color(0.24f, 0.27f, 0.32f));
-        SetAnchors((RectTransform)cancel.transform, 0.035f, 0.045f, 0.485f, 0.39f);
-        TMP_Text cancelText = CreateText(cancel.transform, "문구", "취소", 42f, font);
+        TMP_Text info = CreateText(panel.transform, "전투 정보", "예상 피해 2    대상 체력 4 > 2\n공격 거리 2    명중 가능", 35f, font);
+        info.alignment = TextAlignmentOptions.Left;
+        info.margin = new Vector4(38f, 10f, 28f, 10f);
+        SetAnchors(info.rectTransform, 0f, 0.39f, 1f, 0.79f);
+
+        Button cancel = CreateButton(panel.transform, "취소 버튼", new Color(0.16f, 0.19f, 0.25f));
+        SetAnchors((RectTransform)cancel.transform, 0.035f, 0.055f, 0.485f, 0.34f);
+        AddOutline(cancel.gameObject, new Color(0.5f, 0.57f, 0.68f), 3f);
+        TMP_Text cancelText = CreateText(cancel.transform, "문구", "×  취소", 45f, font);
         Stretch(cancelText.rectTransform);
 
-        Button confirm = CreateButton(panel.transform, "공격 버튼", new Color(0.85f, 0.16f, 0.08f));
-        SetAnchors((RectTransform)confirm.transform, 0.515f, 0.045f, 0.965f, 0.39f);
-        TMP_Text confirmText = CreateText(confirm.transform, "문구", "공격", 42f, font);
+        Button confirm = CreateButton(panel.transform, "공격 버튼", new Color(0.9f, 0.17f, 0.065f));
+        SetAnchors((RectTransform)confirm.transform, 0.515f, 0.055f, 0.965f, 0.34f);
+        AddOutline(confirm.gameObject, new Color(1f, 0.58f, 0.24f), 3f);
+        TMP_Text confirmText = CreateText(confirm.transform, "문구", "공격  >", 45f, font);
         Stretch(confirmText.rectTransform);
 
         SerializedObject serialized = new SerializedObject(view);
@@ -324,6 +405,14 @@ public static class RuntimeUIPrefabBuilder
         Image image = obj.GetComponent<Image>();
         image.color = color;
         return obj.GetComponent<Button>();
+    }
+
+    private static void AddOutline(GameObject target, Color color, float distance)
+    {
+        Outline outline = target.AddComponent<Outline>();
+        outline.effectColor = color;
+        outline.effectDistance = new Vector2(distance, -distance);
+        outline.useGraphicAlpha = true;
     }
 
     private static TMP_Text CreateText(Transform parent, string name, string value, float size, TMP_FontAsset font)
