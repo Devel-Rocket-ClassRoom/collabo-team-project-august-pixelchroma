@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class UIScreenFlowValidator
 {
@@ -20,7 +21,7 @@ public static class UIScreenFlowValidator
         "Assets/1.Sence/6.Status List.unity"
     };
 
-    [MenuItem("Tools/SRPG UI/4차 화면 이동 연결 검사")]
+    [MenuItem("Tools/SRPG UI/전체 UI 흐름 및 반응형 검사")]
     public static void Validate()
     {
         ValidateBuildScenes();
@@ -41,10 +42,16 @@ public static class UIScreenFlowValidator
             "statsText", "skillText", "descriptionText");
         RequireOperation(catalog.ChapterScreenPrefab, "챕터 선택", 3);
         RequireOperation(catalog.StageScreenPrefab, "스테이지 선택", 5);
+        ValidateResponsive(catalog.TitleScreenPrefab, "타이틀 화면");
+        ValidateResponsive(catalog.HomeScreenPrefab, "메인 로비");
+        ValidateResponsive(catalog.AgentListScreenPrefab, "요원 리스트");
+        ValidateResponsive(catalog.AgentStatusScreenPrefab, "요원 상세");
+        ValidateResponsive(catalog.ChapterScreenPrefab, "챕터 선택");
+        ValidateResponsive(catalog.StageScreenPrefab, "스테이지 선택");
         ValidateSquadScene();
         ValidateMainGameScene();
 
-        Debug.Log("[SRPG UI] 4차 화면 이동/프리팹 연결 검사 통과");
+        Debug.Log("[SRPG UI] 전체 화면 이동/프리팹/반응형 검사 통과");
     }
 
     private static void ValidateSquadScene()
@@ -56,6 +63,9 @@ public static class UIScreenFlowValidator
 
         SerializedObject serialized = new SerializedObject(controller);
         RequireReference(serialized, "squadUIPrefab", "스쿼드 편성 UI");
+        ValidateResponsive(
+            serialized.FindProperty("squadUIPrefab").objectReferenceValue,
+            "스쿼드 편성 UI");
         if (serialized.FindProperty("previousSceneName")?.stringValue != "3.Stage List")
             throw new InvalidOperationException("스쿼드 편성 뒤로가기 씬 연결이 잘못됐습니다.");
         if (serialized.FindProperty("battleSceneName")?.stringValue != "4.MainGame")
@@ -73,6 +83,44 @@ public static class UIScreenFlowValidator
         RequireReference(serialized, "deploymentUIPrefab", "배치 UI");
         RequireReference(serialized, "attackPreviewUIPrefab", "공격 확인 UI");
         RequireReference(serialized, "battleHUDPrefab", "전투 HUD");
+        ValidateResponsive(
+            serialized.FindProperty("deploymentUIPrefab").objectReferenceValue,
+            "배치 UI");
+        ValidateResponsive(
+            serialized.FindProperty("attackPreviewUIPrefab").objectReferenceValue,
+            "공격 확인 UI");
+        ValidateResponsive(
+            serialized.FindProperty("battleHUDPrefab").objectReferenceValue,
+            "전투 HUD");
+    }
+
+    private static void ValidateResponsive(UnityEngine.Object source, string label)
+    {
+        if (source == null)
+            throw new InvalidOperationException($"{label} 프리팹이 연결되지 않았습니다.");
+
+        Transform sourceTransform = source switch
+        {
+            Component component => component.transform,
+            GameObject gameObject => gameObject.transform,
+            _ => null
+        };
+        if (sourceTransform == null)
+            throw new InvalidOperationException($"{label} 프리팹 형식을 검사할 수 없습니다.");
+
+        Transform root = sourceTransform.root;
+        CanvasScaler scaler = root.GetComponent<CanvasScaler>();
+        if (scaler == null ||
+            scaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize ||
+            scaler.referenceResolution != new Vector2(1080f, 2220f) ||
+            scaler.screenMatchMode != CanvasScaler.ScreenMatchMode.MatchWidthOrHeight)
+        {
+            throw new InvalidOperationException($"{label}의 화면 비율 스케일 설정이 잘못됐습니다.");
+        }
+
+        Transform safeArea = root.Find("SafeArea");
+        if (safeArea == null || safeArea.GetComponent<SafeAreaAdapter>() == null)
+            throw new InvalidOperationException($"{label}에 안전영역이 적용되지 않았습니다.");
     }
 
     private static void RequireReference(SerializedObject serialized, string propertyName, string label)
