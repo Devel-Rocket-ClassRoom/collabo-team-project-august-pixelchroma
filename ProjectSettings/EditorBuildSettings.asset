@@ -26,5 +26,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/1.Sence/5.CharList.unity
     guid: 2eca0daaad09ed049bfafc0aa4ba3b88
+  - enabled: 1
+    path: Assets/1.Sence/6.Status List.unity
+    guid: 97a5fd79255fcb943867d6e294fa28ae
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
