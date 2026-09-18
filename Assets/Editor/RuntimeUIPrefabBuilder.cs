@@ -10,7 +10,7 @@ public static class RuntimeUIPrefabBuilder
     private const string Folder = "Assets/3.Prefabs/UI";
     private const string DeploymentPath = Folder + "/DeploymentUI (PlayHere).prefab";
     private const string AttackPath = Folder + "/AttackPreviewUI (PlayHere).prefab";
-    private const string BattleHUDPath = Folder + "/BattleHUDUI (Here) (PlayHere).prefab";
+    private const string BattleHUDPath = "Assets/3.Prefabs/4.MainGame/BattleHUDUI (Here) (PlayHere).prefab";
     private const string SquadPath = Folder + "/SquadFormationUI (PlayHere).prefab";
     private const string MainGameScenePath = "Assets/1.Sence/4.MainGame.unity";
 
