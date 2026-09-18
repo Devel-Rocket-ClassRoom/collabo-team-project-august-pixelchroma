@@ -8,7 +8,7 @@ public static class SettingPanelRebuilder
     [MenuItem("Tools/SRPG UI/Setting_Panel 배치도 재구성")]
     public static void Rebuild()
     {
-        string path = "Assets/3.Prefabs/UI/Setting_Panel.prefab";
+        string path = "Assets/3.Prefabs/Common/Setting_Panel (Here) (PlayHere).prefab";
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
         if (prefab == null)
         {

@@ -8,7 +8,7 @@ public static class MiddleUpperButtonSetup
     [MenuItem("Tools/SRPG UI/Middle_Upper 버튼 구조 변환 (아이콘+텍스트 가로배치)")]
     public static void SetupButtons()
     {
-        string prefabPath = "Assets/3.Prefabs/UI/Middle_Upper.prefab";
+        string prefabPath = "Assets/3.Prefabs/Common/Middle_Upper (Here).prefab";
         GameObject prefabRoot = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
         if (prefabRoot == null)
         {

@@ -5,20 +5,20 @@ using UnityEngine.UI;
 
 public static class UIOverhaulPrefabBuilder
 {
-    private const string RootFolder = "Assets/3.Prefabs/UI";
+    private const string RootFolder = "Assets/3.Prefabs";
     private const string CommonFolder = RootFolder + "/Common";
-    private const string CardsFolder = RootFolder + "/Cards";
-    private const string ScreensFolder = RootFolder + "/Screens";
+    private const string CardsFolder = RootFolder + "/5.CharList";
+    // 화면 프리팹은 각 씬 폴더에 있습니다. (Play 시 실제로 나오는 것만 남김)
     private const string TopBarPath = CommonFolder + "/상단_재화바 (Here) (PlayHere).prefab";
     private const string BottomNavPath = CommonFolder + "/하단_내비게이션 (Here) (PlayHere).prefab";
     private const string AgentCardPath = CardsFolder + "/요원_카드 (Here) (PlayHere).prefab";
-    private const string HomeScreenPath = ScreensFolder + "/메인_로비_화면 (Here) (PlayHere).prefab";
-    private const string AgentListPath = ScreensFolder + "/요원_리스트_화면 (Here) (PlayHere).prefab";
-    private const string ChapterPath = ScreensFolder + "/챕터_선택_화면 (Here) (PlayHere).prefab";
-    private const string StagePath = ScreensFolder + "/스테이지_선택_화면 (Here) (PlayHere).prefab";
-    private const string SquadPath = RootFolder + "/SquadFormationUI (PlayHere).prefab";
-    private const string TitlePath = ScreensFolder + "/타이틀_화면 (Here) (PlayHere).prefab";
-    private const string StatusPath = ScreensFolder + "/요원_상세_화면 (Here) (PlayHere).prefab";
+    private const string HomeScreenPath = "Assets/3.Prefabs/1.MainMenu/메인_로비_화면 (Here) (PlayHere).prefab";
+    private const string AgentListPath = RootFolder + "/5.CharList" + "/요원_리스트_화면 (Here) (PlayHere).prefab";
+    private const string ChapterPath = RootFolder + "/2.Chapter Select" + "/챕터_선택_화면 (Here) (PlayHere).prefab";
+    private const string StagePath = RootFolder + "/3.Stage List" + "/스테이지_선택_화면 (Here) (PlayHere).prefab";
+    private const string SquadPath = RootFolder + "/3.5.Squad Select/SquadFormationUI (Here) (PlayHere).prefab";
+    private const string TitlePath = RootFolder + "/0.Tilte" + "/타이틀_화면 (Here) (PlayHere).prefab";
+    private const string StatusPath = RootFolder + "/6.Status List" + "/요원_상세_화면 (Here) (PlayHere).prefab";
     private const string CatalogPath = "Assets/Resources/UIScreenCatalog.asset";
 
     private static readonly Color Ink = new Color(0.035f, 0.045f, 0.06f, 1f);
@@ -49,10 +49,10 @@ public static class UIOverhaulPrefabBuilder
 
     private static void EnsureFolders()
     {
-        EnsureFolder("Assets/3.Prefabs", "UI");
-        EnsureFolder(RootFolder, "Common");
-        EnsureFolder(RootFolder, "Cards");
-        EnsureFolder(RootFolder, "Screens");
+
+
+
+
         EnsureFolder("Assets", "Resources");
     }
 
