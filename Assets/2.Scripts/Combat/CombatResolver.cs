@@ -565,9 +565,7 @@ public static class CombatResolver
             $"명중 {f.HitChance}%   피해 {f.Damage}{affinity}\n" +
             $"치명타 {f.CriticalChance}% ({f.CriticalDamage})";
 
-        if (target != null)
-            line += $"   체력 {target.HP} -> {Mathf.Max(0, target.HP - f.Damage)}";
-
+        // 체력 변화는 미리보기 UI의 체력 바가 대신 보여줍니다.
         line += f.CounterPossible
             ? $"\n반격 {f.CounterHitChance}% / {f.CounterDamage} 피해"
             : "\n반격 없음";

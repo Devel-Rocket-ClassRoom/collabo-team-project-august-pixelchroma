@@ -357,25 +357,17 @@ public class ChatManager : MonoBehaviour
                 yield return null;
                 continue;
 
-            } // 대사클릭 관련은 여기있음
-            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            } // 대사 진행 입력은 여기서 감지합니다.
+
+            // 휴대폰 터치와 마우스를 모두 Input System으로 받습니다.
+            if (TryGetPressPosition(out Vector2 pressPosition))
             {
-                if (EventSystem.current.IsPointerOverGameObject())
-                {
-                    // [중요] 여기서 마스타를 괴롭히는 범인의 이름을 로그로 찍어봅시다!
-                    PointerEventData pointerData = new PointerEventData(EventSystem.current) { position = Mouse.current.position.ReadValue() };
-                    List<RaycastResult> results = new List<RaycastResult>();
-                    EventSystem.current.RaycastAll(pointerData, results);
-                    if (results.Count > 0)
-                    {
-                        Debug.Log("<color=red>클릭을 막는 범인 발견: " + results[0].gameObject.name + "</color>");
-                    }
-                }
+                if (IsPointerOverUI(pressPosition, out string blocker))
+                    Debug.Log($"<color=red>클릭을 막는 범인 발견: {blocker}</color>");
                 else
-                {
-                    clicked = true; // UI가 아닌 곳(빨간색 영역 등)을 클릭하면 정상 작동
-                }
+                    clicked = true;
             }
+
             if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
             {
                 clicked = true;
@@ -384,6 +376,44 @@ public class ChatManager : MonoBehaviour
             yield return null;
         }
         Debug.Log("<color=white>입력 감지됨: 다음 대사로 진행합니다.</color>");
+    }
+
+    /// <summary>이번 프레임에 눌린 터치나 마우스 위치를 돌려줍니다.</summary>
+    private static bool TryGetPressPosition(out Vector2 position)
+    {
+        position = default;
+
+        Touchscreen touchscreen = Touchscreen.current;
+        if (touchscreen != null && touchscreen.primaryTouch.press.wasPressedThisFrame)
+        {
+            position = touchscreen.primaryTouch.position.ReadValue();
+            return true;
+        }
+
+        Mouse mouse = Mouse.current;
+        if (mouse != null && mouse.leftButton.wasPressedThisFrame)
+        {
+            position = mouse.position.ReadValue();
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>손가락이 UI 위에 있는지 그 좌표로 직접 판정합니다.</summary>
+    private static bool IsPointerOverUI(Vector2 position, out string blocker)
+    {
+        blocker = null;
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null) return false;
+
+        PointerEventData pointerData = new PointerEventData(eventSystem) { position = position };
+        List<RaycastResult> results = new List<RaycastResult>();
+        eventSystem.RaycastAll(pointerData, results);
+
+        if (results.Count == 0) return false;
+
+        blocker = results[0].gameObject.name;
+        return true;
     }
 
 

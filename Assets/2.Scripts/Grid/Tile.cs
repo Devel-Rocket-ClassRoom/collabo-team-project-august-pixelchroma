@@ -46,6 +46,8 @@ public class Tile : MonoBehaviour
     private GameObject terrainVisual;
     private Renderer[] terrainRenderers;
     private Color[] terrainOriginalColors;
+    private GameObject threatOverlay;
+    private Material threatMaterial;
 
     private TileVisualType visualType = TileVisualType.Default;
     private Color baseBorderColor;
@@ -203,6 +205,52 @@ public class Tile : MonoBehaviour
             ApplyColor();
         }
         return true;
+    }
+
+    // 위협 범위는 이동/공격 하이라이트와 동시에 보여야 하므로 타일 위에 별도 판을 깝니다.
+    public void SetThreat(Color color)
+    {
+        if (threatOverlay == null) CreateThreatOverlay();
+        threatOverlay.SetActive(true);
+        if (threatMaterial.HasProperty("_BaseColor")) threatMaterial.SetColor("_BaseColor", color);
+        if (threatMaterial.HasProperty("_Color")) threatMaterial.SetColor("_Color", color);
+    }
+
+    public void ClearThreat()
+    {
+        if (threatOverlay != null) threatOverlay.SetActive(false);
+    }
+
+    private void CreateThreatOverlay()
+    {
+        threatOverlay = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        threatOverlay.name = "ThreatOverlay";
+        Destroy(threatOverlay.GetComponent<Collider>());
+        threatOverlay.transform.SetParent(transform, false);
+        threatOverlay.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        threatOverlay.transform.localPosition = new Vector3(0f, 0.62f, 0f);
+
+        Renderer renderer = threatOverlay.GetComponent<Renderer>();
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+        threatMaterial = shader != null ? new Material(shader) : new Material(renderer.material);
+        MakeTransparent(threatMaterial);
+        renderer.material = threatMaterial;
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+    }
+
+    private static void MakeTransparent(Material material)
+    {
+        if (material.HasProperty("_Surface")) material.SetFloat("_Surface", 1f);
+        if (material.HasProperty("_Blend")) material.SetFloat("_Blend", 0f);
+        if (material.HasProperty("_SrcBlend"))
+            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        if (material.HasProperty("_DstBlend"))
+            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        if (material.HasProperty("_ZWrite")) material.SetFloat("_ZWrite", 0f);
+        material.SetOverrideTag("RenderType", "Transparent");
+        material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
     }
 
     public void SetHighlight(Color color)

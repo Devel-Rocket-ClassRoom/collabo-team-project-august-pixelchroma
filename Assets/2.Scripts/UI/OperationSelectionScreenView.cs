@@ -49,6 +49,15 @@ public class OperationSelectionScreenView : MonoBehaviour
         if (selectionTitle != null)
             selectionTitle.text = $"선택 작전  01-{index + 1:00}";
 
+        // 저장된 전투가 있으면 스토리와 편성을 건너뛰고 바로 전투로 들어갑니다.
+        if (BattleSaveSystem.HasSaveForStage(index))
+        {
+            StorySelection.Scenario = null;
+            StorySelection.NoBattle = false;
+            SceneManager.LoadScene("4.MainGame");
+            return;
+        }
+
         StageStoryTable storyTable = FindAnyObjectByType<StageStoryTable>();
         if (storyTable != null && storyTable.TryGetStory(index, out DialogueDataSO story, out bool noBattle))
         {

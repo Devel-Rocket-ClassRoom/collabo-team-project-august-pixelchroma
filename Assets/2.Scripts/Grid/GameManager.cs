@@ -98,6 +98,12 @@ public class GameManager : MonoBehaviour
     private List<Unit> playerUnits = new List<Unit>();
     private List<Unit> enemyUnits = new List<Unit>();
 
+    private readonly Dictionary<Vector2Int, int> threatMap = new Dictionary<Vector2Int, int>();
+    private readonly List<Vector2Int> threatTiles = new List<Vector2Int>();
+    private readonly List<Unit> threatAttackers = new List<Unit>();
+    private ThreatArcRenderer threatArcs;
+    private bool showThreatRange = true;
+
     private Unit selectedUnit;
     private List<Vector2Int> moveTiles = new List<Vector2Int>();
     private List<Vector2Int> attackTiles = new List<Vector2Int>();
@@ -114,6 +120,7 @@ public class GameManager : MonoBehaviour
     private bool hasShownDeploymentCancelHint;
     private Unit attackPreviewTarget;
     private RectTransform attackPreviewPanel;
+    private AttackPreviewUIView attackPreviewView;
     private TextMeshProUGUI attackPreviewText;
     private Canvas attackPreviewCanvas;
     private Button attackConfirmButton;
@@ -173,6 +180,9 @@ public class GameManager : MonoBehaviour
         ShowDeployZone();
         SetupUI();
         SetupDeploymentRoster();
+
+        AskResumeIfSaveExists();
+        RefreshThreatRange();
     }
 
     /// <summary>
@@ -326,6 +336,19 @@ public class GameManager : MonoBehaviour
                 Tile t = grid.GetTile(x, y);
                 if (t != null && t.State == TileState.Empty)
                     t.SetHighlight(DeployHighlight);
+            }
+        }
+    }
+
+    private void ClearDeployZone()
+    {
+        GridManager grid = GridManager.Instance;
+        for (int x = 0; x < grid.Width; x++)
+        {
+            for (int y = 0; y <= 1; y++)
+            {
+                Tile t = grid.GetTile(x, y);
+                if (t != null) t.ClearHighlight();
             }
         }
     }
@@ -857,6 +880,21 @@ public class GameManager : MonoBehaviour
         battleState = BattleState.Idle;
         turnCount = 1;
         BeginPlayerTurnEffects();
+        RefreshThreatRange();
+        SaveBattle();
+        if (TurnBannerUI.Instance != null)
+            yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
+    }
+
+    /// <summary>이어하기로 시작할 때 배너와 UI를 전투 진행 상태로 맞춥니다.</summary>
+    private IEnumerator ResumeSavedBattleRoutine()
+    {
+        if (gameStartUI != null) gameStartUI.SetActive(false);
+        if (gamePlayUI != null) gamePlayUI.SetActive(true);
+
+        RefreshUI();
+        RefreshThreatRange();
+
         if (TurnBannerUI.Instance != null)
             yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
     }
@@ -959,6 +997,7 @@ public class GameManager : MonoBehaviour
         }
 
         ShowAttackRange(unit.GridPosition, GetEffectiveAttackRange(unit));
+        ShowThreatArcs(unit);
     }
 
     private void DeselectUnit()
@@ -998,6 +1037,7 @@ public class GameManager : MonoBehaviour
     private void ShowAttackRangeAfterMove()
     {
         ShowAttackRange(selectedUnit.GridPosition, GetEffectiveAttackRange(selectedUnit));
+        ShowThreatArcs(selectedUnit);
     }
 
     private void ShowAttackRange(Vector2Int origin, int range)
@@ -1070,6 +1110,10 @@ public class GameManager : MonoBehaviour
 
         attackPreviewText.text =
             CombatResolver.DescribeForecast(forecast, target) + terrainNotice;
+
+        if (attackPreviewView != null)
+            attackPreviewView.SetHealth(
+                target.HP, target.MaxHP, forecast.CoverBlocks ? 0 : forecast.Damage);
 
         attackPreviewPanel.gameObject.SetActive(true);
         UpdateAttackPreviewPosition();
@@ -1170,6 +1214,7 @@ public class GameManager : MonoBehaviour
     {
         AttackPreviewUIView view = Instantiate(attackPreviewUIPrefab);
         view.name = "AttackPreviewUI (PlayHere)";
+        attackPreviewView = view;
         attackPreviewPanel = view.Panel;
         attackPreviewText = view.PreviewText as TextMeshProUGUI;
         attackCancelButton = view.CancelButton;
@@ -1323,6 +1368,8 @@ public class GameManager : MonoBehaviour
 
         if (CheckBattleEnd()) return;
 
+        SaveBattle();
+
         if (AllPlayersDone())
             StartCoroutine(ProcessEnemyTurn());
     }
@@ -1429,6 +1476,8 @@ public class GameManager : MonoBehaviour
             currentPhase = GamePhase.PlayerTurn;
             battleState = BattleState.Idle;
             lastCombatMessage = BeginPlayerTurnEffects();
+            RefreshThreatRange();
+            SaveBattle();
             if (TurnBannerUI.Instance != null)
                 yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
         }
@@ -1777,6 +1826,9 @@ public class GameManager : MonoBehaviour
             currentPhase = GamePhase.BattleResult;
             resultMessage = gameTextData != null ? gameTextData.victory : "승리!";
             StageProgressManager.UnlockNextStage();
+            BattleSaveSystem.Delete();
+            ClearThreatDisplay();
+            ClearThreatArcs();
             if (TurnBannerUI.Instance != null)
                 TurnBannerUI.Instance.ShowVictory(resultMessage);
             return true;
@@ -1785,11 +1837,268 @@ public class GameManager : MonoBehaviour
         {
             currentPhase = GamePhase.BattleResult;
             resultMessage = gameTextData != null ? gameTextData.defeat : "패배...";
+            BattleSaveSystem.Delete();
+            ClearThreatDisplay();
+            ClearThreatArcs();
             if (TurnBannerUI.Instance != null)
                 TurnBannerUI.Instance.ShowDefeat(resultMessage);
             return true;
         }
+
+        RefreshThreatRange();
         return false;
+    }
+
+    // ??????????????????? Battle Save ???????????????????
+
+    /// <summary>진행 중인 전투를 JSON으로 저장합니다. 앱을 닫아도 이어서 할 수 있습니다.</summary>
+    private void SaveBattle()
+    {
+        if (currentPhase != GamePhase.PlayerTurn && currentPhase != GamePhase.EnemyTurn) return;
+
+        BattleSaveData data = new BattleSaveData
+        {
+            sceneName = SceneManager.GetActiveScene().name,
+            stageIndex = StageProgressManager.CurrentStageIndex,
+            turnCount = turnCount,
+            randomSeed = combatRandom != null ? combatRandom.Seed : 0u,
+            randomState = combatRandom != null ? combatRandom.State : 0u,
+            randomCallCount = combatRandom != null ? combatRandom.CallCount : 0
+        };
+
+        foreach (Unit unit in playerUnits)
+            if (unit != null && !unit.IsDead) data.players.Add(CaptureUnit(unit));
+        foreach (Unit unit in enemyUnits)
+            if (unit != null && !unit.IsDead) data.enemies.Add(CaptureUnit(unit));
+
+        BattleSaveSystem.Save(data);
+    }
+
+    private static BattleUnitSave CaptureUnit(Unit unit)
+    {
+        return new BattleUnitSave
+        {
+            characterId = unit.CharacterData != null ? unit.CharacterData.CharacterId : string.Empty,
+            x = unit.GridPosition.x,
+            y = unit.GridPosition.y,
+            hp = unit.HP,
+            hasActed = unit.HasActed,
+            skillCooldown = unit.SkillCooldownRemaining,
+            guardTurns = unit.GuardTurnsRemaining,
+            buffTurns = unit.SkillBuffTurnsRemaining,
+            sentryAvailable = unit.SentryCounterAvailable
+        };
+    }
+
+    /// <summary>저장된 전투가 있으면 이어할지 먼저 묻습니다.</summary>
+    private void AskResumeIfSaveExists()
+    {
+        if (!BattleSaveSystem.TryLoad(out BattleSaveData data)) return;
+
+        if (data.sceneName != SceneManager.GetActiveScene().name ||
+            data.stageIndex != StageProgressManager.CurrentStageIndex ||
+            data.players.Count == 0)
+            return;
+
+        string body =
+            $"진행 중이던 전투가 있습니다.\n" +
+            $"턴 {data.turnCount} · 아군 {data.players.Count}명 · 적 {data.enemies.Count}명\n" +
+            $"저장 시각  {data.savedAt}";
+
+        BattleResumePrompt prompt = BattleResumePrompt.Show(
+            "이어하시겠습니까?",
+            body,
+            () => ResumeSavedBattle(data),
+            DiscardSavedBattle);
+
+        // 팝업 프리팹이 없으면 플레이어를 막지 않고 바로 이어서 시작합니다.
+        if (prompt == null) ResumeSavedBattle(data);
+    }
+
+    private void ResumeSavedBattle(BattleSaveData data)
+    {
+        if (!TryRestoreBattle(data))
+        {
+            Debug.LogWarning("[BattleSave] 이어하기에 실패해 배치부터 시작합니다.");
+            return;
+        }
+
+        ClearDeployZone();
+        StartCoroutine(ResumeSavedBattleRoutine());
+    }
+
+    /// <summary>이어하기를 거절하면 저장을 지우고 스테이지 선택으로 돌아갑니다.</summary>
+    private void DiscardSavedBattle()
+    {
+        BattleSaveSystem.Delete();
+        SceneManager.LoadScene("3.Stage List");
+    }
+
+    private bool TryRestoreBattle(BattleSaveData data)
+    {
+        if (data == null) return false;
+
+        foreach (Unit unit in enemyUnits)
+            if (unit != null) unit.RemoveFromBoard();
+        enemyUnits.Clear();
+
+        foreach (Unit unit in playerUnits)
+            if (unit != null) unit.RemoveFromBoard();
+        playerUnits.Clear();
+
+        foreach (BattleUnitSave saved in data.players)
+        {
+            Unit unit = SpawnSavedUnit(Team.Player, saved, FindPlayerCharacter(saved.characterId));
+            if (unit != null) playerUnits.Add(unit);
+        }
+        foreach (BattleUnitSave saved in data.enemies)
+        {
+            Unit unit = SpawnSavedUnit(Team.Enemy, saved, FindEnemyCharacter(saved.characterId));
+            if (unit != null) enemyUnits.Add(unit);
+        }
+
+        if (playerUnits.Count == 0 || enemyUnits.Count == 0)
+        {
+            BattleSaveSystem.Delete();
+            return false;
+        }
+
+        if (combatRandom != null)
+        {
+            combatRandom.Restore(data.randomState, data.randomCallCount);
+            CombatResolver.InitRandom(combatRandom);
+        }
+
+        turnCount = data.turnCount;
+        deployedCount = playerUnits.Count;
+        currentPhase = GamePhase.PlayerTurn;
+        battleState = BattleState.Idle;
+
+        if (deploymentPanel != null) deploymentPanel.SetActive(false);
+        RefreshPlayerPassives();
+        Debug.Log($"[BattleSave] 저장된 전투를 이어서 시작합니다. (턴 {turnCount}, 저장 {data.savedAt})");
+        return true;
+    }
+
+    private Unit SpawnSavedUnit(Team team, BattleUnitSave saved, CharacterData character)
+    {
+        GameObject prefab = team == Team.Player ? playerPrefab : enemyPrefab;
+        Sprite fallback = team == Team.Player ? defaultPlayerSprite : defaultEnemySprite;
+
+        Unit unit = Unit.Create(team, saved.Position, prefab, character, fallback);
+        if (unit == null) return null;
+
+        unit.RestoreBattleState(
+            saved.hp, saved.hasActed, saved.skillCooldown,
+            saved.guardTurns, saved.buffTurns, saved.sentryAvailable);
+        return unit;
+    }
+
+    private CharacterData FindPlayerCharacter(string characterId)
+    {
+        if (string.IsNullOrEmpty(characterId)) return null;
+
+        CharacterData found = availableCharacters.Find(
+            character => character != null && character.CharacterId == characterId);
+        if (found != null) return found;
+
+        // 앱을 다시 켠 뒤라 편성 정보가 없으면 보유 요원 목록에서 찾습니다.
+        OwnedAgentCatalog catalog = Resources.Load<OwnedAgentCatalog>("OwnedAgentCatalog");
+        if (catalog == null) return null;
+
+        foreach (CharacterData agent in catalog.OwnedAgents)
+            if (agent != null && agent.CharacterId == characterId) return agent;
+
+        return null;
+    }
+
+    private CharacterData FindEnemyCharacter(string characterId)
+    {
+        if (string.IsNullOrEmpty(characterId) || enemySquad == null) return null;
+
+        foreach (EnemySquadData.SquadMember member in enemySquad.Members)
+            if (member.unit != null && member.unit.CharacterId == characterId)
+                return member.unit;
+
+        return null;
+    }
+
+    private void OnApplicationPause(bool paused)
+    {
+        if (paused) SaveBattle();
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveBattle();
+    }
+
+    // ??????????????????? Threat Range ???????????????????
+
+    /// <summary>적이 이번 턴에 닿을 수 있는 칸을 타일 위에 농도로 표시합니다.</summary>
+    private void RefreshThreatRange()
+    {
+        ClearThreatDisplay();
+
+        GridManager grid = GridManager.Instance;
+        if (!showThreatRange || grid == null || currentPhase == GamePhase.BattleResult) return;
+
+        ThreatRange.Calculate(enemyUnits, threatMap);
+        foreach (KeyValuePair<Vector2Int, int> pair in threatMap)
+        {
+            Tile tile = grid.GetTile(pair.Key);
+            if (tile == null) continue;
+
+            tile.SetThreat(GetThreatColor(pair.Value));
+            threatTiles.Add(pair.Key);
+        }
+    }
+
+    private void ClearThreatDisplay()
+    {
+        GridManager grid = GridManager.Instance;
+        foreach (Vector2Int position in threatTiles)
+        {
+            Tile tile = grid != null ? grid.GetTile(position) : null;
+            if (tile != null) tile.ClearThreat();
+        }
+        threatTiles.Clear();
+    }
+
+    /// <summary>선택한 아군을 공격할 수 있는 적에서 곡선을 그립니다.</summary>
+    private void ShowThreatArcs(Unit target)
+    {
+        if (threatArcs == null)
+            threatArcs = new GameObject("ThreatArcs").AddComponent<ThreatArcRenderer>();
+
+        if (target == null || currentPhase != GamePhase.PlayerTurn)
+        {
+            threatArcs.Clear();
+            return;
+        }
+
+        ThreatRange.GetAttackersOf(enemyUnits, target.GridPosition, threatAttackers);
+        threatArcs.Show(threatAttackers, target);
+    }
+
+    private void ClearThreatArcs()
+    {
+        if (threatArcs != null) threatArcs.Clear();
+    }
+
+    /// <summary>위협 범위 표시를 켜고 끕니다. HUD 버튼에 연결해 쓸 수 있습니다.</summary>
+    public void ToggleThreatRange()
+    {
+        showThreatRange = !showThreatRange;
+        if (showThreatRange) RefreshThreatRange();
+        else ClearThreatDisplay();
+    }
+
+    // 노리는 적이 많을수록 진해집니다.
+    private static Color GetThreatColor(int enemyCount)
+    {
+        float alpha = Mathf.Min(0.16f + 0.13f * (enemyCount - 1), 0.45f);
+        return new Color(0.95f, 0.22f, 0.18f, alpha);
     }
 
     // ??????????????????? Helpers ???????????????????
@@ -1804,6 +2113,7 @@ public class GameManager : MonoBehaviour
         { Tile t = grid.GetTile(pos); if (t != null) t.ClearHighlight(); }
         moveTiles.Clear();
         attackTiles.Clear();
+        ClearThreatArcs();
     }
 
     // ??????????????????? UI ???????????????????

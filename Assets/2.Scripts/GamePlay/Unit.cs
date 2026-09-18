@@ -73,6 +73,28 @@ public class Unit : MonoBehaviour
     public bool IsDead => HP <= 0;
     public SkillData SkillData => CharacterData != null ? CharacterData.SkillData : null;
     public bool HasActiveGuard => guardTurnsRemaining > 0;
+
+    // 전투 중 저장/복구에 쓰는 상태값입니다.
+    public int SkillCooldownRemaining => skillCooldownRemaining;
+    public int GuardTurnsRemaining => guardTurnsRemaining;
+    public int SkillBuffTurnsRemaining => skillBuffTurnsRemaining;
+    public bool SentryCounterAvailable => sentryCounterAvailable;
+
+    /// <summary>저장해 둔 전투 상태를 그대로 되돌립니다.</summary>
+    public void RestoreBattleState(
+        int hp, bool hasActed, int skillCooldown, int guardTurns, int buffTurns, bool sentryAvailable)
+    {
+        HP = Mathf.Clamp(hp, 1, MaxHP);
+        HasActed = hasActed;
+        skillCooldownRemaining = Mathf.Max(0, skillCooldown);
+        guardTurnsRemaining = Mathf.Max(0, guardTurns);
+        skillBuffTurnsRemaining = Mathf.Max(0, buffTurns);
+        sentryCounterAvailable = sentryAvailable;
+
+        RecalculateStats();
+        if (hasActed) ApplyColor(ActedColor);
+        else SetTeamColor();
+    }
     public bool CanUseSentryCounter => IsCharacter("kamae_tomoka") && sentryCounterAvailable;
 
     public static Unit Create(Team team, Vector2Int gridPos, GameObject prefab)
