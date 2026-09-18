@@ -104,6 +104,9 @@ public class GameManager : MonoBehaviour
     private ThreatArcRenderer threatArcs;
     private bool showThreatRange = true;
 
+    private CharacterCommandPanelView commandPanel;
+    private bool skillArmed;
+
     private Unit selectedUnit;
     private List<Vector2Int> moveTiles = new List<Vector2Int>();
     private List<Vector2Int> attackTiles = new List<Vector2Int>();
@@ -915,11 +918,9 @@ public class GameManager : MonoBehaviour
                 unit.BeginPlayerTurn();
         }
 
+        // 지원 스킬은 턴 시작에 자동 발동하지 않고, 스킬 패널의 버튼으로 직접 씁니다.
         RefreshPlayerPassives();
-        string message = AutoActivateStartTurnSkills();
-        RefreshPlayerPassives();
-        message = JoinMessages(message, ApplyKisaePassiveHealing());
-        return message;
+        return ApplyKisaePassiveHealing();
     }
 
     // ??????????????????? Player Turn ???????????????????
@@ -998,6 +999,8 @@ public class GameManager : MonoBehaviour
 
         ShowAttackRange(unit.GridPosition, GetEffectiveAttackRange(unit));
         ShowThreatArcs(unit);
+        skillArmed = false;
+        RefreshCommandPanel();
     }
 
     private void DeselectUnit()
@@ -1007,6 +1010,7 @@ public class GameManager : MonoBehaviour
         selectedUnit = null;
         battleState = BattleState.Idle;
         ClearAllMarkers();
+        RefreshCommandPanel();
 
         if (CameraController.Instance != null)
             CameraController.Instance.ResetFocus();
@@ -1038,6 +1042,7 @@ public class GameManager : MonoBehaviour
     {
         ShowAttackRange(selectedUnit.GridPosition, GetEffectiveAttackRange(selectedUnit));
         ShowThreatArcs(selectedUnit);
+        RefreshCommandPanel();
     }
 
     private void ShowAttackRange(Vector2Int origin, int range)
@@ -1060,7 +1065,7 @@ public class GameManager : MonoBehaviour
         ClearAllMarkers();
 
         Unit attacker = selectedUnit;
-        if (TryUseOffensiveSkill(attacker, target, out string skillMessage))
+        if (skillArmed && TryUseOffensiveSkill(attacker, target, out string skillMessage))
         {
             lastCombatMessage = skillMessage;
             FinishUnitAction();
@@ -1097,7 +1102,8 @@ public class GameManager : MonoBehaviour
         attackPreviewTarget = target;
 
         // ?ㅼ젣 ?먯젙怨??꾩쟾???숈씪??怨꾩궛?낅땲?? ?덉륫怨?寃곌낵媛 媛덈씪吏????놁뒿?덈떎.
-        AttackForecast forecast = selectedUnit.IsSkillReady(turnCount) &&
+        AttackForecast forecast = skillArmed &&
+            selectedUnit.IsSkillReady(turnCount) &&
             IsOffensiveSkill(selectedUnit.SkillData)
             ? CombatResolver.ForecastSkill(selectedUnit, target, selectedUnit.SkillData)
             : CombatResolver.Forecast(selectedUnit, target);
@@ -1365,6 +1371,8 @@ public class GameManager : MonoBehaviour
         }
 
         battleState = BattleState.Idle;
+        skillArmed = false;
+        RefreshCommandPanel();
 
         if (CheckBattleEnd()) return;
 
@@ -1384,6 +1392,8 @@ public class GameManager : MonoBehaviour
         }
         ClearAllMarkers();
         battleState = BattleState.Idle;
+        skillArmed = false;
+        RefreshCommandPanel();
 
         foreach (var unit in playerUnits)
         {
@@ -1631,56 +1641,53 @@ public class GameManager : MonoBehaviour
     private static bool IsOffensiveSkill(SkillData skill)
         => skill != null && skill.TargetType == SkillTargetType.Enemy;
 
-    private string AutoActivateStartTurnSkills()
+    /// <summary>
+    /// 스킬 버튼으로 지원 스킬을 발동합니다. 발동하지 못하면 빈 문자열을 돌려줍니다.
+    /// </summary>
+    private string ActivateSupportSkill(Unit unit)
     {
-        string message = "";
-        foreach (Unit unit in new List<Unit>(playerUnits))
+        if (unit == null || unit.IsDead || !unit.IsSkillReady(turnCount))
+            return "";
+
+        SkillData skill = unit.SkillData;
+        if (skill == null || IsOffensiveSkill(skill))
+            return "";
+
+        if (unit.IsCharacter("tokikawa_hina"))
         {
-            if (unit == null || unit.IsDead || !unit.IsSkillReady(turnCount))
-                continue;
-
-            SkillData skill = unit.SkillData;
-            if (skill == null || IsOffensiveSkill(skill))
-                continue;
-
-            if (unit.IsCharacter("tokikawa_hina"))
-            {
-                int defense = GetSkillPercent(skill, SkillStatType.Defense);
-                unit.ActivateGuard(Mathf.Max(1, skill.DurationTurns), defense);
-                unit.SpendSkill();
-                message = JoinMessages(message,
-                    $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 발동");
-            }
-            else if (unit.IsCharacter("kitanojo_atsuko"))
-            {
-                int attack = GetSkillPercent(skill, SkillStatType.AttackPower);
-                int defense = GetSkillPercent(skill, SkillStatType.Defense);
-                foreach (Unit ally in playerUnits)
-                {
-                    if (ally != null && !ally.IsDead)
-                        ally.GrantSkillBuff(attack, defense,
-                            Mathf.Max(1, skill.DurationTurns));
-                }
-                unit.SpendSkill();
-                message = JoinMessages(message,
-                    $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 아군 강화");
-            }
-            else if (unit.IsCharacter("kino_kisae"))
-            {
-                Unit healTarget = FindDamagedAdjacentAlly(unit, skill.Range);
-                if (healTarget == null)
-                    continue;
-
-                int healed = healTarget.HealPercent(skill.PowerPercent);
-                if (healed <= 0)
-                    continue;
-
-                unit.SpendSkill();
-                message = JoinMessages(message,
-                    $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: {healTarget.CharacterData.DisplayName} {healed} 회복");
-            }
+            int defense = GetSkillPercent(skill, SkillStatType.Defense);
+            unit.ActivateGuard(Mathf.Max(1, skill.DurationTurns), defense);
+            unit.SpendSkill();
+            return $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 발동";
         }
-        return message;
+
+        if (unit.IsCharacter("kitanojo_atsuko"))
+        {
+            int attack = GetSkillPercent(skill, SkillStatType.AttackPower);
+            int defense = GetSkillPercent(skill, SkillStatType.Defense);
+            foreach (Unit ally in playerUnits)
+            {
+                if (ally != null && !ally.IsDead)
+                    ally.GrantSkillBuff(attack, defense,
+                        Mathf.Max(1, skill.DurationTurns));
+            }
+            unit.SpendSkill();
+            return $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 아군 강화";
+        }
+
+        if (unit.IsCharacter("kino_kisae"))
+        {
+            Unit healTarget = FindDamagedAdjacentAlly(unit, skill.Range);
+            if (healTarget == null) return "";
+
+            int healed = healTarget.HealPercent(skill.PowerPercent);
+            if (healed <= 0) return "";
+
+            unit.SpendSkill();
+            return $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: {healTarget.CharacterData.DisplayName} {healed} 회복";
+        }
+
+        return "";
     }
 
     private string ApplyKisaePassiveHealing()
@@ -2148,10 +2155,110 @@ public class GameManager : MonoBehaviour
         }
         view.name = "BattleHUDUI (PlayHere)";
         view.gameObject.SetActive(false);
+
+        // 씬에 남아 있던 옛 되돌리기/확정 버튼은 HUD가 대신하므로 숨깁니다.
+        HideLegacyActionButtons(view);
+
         gamePlayUI = view.gameObject;
         gameInfoText = view.InfoText;
         undoButton = view.UndoButton;
         playButton = view.ConfirmButton;
+
+        commandPanel = view.CommandPanel;
+        if (commandPanel != null)
+        {
+            commandPanel.SkillButton?.onClick.AddListener(OnSkillButtonClicked);
+            commandPanel.AttackButton?.onClick.AddListener(OnAttackButtonClicked);
+            commandPanel.Hide();
+        }
+    }
+
+    private void HideLegacyActionButtons(BattleHUDUIView hud)
+    {
+        foreach (Button legacy in new[] { undoButton, playButton })
+        {
+            if (legacy == null || legacy.transform.IsChildOf(hud.transform)) continue;
+            legacy.transform.root.gameObject.SetActive(false);
+        }
+    }
+
+    // ??????????????????? Character Command Panel ???????????????????
+
+    /// <summary>선택한 캐릭터의 초상화·스킬·일반 공격 패널을 갱신합니다.</summary>
+    private void RefreshCommandPanel()
+    {
+        if (commandPanel == null) return;
+
+        Unit unit = selectedUnit;
+        if (unit == null || unit.IsDead || currentPhase != GamePhase.PlayerTurn)
+        {
+            skillArmed = false;
+            commandPanel.Hide();
+            return;
+        }
+
+        SkillData skill = unit.SkillData;
+        bool ready = unit.IsSkillReady(turnCount);
+        if (!ready) skillArmed = false;
+
+        string skillName = skill != null ? skill.DisplayName : "스킬 없음";
+        string skillState;
+        if (skill == null)
+            skillState = "-";
+        else if (ready)
+            skillState = IsOffensiveSkill(skill)
+                ? (skillArmed ? "사용 대기 · 대상 선택" : "사용 가능")
+                : "눌러서 발동";
+        else if (turnCount < Mathf.Max(1, skill.AvailableFromTurn))
+            skillState = $"{skill.AvailableFromTurn}턴부터";
+        else
+            skillState = $"재사용 {unit.SkillCooldownRemaining}턴";
+
+        commandPanel.Show(unit.CharacterData, skillName, skillState, ready, skillArmed);
+    }
+
+    private void OnSkillButtonClicked()
+    {
+        Unit unit = selectedUnit;
+        if (unit == null || currentPhase != GamePhase.PlayerTurn || !unit.IsSkillReady(turnCount))
+            return;
+
+        SkillData skill = unit.SkillData;
+        if (IsOffensiveSkill(skill))
+        {
+            // 공격 스킬은 사용 대기로 걸어 두고, 공격할 적을 누르면 스킬로 공격합니다.
+            skillArmed = !skillArmed;
+            RefreshCommandPanel();
+            RefreshOpenAttackPreview();
+            return;
+        }
+
+        string message = ActivateSupportSkill(unit);
+        if (string.IsNullOrEmpty(message))
+        {
+            lastCombatMessage = $"{skill.DisplayName}: 지금은 쓸 대상이 없습니다.";
+            return;
+        }
+
+        lastCombatMessage = message;
+        RefreshPlayerPassives();
+        FinishUnitAction();
+    }
+
+    private void OnAttackButtonClicked()
+    {
+        if (selectedUnit == null || currentPhase != GamePhase.PlayerTurn) return;
+        skillArmed = false;
+        RefreshCommandPanel();
+        RefreshOpenAttackPreview();
+    }
+
+    // 스킬/일반 공격을 바꾸면 열려 있는 공격 미리보기도 바로 다시 계산합니다.
+    private void RefreshOpenAttackPreview()
+    {
+        if (attackPreviewTarget != null && attackPreviewPanel != null &&
+            attackPreviewPanel.gameObject.activeSelf)
+            ShowAttackPreview(attackPreviewTarget);
     }
 
     private void LateUpdate()

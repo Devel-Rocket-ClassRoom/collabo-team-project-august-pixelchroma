@@ -45,6 +45,7 @@ public class SquadSelectionController : MonoBehaviour
     private void Awake()
     {
         roster.RemoveAll(character => character == null);
+        AddMissingOwnedAgents();
         EnsureEventSystem();
         BuildScreen();
         RefreshScreen();
@@ -54,6 +55,19 @@ public class SquadSelectionController : MonoBehaviour
     {
         if (Screen.safeArea != lastSafeArea)
             ApplySafeArea();
+    }
+
+    // 보유 요원 목록에 있는데 편성 목록에 없는 요원을 뒤에 채웁니다. 기존 순서는 유지합니다.
+    private void AddMissingOwnedAgents()
+    {
+        OwnedAgentCatalog catalog = Resources.Load<OwnedAgentCatalog>("OwnedAgentCatalog");
+        if (catalog == null) return;
+
+        foreach (CharacterData agent in catalog.OwnedAgents)
+        {
+            if (agent != null && !roster.Contains(agent))
+                roster.Add(agent);
+        }
     }
 
     private void EnsureEventSystem()
