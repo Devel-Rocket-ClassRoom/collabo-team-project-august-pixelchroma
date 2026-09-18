@@ -1264,6 +1264,9 @@ MonoBehaviour:
   undoButtonSprite: {fileID: 0}
   confirmButtonSprite: {fileID: 0}
   gameTextData: {fileID: 0}
+  skillCutInPrefab: {fileID: 0}
+  hitHealthBarPrefab: {fileID: 0}
+  hitFlashDuration: 1
 --- !u!1 &2141458087
 GameObject:
   m_ObjectHideFlags: 0

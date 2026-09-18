@@ -9,12 +9,12 @@ public static class TurnlinePrefabCreator
     {
         GameObject obj = new GameObject("Turnline", typeof(TurnBannerUI));
 
-        const string path = "Assets/3.Prefabs/UI/Turnline.prefab";
-        if (!AssetDatabase.IsValidFolder("Assets/3.Prefabs/UI"))
+        const string path = "Assets/3.Prefabs/4.MainGame/Turnline.prefab";
+        if (!AssetDatabase.IsValidFolder("Assets/3.Prefabs/4.MainGame"))
         {
             if (!AssetDatabase.IsValidFolder("Assets/3.Prefabs"))
                 AssetDatabase.CreateFolder("Assets", "3.Prefabs");
-            AssetDatabase.CreateFolder("Assets/3.Prefabs", "UI");
+            AssetDatabase.CreateFolder("Assets/3.Prefabs", "4.MainGame");
         }
 
         PrefabUtility.SaveAsPrefabAsset(obj, path);

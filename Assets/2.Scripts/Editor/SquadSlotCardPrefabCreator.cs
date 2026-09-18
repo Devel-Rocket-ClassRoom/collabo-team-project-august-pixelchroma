@@ -74,7 +74,7 @@ public static class SquadSlotCardPrefabCreator
         so.FindProperty("detailText").objectReferenceValue = detailText;
         so.ApplyModifiedProperties();
 
-        string path = "Assets/3.Prefabs/UI/SquadSlotCard.prefab";
+        string path = "Assets/3.Prefabs/3.5.Squad Select/SquadSlotCard.prefab";
         PrefabUtility.SaveAsPrefabAsset(root, path);
         Object.DestroyImmediate(root);
         AssetDatabase.Refresh();
