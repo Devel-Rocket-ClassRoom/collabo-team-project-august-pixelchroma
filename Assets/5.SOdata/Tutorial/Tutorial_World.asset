@@ -53,7 +53,7 @@ MonoBehaviour:
       seVolune: 1
       choices: []
       Char1:
-        CharacterPNG: {fileID: 0}
+        CharacterPNG: {fileID: 21300000, guid: 1ad1966743e8ff7419af5d987b3d626f, type: 3}
         CharacterPos: {x: 0, y: -100}
         CharacterScale: 1
         CharacterRotation: 0
@@ -71,7 +71,7 @@ MonoBehaviour:
       dialogueText: "\uBD80\uC784 \uCCAB\uB0A0\uC774\uB2C8 \uAE30\uBCF8 \uBE0C\uB9AC\uD551\uBD80\uD130
         \uB4DC\uB9AC\uACA0\uC2B5\uB2C8\uB2E4. \uBA54\uBAA8\uB294 \uD544\uC694 \uC5C6\uC2B5\uB2C8\uB2E4.
         \uD544\uC694\uD55C \uAC74 \uC81C\uAC00 \uC804\uBD80 \uAE30\uC5B5\uD574 \uB450\uB2C8\uAE4C\uC694."
-      characterIllust: {fileID: 0}
+      characterIllust: {fileID: 21300000, guid: 1ad1966743e8ff7419af5d987b3d626f, type: 3}
       BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
       showChatUI: 1
       EffectSound: {fileID: 0}
