@@ -398,10 +398,11 @@ public static class CombatResolver
 
     private static int ApplyDefenseReduction(int damage, Unit defender)
     {
-        if (damage <= 0 || defender == null || defender.Defense <= 0)
+        if (damage <= 0 || defender == null || defender.Defense == 0)
             return damage;
 
-        float multiplier = Mathf.Clamp01((100f - defender.Defense) / 100f);
+        // 방어력이 음수(약화)면 1보다 커져 피해가 늘어납니다.
+        float multiplier = Mathf.Clamp((100f - defender.Defense) / 100f, 0f, 2f);
         return Mathf.Max(1, Mathf.CeilToInt(damage * multiplier));
     }
 

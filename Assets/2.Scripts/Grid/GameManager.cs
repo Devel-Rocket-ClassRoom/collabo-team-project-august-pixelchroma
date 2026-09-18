@@ -25,6 +25,26 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    // ── 튜토리얼 연동 ──
+    // 튜토리얼 씬(1.3)에서는 전투 저장·이어하기·스테이지 해금을 하지 않고,
+    // 아래 이벤트로 플레이어가 해야 할 행동을 했는지 튜토리얼 가이드에 알려 줍니다.
+    public bool TutorialMode { get; set; }
+    public event System.Action BattleStarted;
+    public event System.Action<Unit> PlayerUnitSelected;
+    public event System.Action<Unit> PlayerUnitMoved;
+    /// <summary>아군 공격이 끝났을 때 (공격한 아군, 맞은 적, 반격이 있었는지)</summary>
+    public event System.Action<Unit, Unit, bool> PlayerAttackFinished;
+    public event System.Action<bool> ThreatRangeToggled;
+    /// <summary>승패가 났을 때 (true = 승리)</summary>
+    public event System.Action<bool> BattleEnded;
+    /// <summary>튜토리얼에서 결과 화면의 버튼을 눌렀을 때 (true = 승리)</summary>
+    public event System.Action<bool> TutorialResultConfirmed;
+    private bool lastBattleVictory;
+    public bool ShowingThreatRange => showThreatRange;
+    // 튜토리얼처럼 스쿼드 편성 없이 들어오는 전투에서 쓸 출전 명단과 아군 최대 체력 (0이면 원래 값)
+    public List<CharacterData> RosterOverride { get; set; }
+    public int PlayerMaxHpOverride { get; set; }
+
     [Header("Prefabs")]
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private GameObject enemyPrefab;
@@ -106,6 +126,24 @@ public class GameManager : MonoBehaviour
 
     private CharacterCommandPanelView commandPanel;
     private bool skillArmed;
+    private bool phaseTargeting;
+
+    [Header("Skill Cut-in")]
+    [Tooltip("비우면 Resources의 'SkillCutIn (PlayHere)' 프리팹을 씁니다. 스킬별로 SkillData에서 따로 지정할 수도 있습니다.")]
+    [SerializeField] private SkillCutInView skillCutInPrefab;
+    private readonly Dictionary<SkillCutInView, SkillCutInView> skillCutInInstances =
+        new Dictionary<SkillCutInView, SkillCutInView>();
+    private bool skillCutInPlaying;
+
+    [Header("Hit Presentation")]
+    [Tooltip("비우면 Resources의 'HitHealthBar (PlayHere)' 프리팹을 씁니다.")]
+    [SerializeField] private HitHealthBarView hitHealthBarPrefab;
+    [Tooltip("맞은 유닛이 빨갛게 깜빡이는 시간. 이 시간이 지난 뒤 체력이 줄어듭니다.")]
+    [SerializeField, Min(0f)] private float hitFlashDuration = 1f;
+    private static readonly Color HitFlashColor = new Color(1f, 0.15f, 0.15f, 1f);
+    private readonly List<HitHealthBarView> hitHealthBars = new List<HitHealthBarView>();
+    private bool attackPlaying;
+    private readonly List<Vector2Int> phaseTiles = new List<Vector2Int>();
 
     private Unit selectedUnit;
     private List<Vector2Int> moveTiles = new List<Vector2Int>();
@@ -273,6 +311,7 @@ public class GameManager : MonoBehaviour
 
     private void HandleTap(Vector2 screenPosition)
     {
+        if (InputLocked) return;
         if (currentPhase == GamePhase.BattleResult) return;
         if (currentPhase == GamePhase.EnemyTurn) return;
         if (currentPhase == GamePhase.ReadyToStart) return;
@@ -392,6 +431,7 @@ public class GameManager : MonoBehaviour
             playerPrefab,
             selectedDeployCharacter,
             defaultPlayerSprite);
+        if (PlayerMaxHpOverride > 0) unit.OverrideMaxHP(PlayerMaxHpOverride);
         playerUnits.Add(unit);
         deployedCount++;
         tile.ClearHighlight();
@@ -414,7 +454,12 @@ public class GameManager : MonoBehaviour
     private void SetupDeploymentRoster()
     {
         availableCharacters.RemoveAll(character => character == null);
-        if (SquadSelectionState.SelectedCharacters.Count > 0)
+        if (RosterOverride != null && RosterOverride.Count > 0)
+        {
+            availableCharacters.Clear();
+            availableCharacters.AddRange(RosterOverride);
+        }
+        else if (SquadSelectionState.SelectedCharacters.Count > 0)
         {
             availableCharacters.Clear();
             availableCharacters.AddRange(SquadSelectionState.SelectedCharacters);
@@ -887,6 +932,7 @@ public class GameManager : MonoBehaviour
         SaveBattle();
         if (TurnBannerUI.Instance != null)
             yield return TurnBannerUI.Instance.ShowPlayerTurnAndWait();
+        BattleStarted?.Invoke();
     }
 
     /// <summary>이어하기로 시작할 때 배너와 UI를 전투 진행 상태로 맞춥니다.</summary>
@@ -915,7 +961,7 @@ public class GameManager : MonoBehaviour
         foreach (var unit in playerUnits)
         {
             if (unit != null && !unit.IsDead)
-                unit.BeginPlayerTurn();
+                unit.BeginPlayerTurn(turnCount > 1);
         }
 
         // 지원 스킬은 턴 시작에 자동 발동하지 않고, 스킬 패널의 버튼으로 직접 씁니다.
@@ -927,6 +973,13 @@ public class GameManager : MonoBehaviour
 
     private void HandleBattleClick(Tile tile, Unit clickedUnit)
     {
+        if (phaseTargeting)
+        {
+            if (phaseTiles.Contains(tile.GridPosition)) ExecutePhase(tile.GridPosition);
+            else CancelPhaseTargeting();
+            return;
+        }
+
         if (battleState == BattleState.Idle)
         {
             if (clickedUnit != null && clickedUnit.UnitTeam == Team.Player && !clickedUnit.HasActed)
@@ -1001,6 +1054,7 @@ public class GameManager : MonoBehaviour
         ShowThreatArcs(unit);
         skillArmed = false;
         RefreshCommandPanel();
+        if (unit.UnitTeam == Team.Player) PlayerUnitSelected?.Invoke(unit);
     }
 
     private void DeselectUnit()
@@ -1024,10 +1078,12 @@ public class GameManager : MonoBehaviour
         RefreshPlayerPassives();
         battleState = BattleState.UnitMoved;
         ShowAttackRangeAfterMove();
+        PlayerUnitMoved?.Invoke(selectedUnit);
     }
 
     private void UndoMove()
     {
+        if (InputLocked) return;
         if (currentPhase != GamePhase.PlayerTurn ||
             battleState != BattleState.UnitMoved ||
             selectedUnit == null)
@@ -1060,33 +1116,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void AttackTarget(Unit target)
-    {
-        ClearAllMarkers();
-
-        Unit attacker = selectedUnit;
-        if (skillArmed && TryUseOffensiveSkill(attacker, target, out string skillMessage))
-        {
-            lastCombatMessage = skillMessage;
-            FinishUnitAction();
-            return;
-        }
-
-        AttackOutcome outcome = CombatResolver.Resolve(attacker, target);
-        lastCombatMessage = CombatResolver.DescribeOutcome(outcome, attacker, target);
-
-        if (outcome.TargetDied)
-            enemyUnits.Remove(target);
-
-        if (outcome.AttackerDied)
-        {
-            playerUnits.Remove(attacker);
-            if (selectedUnit == attacker) selectedUnit = null;
-        }
-
-        FinishUnitAction();
-    }
-
     private void ConfirmOrPreviewAttack(Unit target)
     {
         ShowAttackPreview(target);
@@ -1101,6 +1130,30 @@ public class GameManager : MonoBehaviour
 
         attackPreviewTarget = target;
 
+        SkillData armedSkill = skillArmed &&
+            selectedUnit.IsSkillReady(turnCount) &&
+            IsOffensiveSkill(selectedUnit.SkillData)
+            ? selectedUnit.SkillData
+            : null;
+        int skillTargetCount = armedSkill != null
+            ? CollectEnemySkillTargets(target, armedSkill).Count
+            : 1;
+
+        if (armedSkill != null && armedSkill.EffectType == SkillEffectType.Debuff)
+        {
+            // 약화 스킬은 피해가 없으므로 효과와 대상 수만 보여줍니다.
+            attackPreviewText.text =
+                $"{armedSkill.DisplayName} · 약화\n" +
+                $"{DescribeStatChange(armedSkill.GetStatPercent(SkillStatType.AttackPower), armedSkill.GetStatPercent(SkillStatType.Defense))}" +
+                $" · {Mathf.Max(1, armedSkill.DurationTurns)}턴" +
+                (skillTargetCount > 1 ? $"\n주변 적 {skillTargetCount - 1}명에게도 {armedSkill.SplashPercent}% 적용" : "");
+            if (attackPreviewView != null)
+                attackPreviewView.SetHealth(target.HP, target.MaxHP, 0);
+            attackPreviewPanel.gameObject.SetActive(true);
+            UpdateAttackPreviewPosition();
+            return;
+        }
+
         // ?ㅼ젣 ?먯젙怨??꾩쟾???숈씪??怨꾩궛?낅땲?? ?덉륫怨?寃곌낵媛 媛덈씪吏????놁뒿?덈떎.
         AttackForecast forecast = skillArmed &&
             selectedUnit.IsSkillReady(turnCount) &&
@@ -1113,6 +1166,9 @@ public class GameManager : MonoBehaviour
             : IsOnHighGround(selectedUnit)
                 ? $"\n고지대: 사거리 +1, 명중 +{CombatResolver.HighGroundAccuracyBonus}%"
                 : "";
+
+        if (armedSkill != null && skillTargetCount > 1)
+            terrainNotice += $"\n주변 적 {skillTargetCount - 1}명도 {armedSkill.SplashPercent}% 피해";
 
         attackPreviewText.text =
             CombatResolver.DescribeForecast(forecast, target) + terrainNotice;
@@ -1298,6 +1354,7 @@ public class GameManager : MonoBehaviour
 
     private void ConfirmPreviewedAttack()
     {
+        if (InputLocked) return;
         Unit target = attackPreviewTarget;
         if (target == null || target.IsDead || selectedUnit == null)
         {
@@ -1384,6 +1441,7 @@ public class GameManager : MonoBehaviour
 
     private void EndPlayerTurn()
     {
+        if (InputLocked) return;
         if (selectedUnit != null)
         {
             selectedUnit.MarkActed();
@@ -1458,8 +1516,10 @@ public class GameManager : MonoBehaviour
             if (playerUnits.Count == 0) break;
 
             var topCandidates = new List<AICandidate>();
+            // 유체화 중인 아군은 적이 노릴 수 없습니다.
+            List<Unit> targetable = playerUnits.FindAll(u => u != null && !u.IsPhased);
             AICandidate decision = EnemyAI.Decide(
-                enemy, playerUnits, enemyUnits, enemySquad, doomed, topCandidates);
+                enemy, targetable, enemyUnits, enemySquad, doomed, topCandidates);
 
             EnemyAILog.Record(turnCount, enemy, enemySquad, topCandidates);
 
@@ -1473,6 +1533,12 @@ public class GameManager : MonoBehaviour
             yield return ExecuteEnemyAction(enemy, decision, doomed);
 
             if (CheckBattleEnd()) yield break;
+        }
+
+        // 적 턴이 끝났으니 적에게 걸린 약화의 남은 턴을 줄입니다.
+        foreach (Unit enemy in enemyUnits)
+        {
+            if (enemy != null && !enemy.IsDead) enemy.TickDebuff();
         }
 
         if (CameraController.Instance != null)
@@ -1543,7 +1609,25 @@ public class GameManager : MonoBehaviour
                        Mathf.Abs(enemy.GridPosition.y - target.GridPosition.y);
         if (distance > GetEffectiveAttackRange(enemy)) yield break;
 
+        // 공격 연출: 적이 대상 쪽으로 튀어나갔다 돌아온 뒤 판정합니다.
+        yield return enemy.PlayAttackLunge(target.transform.position);
+
+        int hpBefore = target.HP;
+        int enemyHpBefore = enemy.HP;
+        // 쓰러져도 피격 연출을 끝까지 보여준 뒤 사라지게 합니다.
+        target.HoldDeath = true;
+        enemy.HoldDeath = true;
         AttackOutcome outcome = CombatResolver.Resolve(enemy, target);
+        target.HoldDeath = false;
+        enemy.HoldDeath = false;
+
+        yield return PlayHitPresentation(target, hpBefore, HitLabel(outcome),
+            outcome.Hit && outcome.Damage > 0);
+        if (!target.IsDead)
+            yield return PlayCounterPresentation(target, enemy, enemyHpBefore, outcome);
+
+        if (target.IsDead) target.Die();
+        if (enemy.IsDead) enemy.Die();
         string guardMessage = target != originalTarget
             ? $"{target.CharacterData.DisplayName} - 캐치암"
             : "";
@@ -1565,7 +1649,158 @@ public class GameManager : MonoBehaviour
             enemyUnits.Remove(enemy);
     }
 
-    private bool TryUseOffensiveSkill(Unit attacker, Unit target, out string message)
+    /// <summary>
+    /// 맞은 유닛이 흔들리며 빨갛게 깜빡이고(hitFlashDuration), 그다음 머리 위 체력 바가 줄어듭니다.
+    /// 빗나가거나 엄폐물이 막으면 문구만 잠깐 보여줍니다.
+    /// </summary>
+    private IEnumerator PlayHitPresentation(Unit target, int hpBefore, string label, bool damaged)
+    {
+        if (target == null) yield break;
+
+        if (damaged)
+            StartCoroutine(target.PlayHitReaction(hitFlashDuration, HitFlashColor));
+
+        HitHealthBarView bar = GetHitHealthBar();
+        if (bar != null)
+            yield return bar.Play(target.transform, hpBefore, Mathf.Max(0, target.HP), target.MaxHP,
+                label, damaged ? hitFlashDuration : 0.4f);
+        else if (damaged)
+            yield return new WaitForSeconds(hitFlashDuration);
+    }
+
+    /// <summary>반격한 쪽이 튀어나가고, 공격했던 쪽이 맞는 연출을 보여줍니다.</summary>
+    private IEnumerator PlayCounterPresentation(
+        Unit counterAttacker, Unit victim, int victimHpBefore, AttackOutcome outcome)
+    {
+        if (!outcome.CounterHappened || counterAttacker == null || victim == null)
+            yield break;
+
+        yield return counterAttacker.PlayAttackLunge(victim.transform.position);
+        string label = !outcome.CounterHit ? "MISS"
+            : outcome.CounterCritical ? $"-{outcome.CounterDamage} 치명!"
+            : $"-{outcome.CounterDamage}";
+        yield return PlayHitPresentation(victim, victimHpBefore, label,
+            outcome.CounterHit && outcome.CounterDamage > 0);
+    }
+
+    private static string HitLabel(AttackOutcome outcome)
+    {
+        if (outcome.CoverAbsorbed) return "엄폐";
+        if (!outcome.Hit) return "MISS";
+        return outcome.Critical ? $"-{outcome.Damage} 치명!" : $"-{outcome.Damage}";
+    }
+
+    /// <summary>쉬고 있는 체력 바를 꺼내 씁니다. 여러 명이 동시에 맞으면 필요한 만큼 만듭니다.</summary>
+    private HitHealthBarView GetHitHealthBar()
+    {
+        foreach (HitHealthBarView pooled in hitHealthBars)
+        {
+            if (pooled != null && !pooled.gameObject.activeSelf) return pooled;
+        }
+
+        HitHealthBarView prefab = hitHealthBarPrefab != null
+            ? hitHealthBarPrefab
+            : Resources.Load<HitHealthBarView>(HitHealthBarView.ResourcePath);
+        if (prefab == null) return null;
+
+        HitHealthBarView bar = Instantiate(prefab);
+        bar.name = prefab.name;
+        bar.gameObject.SetActive(false);
+        hitHealthBars.Add(bar);
+        return bar;
+    }
+
+    private bool InputLocked => skillCutInPlaying || attackPlaying;
+
+    private void AttackTarget(Unit target)
+    {
+        ClearAllMarkers();
+        if (selectedUnit == null || target == null) return;
+        StartCoroutine(AttackTargetRoutine(selectedUnit, target));
+    }
+
+    /// <summary>
+    /// 아군 공격: 튀어나가기 → 판정 → 맞은 적 깜빡임 + 체력 감소 → (반격이 있으면) 반격 연출 → 행동 종료.
+    /// 연출 중에는 입력을 받지 않습니다.
+    /// </summary>
+    private IEnumerator AttackTargetRoutine(Unit attacker, Unit target)
+    {
+        attackPlaying = true;
+
+        yield return attacker.PlayAttackLunge(target.transform.position);
+
+        bool useSkill = skillArmed && IsOffensiveSkill(attacker.SkillData) &&
+                        attacker.IsSkillReady(turnCount);
+        List<Unit> victims = useSkill
+            ? CollectEnemySkillTargets(target, attacker.SkillData)
+            : new List<Unit> { target };
+
+        // 쓰러져도 연출을 끝까지 보여준 뒤 사라지게 합니다.
+        var hpBefore = new Dictionary<Unit, int>();
+        foreach (Unit victim in victims)
+        {
+            hpBefore[victim] = victim.HP;
+            victim.HoldDeath = true;
+        }
+        int attackerHpBefore = attacker.HP;
+        attacker.HoldDeath = true;
+
+        var results = new List<(Unit unit, AttackOutcome outcome)>();
+        bool debuff = false;
+        if (useSkill && TryUseOffensiveSkill(attacker, target, out string skillMessage, results))
+        {
+            lastCombatMessage = skillMessage;
+            debuff = attacker.SkillData.EffectType == SkillEffectType.Debuff;
+        }
+        else
+        {
+            AttackOutcome outcome = CombatResolver.Resolve(attacker, target);
+            results.Add((target, outcome));
+            lastCombatMessage = CombatResolver.DescribeOutcome(outcome, attacker, target);
+
+            if (outcome.TargetDied)
+                enemyUnits.Remove(target);
+            if (outcome.AttackerDied)
+            {
+                playerUnits.Remove(attacker);
+                if (selectedUnit == attacker) selectedUnit = null;
+            }
+        }
+
+        foreach (Unit victim in victims) victim.HoldDeath = false;
+        attacker.HoldDeath = false;
+
+        // 맞은 적 모두 동시에 연출합니다.
+        var running = new List<Coroutine>();
+        AttackOutcome mainOutcome = default;
+        foreach ((Unit unit, AttackOutcome outcome) in results)
+        {
+            if (unit == target) mainOutcome = outcome;
+            int before = hpBefore.TryGetValue(unit, out int hp) ? hp : unit.HP;
+            string label = debuff ? "약화" : HitLabel(outcome);
+            bool damaged = !debuff && outcome.Hit && outcome.Damage > 0;
+            running.Add(StartCoroutine(PlayHitPresentation(unit, before, label, damaged)));
+        }
+        foreach (Coroutine routine in running)
+            yield return routine;
+
+        if (!debuff && !target.IsDead)
+            yield return PlayCounterPresentation(target, attacker, attackerHpBefore, mainOutcome);
+
+        foreach (Unit victim in victims)
+        {
+            if (victim != null && victim.IsDead) victim.Die();
+        }
+        if (attacker != null && attacker.IsDead) attacker.Die();
+
+        attackPlaying = false;
+        PlayerAttackFinished?.Invoke(attacker, target, !debuff && mainOutcome.CounterHappened);
+        FinishUnitAction();
+    }
+
+    private bool TryUseOffensiveSkill(
+        Unit attacker, Unit target, out string message,
+        List<(Unit unit, AttackOutcome outcome)> results = null)
     {
         message = "";
         if (attacker == null || target == null || !attacker.IsSkillReady(turnCount))
@@ -1575,21 +1810,52 @@ public class GameManager : MonoBehaviour
         if (!IsOffensiveSkill(skill))
             return false;
 
-        if (attacker.IsCharacter("kamae_tomoka"))
+        List<Unit> targets = CollectEnemySkillTargets(target, skill);
+        string header = $"{UnitName(attacker)} - {skill.DisplayName}\n";
+
+        if (skill.EffectType == SkillEffectType.Debuff)
         {
-            message = UseTomokaCombatMode(attacker, target, skill);
+            int attack = skill.GetStatPercent(SkillStatType.AttackPower);
+            int defense = skill.GetStatPercent(SkillStatType.Defense);
+            int turns = Mathf.Max(1, skill.DurationTurns);
+            foreach (Unit enemy in targets)
+            {
+                float scale = enemy == target ? 1f : skill.SplashPercent / 100f;
+                results?.Add((enemy, default));
+                enemy.ApplyDebuff(
+                    Mathf.RoundToInt(attack * scale), Mathf.RoundToInt(defense * scale), turns);
+            }
+            attacker.SpendSkill();
+            message = header + $"{targets.Count}명 약화 · {DescribeStatChange(attack, defense)} · {turns}턴";
             return true;
         }
 
-        AttackOutcome outcome = CombatResolver.ResolveSkill(
-            attacker, target, skill, 1f, true);
-        attacker.SpendSkill();
-        message = $"{attacker.CharacterData.DisplayName} - {skill.DisplayName}\n" +
-                  CombatResolver.DescribeOutcome(outcome, attacker, target);
+        int defeated = 0;
+        int totalDamage = 0;
+        AttackOutcome mainOutcome = default;
+        foreach (Unit hit in targets)
+        {
+            // 처음 고른 적만 반격할 수 있고, 주변 적은 SplashPercent만큼 맞습니다.
+            float scale = hit == target ? 1f : skill.SplashPercent / 100f;
+            AttackOutcome outcome = CombatResolver.ResolveSkill(
+                attacker, hit, skill, scale, skill.AllowCounter && hit == target);
+            if (hit == target) mainOutcome = outcome;
+            results?.Add((hit, outcome));
+            totalDamage += outcome.Damage;
+            if (outcome.TargetDied)
+            {
+                defeated++;
+                enemyUnits.Remove(hit);
+            }
+            if (outcome.AttackerDied) break;
+        }
 
-        if (outcome.TargetDied)
-            enemyUnits.Remove(target);
-        if (outcome.AttackerDied)
+        attacker.SpendSkill();
+        message = targets.Count <= 1
+            ? header + CombatResolver.DescribeOutcome(mainOutcome, attacker, target)
+            : header + $"{targets.Count}명 공격 / 총 {totalDamage} 피해 / {defeated}명 격파";
+
+        if (attacker.IsDead)
         {
             playerUnits.Remove(attacker);
             if (selectedUnit == attacker) selectedUnit = null;
@@ -1597,52 +1863,75 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    private string UseTomokaCombatMode(Unit attacker, Unit target, SkillData skill)
+    /// <summary>처음 고른 적 + AreaRadius 안의 적을 가까운 순으로 MaxTargets명까지 모읍니다.</summary>
+    private List<Unit> CollectEnemySkillTargets(Unit target, SkillData skill)
     {
-        List<Unit> targets = new List<Unit>();
+        var targets = new List<Unit> { target };
+        if (skill.AreaRadius <= 0 || skill.MaxTargets <= 1) return targets;
+
+        var others = new List<Unit>();
         foreach (Unit enemy in enemyUnits)
         {
-            if (enemy == null || enemy.IsDead) continue;
-            int distance = Manhattan(enemy.GridPosition, target.GridPosition);
-            if (distance <= Mathf.Max(1, skill.AreaRadius))
-                targets.Add(enemy);
+            if (enemy == null || enemy.IsDead || enemy == target) continue;
+            if (Manhattan(enemy.GridPosition, target.GridPosition) <= skill.AreaRadius)
+                others.Add(enemy);
+        }
+        others.Sort((a, b) =>
+            Manhattan(a.GridPosition, target.GridPosition)
+                .CompareTo(Manhattan(b.GridPosition, target.GridPosition)));
+
+        foreach (Unit other in others)
+        {
+            if (targets.Count >= skill.MaxTargets) break;
+            targets.Add(other);
+        }
+        return targets;
+    }
+
+    /// <summary>
+    /// 아군 대상 스킬의 대상을 모읍니다.
+    /// Self=자신 / Ally=사거리 안 아군 MaxTargets명 / AllAllies=사거리 안 아군 전원 (사거리 0이면 맵 전체).
+    /// 회복은 체력이 깎인 아군만, 많이 깎인 순으로 고릅니다.
+    /// </summary>
+    private List<Unit> CollectAllySkillTargets(Unit caster, SkillData skill)
+    {
+        var result = new List<Unit>();
+        bool heal = skill.EffectType == SkillEffectType.Heal;
+
+        if (skill.TargetType == SkillTargetType.Self)
+        {
+            if (!heal || caster.HP < caster.MaxHP) result.Add(caster);
+            return result;
         }
 
-        targets.Sort((a, b) =>
+        foreach (Unit ally in playerUnits)
         {
-            if (a == target) return -1;
-            if (b == target) return 1;
-            return Manhattan(a.GridPosition, target.GridPosition)
-                .CompareTo(Manhattan(b.GridPosition, target.GridPosition));
-        });
-
-        int limit = Mathf.Min(targets.Count, Mathf.Max(1, skill.MaxTargets));
-        int defeated = 0;
-        int totalDamage = 0;
-        for (int i = 0; i < limit; i++)
-        {
-            Unit hit = targets[i];
-            float scale = hit == target ? 1f : 0.7f;
-            AttackOutcome outcome = CombatResolver.ResolveSkill(
-                attacker, hit, skill, scale, false);
-            totalDamage += outcome.Damage;
-            if (outcome.TargetDied)
-            {
-                defeated++;
-                enemyUnits.Remove(hit);
-            }
+            if (ally == null || ally.IsDead) continue;
+            if (skill.Range > 0 && Chebyshev(caster.GridPosition, ally.GridPosition) > skill.Range)
+                continue;
+            if (heal && ally.HP >= ally.MaxHP) continue;
+            result.Add(ally);
         }
 
-        attacker.SpendSkill();
-        return $"{attacker.CharacterData.DisplayName} - {skill.DisplayName}\n" +
-               $"{limit}명 공격 / 총 {totalDamage} 피해 / {defeated}명 격파";
+        if (heal)
+            result.Sort((a, b) => (b.MaxHP - b.HP).CompareTo(a.MaxHP - a.HP));
+        else
+            result.Sort((a, b) =>
+                Chebyshev(caster.GridPosition, a.GridPosition)
+                    .CompareTo(Chebyshev(caster.GridPosition, b.GridPosition)));
+
+        if (skill.TargetType != SkillTargetType.AllAllies &&
+            result.Count > skill.MaxTargets)
+            result.RemoveRange(skill.MaxTargets, result.Count - skill.MaxTargets);
+        return result;
     }
 
     private static bool IsOffensiveSkill(SkillData skill)
-        => skill != null && skill.TargetType == SkillTargetType.Enemy;
+        => skill != null && skill.TargetsEnemy;
 
     /// <summary>
-    /// 스킬 버튼으로 지원 스킬을 발동합니다. 발동하지 못하면 빈 문자열을 돌려줍니다.
+    /// 스킬 버튼으로 아군 대상 스킬(회복 · 강화 · 수호)을 발동합니다. 발동하지 못하면 빈 문자열을 돌려줍니다.
+    /// 어떤 캐릭터든 SkillData 값만으로 동작합니다.
     /// </summary>
     private string ActivateSupportSkill(Unit unit)
     {
@@ -1650,44 +1939,69 @@ public class GameManager : MonoBehaviour
             return "";
 
         SkillData skill = unit.SkillData;
-        if (skill == null || IsOffensiveSkill(skill))
+        if (skill == null || IsOffensiveSkill(skill) || skill.EffectType == SkillEffectType.Phase)
             return "";
 
-        if (unit.IsCharacter("tokikawa_hina"))
-        {
-            int defense = GetSkillPercent(skill, SkillStatType.Defense);
-            unit.ActivateGuard(Mathf.Max(1, skill.DurationTurns), defense);
-            unit.SpendSkill();
-            return $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 발동";
-        }
+        List<Unit> targets = CollectAllySkillTargets(unit, skill);
+        if (targets.Count == 0) return "";
 
-        if (unit.IsCharacter("kitanojo_atsuko"))
+        string header = $"{UnitName(unit)} - {skill.DisplayName}";
+        int turns = Mathf.Max(1, skill.DurationTurns);
+        int attack = skill.GetStatPercent(SkillStatType.AttackPower);
+        int defense = skill.GetStatPercent(SkillStatType.Defense);
+
+        switch (skill.EffectType)
         {
-            int attack = GetSkillPercent(skill, SkillStatType.AttackPower);
-            int defense = GetSkillPercent(skill, SkillStatType.Defense);
-            foreach (Unit ally in playerUnits)
+            case SkillEffectType.Heal:
             {
-                if (ally != null && !ally.IsDead)
-                    ally.GrantSkillBuff(attack, defense,
-                        Mathf.Max(1, skill.DurationTurns));
+                int total = 0;
+                int healedCount = 0;
+                foreach (Unit ally in targets)
+                {
+                    int amount = Mathf.Max(1,
+                        Mathf.CeilToInt(ally.MaxHP * skill.PowerPercent / 100f) + skill.FlatPower);
+                    int healed = ally.Heal(amount);
+                    if (healed <= 0) continue;
+                    total += healed;
+                    healedCount++;
+                }
+                if (total <= 0) return "";
+
+                unit.SpendSkill();
+                return healedCount == 1
+                    ? $"{header}: {UnitName(targets[0])} {total} 회복"
+                    : $"{header}: 아군 {healedCount}명 총 {total} 회복";
             }
-            unit.SpendSkill();
-            return $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 아군 강화";
-        }
 
-        if (unit.IsCharacter("kino_kisae"))
-        {
-            Unit healTarget = FindDamagedAdjacentAlly(unit, skill.Range);
-            if (healTarget == null) return "";
+            case SkillEffectType.Buff:
+                foreach (Unit ally in targets)
+                    ally.GrantSkillBuff(attack, defense, turns);
+                unit.SpendSkill();
+                return $"{header}: {targets.Count}명 강화 · {DescribeStatChange(attack, defense)} · {turns}턴";
 
-            int healed = healTarget.HealPercent(skill.PowerPercent);
-            if (healed <= 0) return "";
-
-            unit.SpendSkill();
-            return $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: {healTarget.CharacterData.DisplayName} {healed} 회복";
+            case SkillEffectType.Guard:
+                foreach (Unit ally in targets)
+                    ally.ActivateGuard(turns, defense);
+                unit.SpendSkill();
+                return $"{header}: 수호 발동 · 주변 아군 대신 공격받음 · {turns}턴";
         }
 
         return "";
+    }
+
+    private static string DescribeStatChange(int attackPercent, int defensePercent)
+    {
+        string text = "";
+        if (attackPercent != 0) text += $"공격력 {attackPercent:+#;-#}%";
+        if (defensePercent != 0)
+            text += (text.Length > 0 ? " " : "") + $"방어력 {defensePercent:+#;-#}%";
+        return text.Length > 0 ? text : "효과 없음";
+    }
+
+    private static string UnitName(Unit unit)
+    {
+        if (unit == null) return "";
+        return unit.CharacterData != null ? unit.CharacterData.DisplayName : unit.name;
     }
 
     private string ApplyKisaePassiveHealing()
@@ -1763,40 +2077,6 @@ public class GameManager : MonoBehaviour
         return guard != null ? guard : originalTarget;
     }
 
-    private Unit FindDamagedAdjacentAlly(Unit healer, int range)
-    {
-        Unit best = null;
-        int bestMissingHp = 0;
-        int radius = Mathf.Max(1, range);
-        foreach (Unit ally in playerUnits)
-        {
-            if (ally == null || ally.IsDead || ally.HP >= ally.MaxHP)
-                continue;
-            if (Chebyshev(healer.GridPosition, ally.GridPosition) > radius)
-                continue;
-
-            int missing = ally.MaxHP - ally.HP;
-            if (missing > bestMissingHp)
-            {
-                best = ally;
-                bestMissingHp = missing;
-            }
-        }
-        return best;
-    }
-
-    private static int GetSkillPercent(SkillData skill, SkillStatType statType)
-    {
-        if (skill == null) return 0;
-        int total = 0;
-        foreach (SkillStatModifier modifier in skill.StatModifiers)
-        {
-            if (modifier.StatType == statType)
-                total += Mathf.RoundToInt(modifier.PercentAmount);
-        }
-        return total;
-    }
-
     private static string JoinMessages(string first, string second)
     {
         if (string.IsNullOrEmpty(first)) return second ?? "";
@@ -1832,7 +2112,9 @@ public class GameManager : MonoBehaviour
         {
             currentPhase = GamePhase.BattleResult;
             resultMessage = gameTextData != null ? gameTextData.victory : "승리!";
-            StageProgressManager.UnlockNextStage();
+            lastBattleVictory = true;
+            if (!TutorialMode) StageProgressManager.UnlockNextStage();
+            BattleEnded?.Invoke(true);
             BattleSaveSystem.Delete();
             ClearThreatDisplay();
             ClearThreatArcs();
@@ -1844,6 +2126,8 @@ public class GameManager : MonoBehaviour
         {
             currentPhase = GamePhase.BattleResult;
             resultMessage = gameTextData != null ? gameTextData.defeat : "패배...";
+            lastBattleVictory = false;
+            BattleEnded?.Invoke(false);
             BattleSaveSystem.Delete();
             ClearThreatDisplay();
             ClearThreatArcs();
@@ -1861,6 +2145,8 @@ public class GameManager : MonoBehaviour
     /// <summary>진행 중인 전투를 JSON으로 저장합니다. 앱을 닫아도 이어서 할 수 있습니다.</summary>
     private void SaveBattle()
     {
+        // 튜토리얼 전투는 저장하지 않습니다. (실제 전투 저장 파일을 덮어쓰지 않도록)
+        if (TutorialMode) return;
         if (currentPhase != GamePhase.PlayerTurn && currentPhase != GamePhase.EnemyTurn) return;
 
         BattleSaveData data = new BattleSaveData
@@ -1890,16 +2176,25 @@ public class GameManager : MonoBehaviour
             y = unit.GridPosition.y,
             hp = unit.HP,
             hasActed = unit.HasActed,
-            skillCooldown = unit.SkillCooldownRemaining,
+            sp = unit.SP,
             guardTurns = unit.GuardTurnsRemaining,
             buffTurns = unit.SkillBuffTurnsRemaining,
-            sentryAvailable = unit.SentryCounterAvailable
+            sentryAvailable = unit.SentryCounterAvailable,
+            phased = unit.IsPhased,
+            phaseAttackPercent = unit.PhaseAttackPercent,
+            phasePenaltyTurns = unit.PhasePenaltyTurns,
+            buffAttackPercent = unit.SkillAttackPercent,
+            buffDefensePercent = unit.SkillDefensePercent,
+            debuffAttackPercent = unit.DebuffAttackPercent,
+            debuffDefensePercent = unit.DebuffDefensePercent,
+            debuffTurns = unit.DebuffTurnsRemaining
         };
     }
 
     /// <summary>저장된 전투가 있으면 이어할지 먼저 묻습니다.</summary>
     private void AskResumeIfSaveExists()
     {
+        if (TutorialMode) return;
         if (!BattleSaveSystem.TryLoad(out BattleSaveData data)) return;
 
         if (data.sceneName != SceneManager.GetActiveScene().name ||
@@ -1996,8 +2291,11 @@ public class GameManager : MonoBehaviour
         if (unit == null) return null;
 
         unit.RestoreBattleState(
-            saved.hp, saved.hasActed, saved.skillCooldown,
-            saved.guardTurns, saved.buffTurns, saved.sentryAvailable);
+            saved.hp, saved.hasActed, saved.sp,
+            saved.guardTurns, saved.buffTurns, saved.sentryAvailable,
+            saved.phased, saved.phaseAttackPercent, saved.phasePenaltyTurns,
+            saved.buffAttackPercent, saved.buffDefensePercent,
+            saved.debuffAttackPercent, saved.debuffDefensePercent, saved.debuffTurns);
         return unit;
     }
 
@@ -2093,12 +2391,22 @@ public class GameManager : MonoBehaviour
         if (threatArcs != null) threatArcs.Clear();
     }
 
+    /// <summary>위협 범위 표시를 이벤트 없이 정합니다. (튜토리얼 시작 시 꺼 두는 용도)</summary>
+    public void SetThreatRangeVisible(bool visible)
+    {
+        if (showThreatRange == visible) return;
+        showThreatRange = visible;
+        if (showThreatRange) RefreshThreatRange();
+        else ClearThreatDisplay();
+    }
+
     /// <summary>위협 범위 표시를 켜고 끕니다. HUD 버튼에 연결해 쓸 수 있습니다.</summary>
     public void ToggleThreatRange()
     {
         showThreatRange = !showThreatRange;
         if (showThreatRange) RefreshThreatRange();
         else ClearThreatDisplay();
+        ThreatRangeToggled?.Invoke(showThreatRange);
     }
 
     // 노리는 적이 많을수록 진해집니다.
@@ -2120,6 +2428,10 @@ public class GameManager : MonoBehaviour
         { Tile t = grid.GetTile(pos); if (t != null) t.ClearHighlight(); }
         moveTiles.Clear();
         attackTiles.Clear();
+        foreach (var pos in phaseTiles)
+        { Tile t = grid.GetTile(pos); if (t != null) t.ClearHighlight(); }
+        phaseTiles.Clear();
+        phaseTargeting = false;
         ClearThreatArcs();
     }
 
@@ -2201,35 +2513,111 @@ public class GameManager : MonoBehaviour
         bool ready = unit.IsSkillReady(turnCount);
         if (!ready) skillArmed = false;
 
-        string skillName = skill != null ? skill.DisplayName : "스킬 없음";
+        string skillName = skill != null ? $"{skill.DisplayName}  SP {skill.SpCost}" : "스킬 없음";
+        string spGauge = $"SP {unit.SP}/{Unit.MaxSP}";
         string skillState;
         if (skill == null)
-            skillState = "-";
+            skillState = spGauge;
+        else if (phaseTargeting)
+            skillState = "이동할 칸을 선택";
         else if (ready)
             skillState = IsOffensiveSkill(skill)
-                ? (skillArmed ? "사용 대기 · 대상 선택" : "사용 가능")
-                : "눌러서 발동";
+                ? (skillArmed ? "사용 대기 · 대상 선택" : $"{spGauge} · 사용 가능")
+                : $"{spGauge} · 눌러서 발동";
         else if (turnCount < Mathf.Max(1, skill.AvailableFromTurn))
             skillState = $"{skill.AvailableFromTurn}턴부터";
         else
-            skillState = $"재사용 {unit.SkillCooldownRemaining}턴";
+            skillState = $"{spGauge} · SP 부족";
 
-        commandPanel.Show(unit.CharacterData, skillName, skillState, ready, skillArmed);
+        commandPanel.Show(unit.CharacterData, skillName, skillState, ready, skillArmed || phaseTargeting);
     }
 
     private void OnSkillButtonClicked()
     {
+        if (InputLocked) return;
+
         Unit unit = selectedUnit;
         if (unit == null || currentPhase != GamePhase.PlayerTurn || !unit.IsSkillReady(turnCount))
             return;
 
         SkillData skill = unit.SkillData;
+
+        // 걸어 둔 스킬을 다시 눌러 취소할 때는 컷인 없이 바로 처리합니다.
+        bool cancelling = (IsOffensiveSkill(skill) && skillArmed) ||
+                          (skill.EffectType == SkillEffectType.Phase && phaseTargeting);
+        if (cancelling)
+        {
+            UseSkill(unit, skill);
+            return;
+        }
+
+        // 쓸 대상이 없는 아군 스킬은 컷인을 보여주지 않습니다.
+        if (!IsOffensiveSkill(skill) && skill.EffectType != SkillEffectType.Phase &&
+            CollectAllySkillTargets(unit, skill).Count == 0)
+        {
+            lastCombatMessage = $"{skill.DisplayName}: 지금은 쓸 대상이 없습니다.";
+            return;
+        }
+
+        StartCoroutine(PlaySkillCutInThenUse(unit, skill));
+    }
+
+    /// <summary>스킬 컷인을 먼저 보여준 뒤 스킬을 씁니다. 컷인 중에는 입력을 받지 않습니다.</summary>
+    private IEnumerator PlaySkillCutInThenUse(Unit unit, SkillData skill)
+    {
+        skillCutInPlaying = true;
+        SkillCutInView cutIn = GetSkillCutIn(skill);
+        if (cutIn != null)
+        {
+            CharacterData character = unit.CharacterData;
+            Sprite image = skill.CutInImage != null
+                ? skill.CutInImage
+                : character != null ? character.IllustrationSprite : null;
+            yield return cutIn.Play(image, skill.DisplayName, UnitName(unit));
+        }
+        skillCutInPlaying = false;
+
+        if (unit == null || unit.IsDead || selectedUnit != unit ||
+            currentPhase != GamePhase.PlayerTurn || !unit.IsSkillReady(turnCount))
+            yield break;
+
+        UseSkill(unit, skill);
+    }
+
+    /// <summary>스킬마다 지정한 컷인 프리팹, 없으면 기본 컷인 프리팹을 한 번만 만들어 재사용합니다.</summary>
+    private SkillCutInView GetSkillCutIn(SkillData skill)
+    {
+        SkillCutInView prefab = skill.CutInPrefab != null ? skill.CutInPrefab : skillCutInPrefab;
+        if (prefab == null)
+            prefab = skillCutInPrefab = Resources.Load<SkillCutInView>(SkillCutInView.ResourcePath);
+        if (prefab == null) return null;
+
+        if (!skillCutInInstances.TryGetValue(prefab, out SkillCutInView instance) || instance == null)
+        {
+            instance = Instantiate(prefab);
+            instance.name = prefab.name;
+            instance.gameObject.SetActive(false);
+            skillCutInInstances[prefab] = instance;
+        }
+        return instance;
+    }
+
+    private void UseSkill(Unit unit, SkillData skill)
+    {
         if (IsOffensiveSkill(skill))
         {
             // 공격 스킬은 사용 대기로 걸어 두고, 공격할 적을 누르면 스킬로 공격합니다.
             skillArmed = !skillArmed;
             RefreshCommandPanel();
             RefreshOpenAttackPreview();
+            return;
+        }
+
+        if (skill.EffectType == SkillEffectType.Phase)
+        {
+            // 유체화: 칸을 골라 그 자리로 기동합니다. 다시 누르면 취소합니다.
+            if (phaseTargeting) CancelPhaseTargeting();
+            else BeginPhaseTargeting(unit, skill);
             return;
         }
 
@@ -2247,10 +2635,81 @@ public class GameManager : MonoBehaviour
 
     private void OnAttackButtonClicked()
     {
+        if (InputLocked) return;
         if (selectedUnit == null || currentPhase != GamePhase.PlayerTurn) return;
         skillArmed = false;
         RefreshCommandPanel();
         RefreshOpenAttackPreview();
+    }
+
+    // ??????????????????? 유체화 (츠루카와 치아키) ???????????????????
+
+    /// <summary>벽과 유닛을 무시하고 사거리 안의 빈 칸을 이동 후보로 보여줍니다.</summary>
+    private void BeginPhaseTargeting(Unit unit, SkillData skill)
+    {
+        ClearAllMarkers();
+        HideAttackPreview();
+        skillArmed = false;
+        phaseTargeting = true;
+
+        GridManager grid = GridManager.Instance;
+        int range = Mathf.Max(1, skill.Range);
+        foreach (Vector2Int position in Pathfinding.GetTilesInRange(unit.GridPosition, range))
+        {
+            Tile tile = grid.GetTile(position);
+            if (tile == null || !tile.IsWalkable()) continue;
+
+            tile.SetHighlight(MoveHighlight);
+            phaseTiles.Add(position);
+        }
+        RefreshCommandPanel();
+    }
+
+    private void CancelPhaseTargeting()
+    {
+        phaseTargeting = false;
+        foreach (Vector2Int position in phaseTiles)
+        {
+            Tile tile = GridManager.Instance.GetTile(position);
+            if (tile != null) tile.ClearHighlight();
+        }
+        phaseTiles.Clear();
+
+        if (selectedUnit != null)
+        {
+            if (battleState == BattleState.UnitMoved) ShowAttackRangeAfterMove();
+            else SelectUnit(selectedUnit);
+        }
+    }
+
+    /// <summary>
+    /// 고른 칸으로 기동한 뒤 유체화 상태가 됩니다. 이번 행동은 끝나며,
+    /// 다음 자기 턴까지 적의 공격 대상에서 빠지고 이후 공격력이 줄어듭니다.
+    /// </summary>
+    private void ExecutePhase(Vector2Int destination)
+    {
+        Unit unit = selectedUnit;
+        SkillData skill = unit.SkillData;
+
+        foreach (Vector2Int position in phaseTiles)
+        {
+            Tile tile = GridManager.Instance.GetTile(position);
+            if (tile != null) tile.ClearHighlight();
+        }
+        phaseTiles.Clear();
+        phaseTargeting = false;
+
+        unit.MoveTo(destination);
+        unit.SpendSkill();
+
+        int attackPercent = skill.GetStatPercent(SkillStatType.AttackPower);
+        if (attackPercent == 0) attackPercent = -30;
+        unit.ActivatePhase(attackPercent, Mathf.Max(1, skill.DurationTurns));
+
+        lastCombatMessage =
+            $"{unit.CharacterData.DisplayName} - {skill.DisplayName}: 기동 완료 · 다음 턴까지 공격받지 않음";
+        RefreshPlayerPassives();
+        FinishUnitAction();
     }
 
     // 스킬/일반 공격을 바꾸면 열려 있는 공격 미리보기도 바로 다시 계산합니다.
@@ -2371,12 +2830,15 @@ public class GameManager : MonoBehaviour
         }
         else if (currentPhase == GamePhase.ReadyToStart)
             StartBattle();
+        else if (currentPhase == GamePhase.BattleResult && TutorialMode)
+            TutorialResultConfirmed?.Invoke(lastBattleVictory);
         else if (currentPhase == GamePhase.BattleResult)
             SceneManager.LoadScene("3.Stage List");
     }
 
     private void OnPlayClicked()
     {
+        if (InputLocked) return;
         if (currentPhase != GamePhase.PlayerTurn) return;
 
         if (battleState == BattleState.UnitMoved)

@@ -1,0 +1,330 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd63ed5494271e14d9b35d236d5d0cca, type: 3}
+  m_Name: Tutorial_World
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueDataSO
+  groups:
+  - id: 0
+    GroupName: "\uCCAB \uCD9C\uADFC"
+    entries:
+    - id: 0
+      speakerName: "\uB098"
+      dialogueText: "\uAD6D\uBB34\uCD1D\uB9AC \uBA85\uC758\uC758 \uC784\uBA85\uC7A5.
+        \uC624\uB298\uBD80\uD130 \uB0B4 \uC9C1\uD568\uC740 '\uC774\uC0C1\uAD00\uB9AC\uAD6D
+        \uAD6D\uC7A5'\uC774\uB2E4."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 1
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uAD6D\uC7A5\uB2D8, \uC774\uC0C1\uAD00\uB9AC\uAD6D AMA \uC11C\uAE30
+        \uACB8 \uBE44\uC11C \uD0A4\uD0C0\uB178 \uC720\uD0A4\uC785\uB2C8\uB2E4. \uC624\uB298\uBD80\uD130
+        \uAD6D\uC7A5\uB2D8\uC758 \uC5C5\uBB34\uB97C \uBCF4\uC88C\uD569\uB2C8\uB2E4."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 2
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uBD80\uC784 \uCCAB\uB0A0\uC774\uB2C8 \uAE30\uBCF8 \uBE0C\uB9AC\uD551\uBD80\uD130
+        \uB4DC\uB9AC\uACA0\uC2B5\uB2C8\uB2E4. \uBA54\uBAA8\uB294 \uD544\uC694 \uC5C6\uC2B5\uB2C8\uB2E4.
+        \uD544\uC694\uD55C \uAC74 \uC81C\uAC00 \uC804\uBD80 \uAE30\uC5B5\uD574 \uB450\uB2C8\uAE4C\uC694."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+  - id: 1
+    GroupName: "\uC138\uACC4\uAD00 \uBE0C\uB9AC\uD551"
+    entries:
+    - id: 3
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uC57D 50\uB144 \uC804\uBD80\uD130, \uC0AC\uB78C\uC5D0\uAC8C\uC11C
+        \uC124\uBA85\uD560 \uC218 \uC5C6\uB294 \uB2A5\uB825\uC774 \uBC1C\uD604\uB418\uAE30
+        \uC2DC\uC791\uD588\uC2B5\uB2C8\uB2E4. \uD559\uC220\uBA85\uC740 '\uC774\uC0C1\uD604\uC0C1\uC790'.
+        \uC138\uAC04\uC5D0\uC11C\uB294 '\uD3F4\uD130\uAC00\uC774\uC2A4\uD2B8'\uB77C\uACE0
+        \uBD80\uB974\uC8E0."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 4
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uD604\uC7AC \uB300\uD55C\uBBFC\uAD6D \uC778\uAD6C\uC758 \uC57D
+        20%\uAC00 \uB2A5\uB825\uC790\uC785\uB2C8\uB2E4. \uBC1C\uD604\uC740 \uD3C9\uADE0
+        15\uC138 \uBB34\uB835\uC774\uACE0, 18\uC138 \uC774\uD6C4\uC5D0 \uBC1C\uD604\uB41C
+        \uC0AC\uB840\uB294 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 5
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uB2A5\uB825\uC790\uB294 \uB2A5\uB825\uC790\uBD84\uB958\uAD6D\uC5D0
+        \uB4F1\uB85D\uD560 \uC758\uBB34\uAC00 \uC788\uC2B5\uB2C8\uB2E4. \uB4F1\uB85D\uD558\uC9C0
+        \uC54A\uC73C\uBA74 \uCE74\uB4DC \uBC1C\uAE09\uB3C4, \uD734\uB300\uD3F0 \uAC1C\uD1B5\uB3C4
+        \uC5B4\uB835\uC2B5\uB2C8\uB2E4."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 6
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uADF8\uB9AC\uACE0 \uB2A5\uB825\uC774 \uC5BD\uD78C \uC0AC\uAC74\uC744
+        \uC870\uC0AC\uD558\uACE0, \uB2A5\uB825\uC790\uB97C \uBCF4\uD638\uD558\uACE0,
+        \uD604\uC7A5\uC5D0 \uB300\uC751\uD558\uB294 \uAE30\uAD00. \uADF8\uAC8C \uC800\uD76C
+        \uC774\uC0C1\uAD00\uB9AC\uAD6D, AMA\uC785\uB2C8\uB2E4."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 7
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uB300\uD1B5\uB839 \uC9C1\uC18D CSIA\uC640\uB294 \uD611\uC5C5
+        \uAD00\uACC4\uC785\uB2C8\uB2E4. \u2026\uD45C\uBA74\uC0C1\uC73C\uB85C\uB294\uC694.
+        \uADF8\uCABD \uC0AC\uB78C\uB4E4\uC740 \uC870\uC2EC\uD558\uC2DC\uB294 \uD3B8\uC774
+        \uC88B\uC2B5\uB2C8\uB2E4."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+  - id: 2
+    GroupName: S.A.F.E.
+    entries:
+    - id: 8
+      speakerName: "\uB098"
+      dialogueText: "\uADF8\uB798\uC11C, \uD604\uC7A5\uC5D0\uB294 \uB204\uAC00 \uB098\uAC00\uC9C0?"
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 9
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "J\uC0AC\uB9BD\uACE0 SAFE\uBC18. \uAD6D\uC7A5\uB2D8\uC774 \uBCF4\uCDA9\uC218\uC5C5
+        \uAD50\uC0AC\uB85C \uB2F4\uB2F9\uD558\uC2DC\uAC8C \uB420, \uB2A5\uB825\uC790
+        \uD559\uC0DD \uC5EC\uC12F \uBA85\uC785\uB2C8\uB2E4."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 10
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uAD6D\uC7A5\uB2D8\uC740 \uBE44\uB2A5\uB825\uC790\uC2DC\uB2C8
+        \uC9C1\uC811 \uC2F8\uC6B0\uC2E4 \uD544\uC694\uB294 \uC5C6\uC2B5\uB2C8\uB2E4.
+        \uD310\uB2E8\uD558\uACE0, \uBC30\uCE58\uD558\uACE0, \uC9C0\uD718\uD558\uB294
+        \uAC83. \uADF8\uAC8C \uAD6D\uC7A5\uB2D8\uC758 \uC77C\uC785\uB2C8\uB2E4."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+    - id: 11
+      speakerName: "\uD0A4\uD0C0\uB178 \uC720\uD0A4"
+      dialogueText: "\uB9C8\uCE68 \uBAA8\uC758 \uC804\uC220 \uD6C8\uB828\uC774 \uC900\uBE44\uB418\uC5B4
+        \uC788\uC2B5\uB2C8\uB2E4. \uC2E4\uC804\uC5D0 \uB098\uAC00\uAE30 \uC804\uC5D0
+        \uC9C0\uD718 \uBC29\uC2DD\uBD80\uD130 \uC775\uD600 \uB450\uC2DC\uC8E0."
+      characterIllust: {fileID: 0}
+      BackGroundSprit: {fileID: 21300000, guid: 42afc4d183172ea4bb375c2b4da312d0, type: 3}
+      showChatUI: 1
+      EffectSound: {fileID: 0}
+      seVolune: 1
+      choices: []
+      Char1:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      Char2:
+        CharacterPNG: {fileID: 0}
+        CharacterPos: {x: 0, y: -100}
+        CharacterScale: 1
+        CharacterRotation: 0
+        moveDuration: 0.5
+      nextIndexOverride: -1
+      effectVideoClip: {fileID: 0}
+  nextStorySO: {fileID: 0}

@@ -12,9 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb9d8e1e3d7849418b246ea7f470a2b2, type: 3}
   m_Name: SK_KitanojoAtsuko_Overheat
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
-  skillId: "skill_kitanojo_atsuko_overheat"
-  displayName: "오버히트"
-  description: "플레이어 전체의 공격력과 방어력을 3턴간 강화합니다."
+  skillId: skill_kitanojo_atsuko_overheat
+  displayName: "\uC624\uBC84\uD788\uD2B8"
+  description: "\uD50C\uB808\uC774\uC5B4 \uC804\uCCB4\uC758 \uACF5\uACA9\uB825\uACFC
+    \uBC29\uC5B4\uB825\uC744 3\uD134\uAC04 \uAC15\uD654\uD569\uB2C8\uB2E4."
+  spCost: 4
+  effectType: 2
+  splashPercent: 70
+  allowCounter: 1
+  cutInImage: {fileID: 0}
+  cutInPrefab: {fileID: 0}
   activationCondition: 1
   availableFromTurn: 1
   cooldownTurns: 4

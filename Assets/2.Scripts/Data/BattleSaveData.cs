@@ -11,10 +11,18 @@ public class BattleUnitSave
     public int y;
     public int hp;
     public bool hasActed;
-    public int skillCooldown;
+    public int sp;
     public int guardTurns;
     public int buffTurns;
     public bool sentryAvailable;
+    public bool phased;
+    public int phaseAttackPercent;
+    public int phasePenaltyTurns;
+    public int buffAttackPercent;
+    public int buffDefensePercent;
+    public int debuffAttackPercent;
+    public int debuffDefensePercent;
+    public int debuffTurns;
 
     public Vector2Int Position => new Vector2Int(x, y);
 }
@@ -26,7 +34,8 @@ public class BattleUnitSave
 [Serializable]
 public class BattleSaveData
 {
-    public const int CurrentVersion = 1;
+    // 2: 쿨타임 대신 SP와 유체화 상태를 저장합니다. 1 버전 저장은 이어하기 없이 폐기됩니다.
+    public const int CurrentVersion = 2;
 
     public int version = CurrentVersion;
     public string sceneName;

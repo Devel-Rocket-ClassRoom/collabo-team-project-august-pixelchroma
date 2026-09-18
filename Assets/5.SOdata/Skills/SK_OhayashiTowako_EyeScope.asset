@@ -12,9 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb9d8e1e3d7849418b246ea7f470a2b2, type: 3}
   m_Name: SK_OhayashiTowako_EyeScope
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
-  skillId: "skill_ohayashi_towako_eye_scope"
-  displayName: "EyeScope"
-  description: "직선 방향의 원거리 적 1명을 정밀 조준해 높은 피해를 줍니다."
+  skillId: skill_ohayashi_towako_eye_scope
+  displayName: EyeScope
+  description: "\uC9C1\uC120 \uBC29\uD5A5\uC758 \uC6D0\uAC70\uB9AC \uC801 1\uBA85\uC744
+    \uC815\uBC00 \uC870\uC900\uD574 \uB192\uC740 \uD53C\uD574\uB97C \uC90D\uB2C8\uB2E4."
+  spCost: 3
+  effectType: 0
+  splashPercent: 70
+  allowCounter: 1
+  cutInImage: {fileID: 0}
+  cutInPrefab: {fileID: 0}
   activationCondition: 1
   availableFromTurn: 1
   cooldownTurns: 2

@@ -270,7 +270,7 @@ public class TurnBannerUI : MonoBehaviour
         float elapsed = 0f;
         while (elapsed < slideInDuration)
         {
-            elapsed += Time.unscaledDeltaTime;
+            elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / slideInDuration);
             float e = EaseOutCubic(t);
 
@@ -297,18 +297,18 @@ public class TurnBannerUI : MonoBehaviour
         elapsed = 0f;
         while (elapsed < textFadeDuration)
         {
-            elapsed += Time.unscaledDeltaTime;
+            elapsed += Time.deltaTime;
             bannerText.alpha = Mathf.Clamp01(elapsed / textFadeDuration);
             yield return null;
         }
         bannerText.alpha = 1f;
 
-        yield return new WaitForSecondsRealtime(holdDuration);
+        yield return new WaitForSeconds(holdDuration);
 
         elapsed = 0f;
         while (elapsed < fadeOutDuration)
         {
-            elapsed += Time.unscaledDeltaTime;
+            elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / fadeOutDuration);
 
             float scale = 1f + 0.1f * t;

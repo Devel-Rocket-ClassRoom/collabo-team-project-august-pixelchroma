@@ -12,9 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb9d8e1e3d7849418b246ea7f470a2b2, type: 3}
   m_Name: SK_KinoKisae_TimeAccelerationHeal
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
-  skillId: "skill_kino_kisae_time_acceleration_heal"
-  displayName: "시간가속 치료"
-  description: "전방위 1칸 안의 아군 1명을 선택해 체력을 회복합니다."
+  skillId: skill_kino_kisae_time_acceleration_heal
+  displayName: "\uC2DC\uAC04\uAC00\uC18D \uCE58\uB8CC"
+  description: "\uC804\uBC29\uC704 1\uCE78 \uC548\uC758 \uC544\uAD70 1\uBA85\uC744
+    \uC120\uD0DD\uD574 \uCCB4\uB825\uC744 \uD68C\uBCF5\uD569\uB2C8\uB2E4."
+  spCost: 2
+  effectType: 1
+  splashPercent: 70
+  allowCounter: 1
+  cutInImage: {fileID: 0}
+  cutInPrefab: {fileID: 0}
   activationCondition: 1
   availableFromTurn: 1
   cooldownTurns: 2
@@ -27,7 +34,7 @@ MonoBehaviour:
   areaRadius: 1
   maxTargets: 1
   powerPercent: 40
-  flatPower: 3
+  flatPower: 0
   ignoresCover: 1
   canFriendlyFire: 0
   statModifiers: []

@@ -12,9 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb9d8e1e3d7849418b246ea7f470a2b2, type: 3}
   m_Name: SK_KamaeTomoka_CombatMode
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
-  skillId: "skill_kamae_tomoka_combat_mode"
-  displayName: "전투모드"
-  description: "자작 드론과 장비로 넓은 범위에 전방위 화력을 투사합니다."
+  skillId: skill_kamae_tomoka_combat_mode
+  displayName: "\uC804\uD22C\uBAA8\uB4DC"
+  description: "\uC790\uC791 \uB4DC\uB860\uACFC \uC7A5\uBE44\uB85C \uB113\uC740 \uBC94\uC704\uC5D0
+    \uC804\uBC29\uC704 \uD654\uB825\uC744 \uD22C\uC0AC\uD569\uB2C8\uB2E4."
+  spCost: 4
+  effectType: 0
+  splashPercent: 70
+  allowCounter: 0
+  cutInImage: {fileID: 0}
+  cutInPrefab: {fileID: 0}
   activationCondition: 1
   availableFromTurn: 1
   cooldownTurns: 3

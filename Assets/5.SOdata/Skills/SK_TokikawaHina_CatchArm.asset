@@ -12,9 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb9d8e1e3d7849418b246ea7f470a2b2, type: 3}
   m_Name: SK_TokikawaHina_CatchArm
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
-  skillId: "skill_tokikawa_hina_catch_arm"
-  displayName: "캐치암"
-  description: "2턴간 8방향의 적 공격을 우선적으로 받아내고 방어력을 올립니다."
+  skillId: skill_tokikawa_hina_catch_arm
+  displayName: "\uCE90\uCE58\uC554"
+  description: "2\uD134\uAC04 8\uBC29\uD5A5\uC758 \uC801 \uACF5\uACA9\uC744 \uC6B0\uC120\uC801\uC73C\uB85C
+    \uBC1B\uC544\uB0B4\uACE0 \uBC29\uC5B4\uB825\uC744 \uC62C\uB9BD\uB2C8\uB2E4."
+  spCost: 2
+  effectType: 4
+  splashPercent: 70
+  allowCounter: 1
+  cutInImage: {fileID: 0}
+  cutInPrefab: {fileID: 0}
   activationCondition: 1
   availableFromTurn: 1
   cooldownTurns: 3

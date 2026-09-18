@@ -39,10 +39,17 @@ public class TitleScreenView : MonoBehaviour
 
         if (accessOverlay == null || accessStatusText == null)
         {
-            SceneManager.LoadScene(NextScene);
+            GoNext();
             return;
         }
         StartCoroutine(PlayAccessSequence());
+    }
+
+    // 첫 플레이(튜토리얼 완료 파일 없음)면 튜토리얼 스토리로, 아니면 메인 메뉴로 갑니다.
+    private void GoNext()
+    {
+        if (TutorialFlow.ShouldPlay) TutorialFlow.LoadStoryScene();
+        else SceneManager.LoadScene(NextScene);
     }
 
     private IEnumerator PlayAccessSequence()
@@ -61,6 +68,6 @@ public class TitleScreenView : MonoBehaviour
         accessStatusText.color = UITheme.Accent;
         yield return new WaitForSecondsRealtime(0.25f);
 
-        SceneManager.LoadScene(NextScene);
+        GoNext();
     }
 }

@@ -8,6 +8,8 @@ public class ScenarioController : MonoBehaviour
     public DialogueDataSO currentScenario;
     [Tooltip("마지막 챕터(nextStorySO 없음)가 끝나면 이동할 씬. 비워두면 이동하지 않습니다.")]
     public string sceneOnFinished = "3.5.Squad Select";
+    // 코드에서 지정하면 마지막 대사가 끝나거나 스킵할 때 sceneOnFinished 대신 이것을 실행합니다. (튜토리얼용)
+    [System.NonSerialized] public System.Action onFinished;
     public int currentGroupIndex =0;
     public int currentEntryIndex =0;
 
@@ -26,6 +28,7 @@ public class ScenarioController : MonoBehaviour
 
     public void SkipStory()
     {
+        if (onFinished != null) { onFinished(); return; }
         if (!string.IsNullOrEmpty(sceneOnFinished))
             SceneManager.LoadScene(sceneOnFinished);
     }
@@ -93,6 +96,7 @@ public class ScenarioController : MonoBehaviour
 
     public void EndOfDialogue()
     {
+        if (currentScenario.nextStorySO == null && onFinished != null) { onFinished(); return; }
         if(currentScenario.nextStorySO !=null)
         {
             StartChapter(currentScenario.nextStorySO);
